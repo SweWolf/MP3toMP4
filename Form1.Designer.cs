@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             txtMP3File = new TextBox();
             label1 = new Label();
             label2 = new Label();
@@ -35,14 +36,25 @@
             btnBrowseForMp3File = new Button();
             btnBrowsForImageFile = new Button();
             groupBox1 = new GroupBox();
+            picImage = new PictureBox();
             groupBox2 = new GroupBox();
             txtMP4File = new TextBox();
             label3 = new Label();
             cmdBrowseForMP4File = new Button();
             btnConvert = new Button();
             lblEstimatedRemaining = new Label();
+            progressBar = new TextProgressBar();
+            btnCancel = new Button();
+            menuStrip = new MenuStrip();
+            menuSetup = new ToolStripMenuItem();
+            menuCreateShortcut = new ToolStripMenuItem();
+            helpToolStripMenuItem = new ToolStripMenuItem();
+            aboutToolStripMenuItem = new ToolStripMenuItem();
+            chkUseImageFileFromMp3File = new CheckBox();
             groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)picImage).BeginInit();
             groupBox2.SuspendLayout();
+            menuStrip.SuspendLayout();
             SuspendLayout();
             // 
             // txtMP3File
@@ -102,25 +114,35 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(chkUseImageFileFromMp3File);
+            groupBox1.Controls.Add(picImage);
             groupBox1.Controls.Add(label2);
             groupBox1.Controls.Add(btnBrowsForImageFile);
             groupBox1.Controls.Add(txtMP3File);
             groupBox1.Controls.Add(btnBrowseForMp3File);
             groupBox1.Controls.Add(label1);
             groupBox1.Controls.Add(cboImageFile);
-            groupBox1.Location = new Point(12, 12);
+            groupBox1.Location = new Point(12, 36);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(767, 182);
+            groupBox1.Size = new Size(767, 454);
             groupBox1.TabIndex = 5;
             groupBox1.TabStop = false;
             groupBox1.Text = "Input";
+            // 
+            // picImage
+            // 
+            picImage.Location = new Point(20, 234);
+            picImage.Name = "picImage";
+            picImage.Size = new Size(713, 208);
+            picImage.TabIndex = 4;
+            picImage.TabStop = false;
             // 
             // groupBox2
             // 
             groupBox2.Controls.Add(txtMP4File);
             groupBox2.Controls.Add(label3);
             groupBox2.Controls.Add(cmdBrowseForMP4File);
-            groupBox2.Location = new Point(10, 229);
+            groupBox2.Location = new Point(12, 508);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(772, 103);
             groupBox2.TabIndex = 6;
@@ -157,7 +179,7 @@
             // btnConvert
             // 
             btnConvert.Font = new Font("Segoe UI", 12F);
-            btnConvert.Location = new Point(32, 352);
+            btnConvert.Location = new Point(34, 631);
             btnConvert.Name = "btnConvert";
             btnConvert.Size = new Size(127, 37);
             btnConvert.TabIndex = 2;
@@ -169,28 +191,104 @@
             lblEstimatedRemaining.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lblEstimatedRemaining.AutoSize = true;
             lblEstimatedRemaining.Font = new Font("Segoe UI", 10F);
-            lblEstimatedRemaining.Location = new Point(12, 406);
+            lblEstimatedRemaining.Location = new Point(12, 695);
             lblEstimatedRemaining.Name = "lblEstimatedRemaining";
             lblEstimatedRemaining.Size = new Size(186, 19);
             lblEstimatedRemaining.TabIndex = 15;
             lblEstimatedRemaining.Text = "Estimated remaining time: —";
             // 
+            // progressBar
+            // 
+            progressBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            progressBar.Location = new Point(12, 719);
+            progressBar.Name = "progressBar";
+            progressBar.Size = new Size(776, 23);
+            progressBar.TabIndex = 16;
+            // 
+            // btnCancel
+            // 
+            btnCancel.Enabled = false;
+            btnCancel.Font = new Font("Segoe UI", 12F);
+            btnCancel.Location = new Point(180, 631);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(127, 37);
+            btnCancel.TabIndex = 17;
+            btnCancel.Text = "Cancel";
+            btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.Click += btnCancel_Click;
+            // 
+            // menuStrip
+            // 
+            menuStrip.Items.AddRange(new ToolStripItem[] { menuSetup, helpToolStripMenuItem });
+            menuStrip.Location = new Point(0, 0);
+            menuStrip.Name = "menuStrip";
+            menuStrip.Size = new Size(800, 24);
+            menuStrip.TabIndex = 18;
+            // 
+            // menuSetup
+            // 
+            menuSetup.DropDownItems.AddRange(new ToolStripItem[] { menuCreateShortcut });
+            menuSetup.Name = "menuSetup";
+            menuSetup.Size = new Size(49, 20);
+            menuSetup.Text = "Setup";
+            // 
+            // menuCreateShortcut
+            // 
+            menuCreateShortcut.Name = "menuCreateShortcut";
+            menuCreateShortcut.Size = new Size(165, 22);
+            menuCreateShortcut.Text = "Create Shortcut...";
+            menuCreateShortcut.Click += menuCreateShortcut_Click;
+            // 
+            // helpToolStripMenuItem
+            // 
+            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { aboutToolStripMenuItem });
+            helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            helpToolStripMenuItem.Size = new Size(44, 20);
+            helpToolStripMenuItem.Text = "Help";
+            // 
+            // aboutToolStripMenuItem
+            // 
+            aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            aboutToolStripMenuItem.Size = new Size(116, 22);
+            aboutToolStripMenuItem.Text = "About...";
+            aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
+            // 
+            // chkUseImageFileFromMp3File
+            // 
+            chkUseImageFileFromMp3File.AutoSize = true;
+            chkUseImageFileFromMp3File.Enabled = false;
+            chkUseImageFileFromMp3File.Font = new Font("Segoe UI", 12F);
+            chkUseImageFileFromMp3File.Location = new Point(22, 187);
+            chkUseImageFileFromMp3File.Name = "chkUseImageFileFromMp3File";
+            chkUseImageFileFromMp3File.Size = new Size(232, 25);
+            chkUseImageFileFromMp3File.TabIndex = 5;
+            chkUseImageFileFromMp3File.Text = "Use Image File from MP3 File";
+            chkUseImageFileFromMp3File.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 465);
+            ClientSize = new Size(800, 757);
+            Controls.Add(btnCancel);
+            Controls.Add(progressBar);
             Controls.Add(lblEstimatedRemaining);
             Controls.Add(btnConvert);
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
+            Controls.Add(menuStrip);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            MainMenuStrip = menuStrip;
             Name = "Form1";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "MP3 to MP4";
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)picImage).EndInit();
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
+            menuStrip.ResumeLayout(false);
+            menuStrip.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -210,5 +308,14 @@
         private Button cmdBrowseForMP4File;
         private Button btnConvert;
         private Label lblEstimatedRemaining;
+        private TextProgressBar progressBar;
+        private PictureBox picImage;
+        private Button btnCancel;
+        private MenuStrip menuStrip;
+        private ToolStripMenuItem menuSetup;
+        private ToolStripMenuItem menuCreateShortcut;
+        private ToolStripMenuItem helpToolStripMenuItem;
+        private ToolStripMenuItem aboutToolStripMenuItem;
+        private CheckBox chkUseImageFileFromMp3File;
     }
 }
