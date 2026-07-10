@@ -413,6 +413,16 @@ namespace MP3toMP4
             }
         }
 
+        private static TimeSpan GetMp3Duration(string mp3)
+        {
+            try
+            {
+                using var f = TagLib.File.Create(mp3);
+                return f.Properties.Duration;
+            }
+            catch { return TimeSpan.Zero; }
+        }
+
         private Task RunFFmpegAsync(string ffmpeg, string mp3, string image, string mp4)
         {
             return Task.Run(() =>
@@ -445,7 +455,7 @@ namespace MP3toMP4
                 using var process = new Process { StartInfo = psi };
                 _ffmpegProcess = process;
 
-                TimeSpan totalDuration = TimeSpan.Zero;
+                TimeSpan totalDuration = GetMp3Duration(mp3);
                 var startTime = DateTime.UtcNow;
 
                 process.Start();
@@ -453,19 +463,6 @@ namespace MP3toMP4
                 string? line;
                 while ((line = process.StandardError.ReadLine()) != null)
                 {
-                    // Capture total duration from FFmpeg's initial probe output
-                    if (totalDuration == TimeSpan.Zero)
-                    {
-                        var dm = Regex.Match(line, @"Duration:\s*(\d+):(\d+):(\d+\.\d+)");
-                        if (dm.Success)
-                        {
-                            double secs = int.Parse(dm.Groups[1].Value) * 3600
-                                        + int.Parse(dm.Groups[2].Value) * 60
-                                        + double.Parse(dm.Groups[3].Value, CultureInfo.InvariantCulture);
-                            totalDuration = TimeSpan.FromSeconds(secs);
-                        }
-                    }
-
                     // Track encoding position via "time=HH:MM:SS.ms"
                     var tm = Regex.Match(line, @"time=(\d+):(\d+):(\d+\.\d+)");
                     if (tm.Success && totalDuration > TimeSpan.Zero)

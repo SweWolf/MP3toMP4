@@ -1,5 +1,3 @@
-using System.Reflection;
-
 namespace MP3toMP4
 {
     public partial class AboutForm : Form
@@ -8,10 +6,8 @@ namespace MP3toMP4
         {
             InitializeComponent();
 
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            lblVersion.Text = version != null
-                ? $"Version {version.Major}.{version.Minor}.{version.Build}"
-                : "Version 1.0.0";
+            var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
+            lblVersion.Text = $"Version {fvi.FileMajorPart}.{fvi.FileMinorPart}.{fvi.FileBuildPart}";
 
             try
             {
