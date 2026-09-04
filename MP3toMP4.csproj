@@ -19,6 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WPF" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
   </ItemGroup>
 

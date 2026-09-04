@@ -9,9 +9,12 @@ A clean Windows desktop application that combines an MP3 audio file with a stati
 - **Browse, drag & drop, or paste** your files — all input fields accept files dragged from Windows Explorer or straight from a web browser (e.g. Chrome), and the image field also supports pasting from the clipboard (Ctrl+V or right-click → Paste)
 - **Auto-fill** — selecting an MP3 file automatically suggests matching image files from the same folder and pre-fills the output MP4 path
 - **Embedded artwork** — if the MP3 contains album art in its ID3 tags, a checkbox lets you extract and use it with one click
-- **Image preview** — the selected image is displayed instantly inside the application
+- **Lyrics transfer** — if the MP3 contains lyrics, an optional checkbox copies them into the output MP4 (stored in the standard `©lyr` tag, readable by iTunes, MusicBee, foobar2000, and others); the checkbox state is remembered between sessions
+- **Image preview** — the selected image is displayed instantly inside the application, including WebP files
 - **Live progress bar** — shows conversion progress as a percentage with an estimated time remaining
 - **Cancel at any time** — cancelling mid-conversion kills the FFmpeg process and deletes the incomplete output file
+- **Overwrite protection** — if the output file already exists, a confirmation dialog appears before overwriting; declining returns focus to the filename field so you can change it
+- **Post-conversion shortcuts** — after converting, three buttons appear: **Open File** (play the MP4), **Open Folder** (open Explorer with the file selected), and **Open Log File** (view the FFmpeg output log)
 - **Create Shortcut** — easily add the app to your Desktop, Start Menu, or Send To menu via Setup → Create Shortcut
 
 ---
@@ -48,7 +51,7 @@ The application will open with the MP3 pre-loaded and the image and output field
 
 - [.NET 10 / Windows Forms](https://dotnet.microsoft.com/)
 - [FFmpeg](https://ffmpeg.org/) — audio/video conversion engine
-- [TagLibSharp](https://github.com/mono/taglib-sharp) — embedded MP3 artwork extraction
+- [TagLibSharp](https://github.com/mono/taglib-sharp) — embedded artwork extraction and lyrics tagging
 
 ---
 

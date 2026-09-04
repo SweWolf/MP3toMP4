@@ -9,8 +9,13 @@ namespace MP3toMP4
     {
         private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"];
 
+        private static readonly string SettingsFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", "MP3toMP4", "settings.json");
+
         private Process? _ffmpegProcess;
         private bool     _cancelRequested;
+        private string?  _lastLogFile;
 
         public Form1()
         {
@@ -50,6 +55,13 @@ namespace MP3toMP4
             cboImageFile.ContextMenuStrip = ctxMenu;
 
             chkUseImageFileFromMp3File.CheckedChanged += ChkUseImageFileFromMp3File_CheckedChanged;
+
+            btnOpenFile.Click   += BtnOpenFile_Click;
+            btnOpenFolder.Click += BtnOpenFolder_Click;
+            btnOpenLogFile.Click += BtnOpenLogFile_Click;
+
+            chkLyrics.Enabled = false;
+            LoadSettings();
 
             string[] args = Environment.GetCommandLineArgs();
             if (args.Length > 1 && File.Exists(args[1]))
@@ -92,7 +104,8 @@ namespace MP3toMP4
             {
                 Title = "Save MP4 file as",
                 Filter = "MP4 files (*.mp4)|*.mp4|All files (*.*)|*.*",
-                DefaultExt = "mp4"
+                DefaultExt = "mp4",
+                OverwritePrompt = false
             };
 
             if (!string.IsNullOrWhiteSpace(txtMP4File.Text))
@@ -243,10 +256,24 @@ namespace MP3toMP4
             }
             try
             {
-                // Load via MemoryStream so the file is not locked after loading
-                using var ms = new MemoryStream(File.ReadAllBytes(path));
                 picImage.Image?.Dispose();
-                picImage.Image = Image.FromStream(ms);
+
+                if (path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase))
+                {
+                    // GDI+ doesn't support WebP; use WPF's WIC decoder which does
+                    var bi = new System.Windows.Media.Imaging.BitmapImage(new Uri(path));
+                    var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                    encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bi));
+                    using var ms = new MemoryStream();
+                    encoder.Save(ms);
+                    ms.Position = 0;
+                    picImage.Image = new Bitmap(ms);
+                }
+                else
+                {
+                    using var ms = new MemoryStream(File.ReadAllBytes(path));
+                    picImage.Image = Image.FromStream(ms);
+                }
             }
             catch
             {
@@ -266,6 +293,8 @@ namespace MP3toMP4
             cboImageFile.Items.Clear();
             chkUseImageFileFromMp3File.Enabled = false;
             chkUseImageFileFromMp3File.Checked = false;
+            chkLyrics.Enabled = false;
+            chkLyrics.Checked = false;
 
             var dir = Path.GetDirectoryName(mp3Path);
             var baseName = Path.GetFileNameWithoutExtension(mp3Path);
@@ -283,8 +312,9 @@ namespace MP3toMP4
             if (matches.Length > 0)
                 cboImageFile.SelectedIndex = 0;
 
-            // Enable checkbox if the MP3 contains embedded artwork
+            // Enable checkboxes based on what the MP3 contains
             chkUseImageFileFromMp3File.Enabled = HasEmbeddedArtwork(mp3Path);
+            chkLyrics.Enabled = HasLyrics(mp3Path);
         }
 
         private static bool HasEmbeddedArtwork(string mp3Path)
@@ -295,6 +325,54 @@ namespace MP3toMP4
                 return file.Tag.Pictures.Length > 0;
             }
             catch { return false; }
+        }
+
+        private void LoadSettings()
+        {
+            try
+            {
+                if (!File.Exists(SettingsFile)) return;
+                var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(SettingsFile));
+                if (doc.RootElement.TryGetProperty("includeLyrics", out var v))
+                    chkLyrics.Checked = v.GetBoolean();
+            }
+            catch { }
+        }
+
+        private void SaveSettings()
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(SettingsFile)!);
+                File.WriteAllText(SettingsFile,
+                    System.Text.Json.JsonSerializer.Serialize(new { includeLyrics = chkLyrics.Checked }));
+            }
+            catch { }
+        }
+
+        private static bool HasLyrics(string mp3Path)
+        {
+            try
+            {
+                using var file = TagLib.File.Create(mp3Path);
+                return !string.IsNullOrWhiteSpace(file.Tag.Lyrics);
+            }
+            catch { return false; }
+        }
+
+        private static void WriteLyricsToMp4(string mp3Path, string mp4Path)
+        {
+            try
+            {
+                using var src = TagLib.File.Create(mp3Path);
+                string lyrics = src.Tag.Lyrics;
+                if (string.IsNullOrWhiteSpace(lyrics)) return;
+
+                using var dst = TagLib.File.Create(mp4Path);
+                dst.Tag.Lyrics = lyrics;
+                dst.Save();
+            }
+            catch { }
         }
 
         private string? ExtractEmbeddedArtwork(string mp3Path)
@@ -352,6 +430,8 @@ namespace MP3toMP4
 
         private async void BtnConvert_Click(object? sender, EventArgs e)
         {
+            SaveSettings();
+
             string mp3 = txtMP3File.Text.Trim();
             string image = cboImageFile.Text.Trim();
             string mp4 = txtMP4File.Text.Trim();
@@ -372,6 +452,23 @@ namespace MP3toMP4
                 return;
             }
 
+            if (File.Exists(mp4))
+            {
+                var answer = MessageBox.Show(
+                    $"The output file already exists:\n{mp4}\n\nDo you want to overwrite it?",
+                    "File Already Exists",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button2);
+
+                if (answer != DialogResult.Yes)
+                {
+                    txtMP4File.Focus();
+                    txtMP4File.SelectAll();
+                    return;
+                }
+            }
+
             string? ffmpeg = FindFFmpeg();
             if (ffmpeg == null)
             {
@@ -383,13 +480,29 @@ namespace MP3toMP4
 
             btnConvert.Enabled    = false;
             btnCancel.Enabled     = true;
+            btnOpenFile.Enabled   = false;
+            btnOpenFolder.Enabled = false;
+            btnOpenLogFile.Enabled = false;
             _cancelRequested      = false;
             progressBar.Value     = 0;
             lblEstimatedRemaining.Text = "Estimated remaining time: —";
 
+            string logDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "SweWolfSoftware", "MP3toMP4", "Logs");
+            Directory.CreateDirectory(logDir);
+            _lastLogFile = Path.Combine(logDir, $"convert_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+            btnOpenLogFile.Enabled = true;
+
             try
             {
-                await RunFFmpegAsync(ffmpeg, mp3, image, mp4);
+                await RunFFmpegAsync(ffmpeg, mp3, image, mp4, _lastLogFile);
+
+                if (chkLyrics.Checked)
+                    WriteLyricsToMp4(mp3, mp4);
+
+                btnOpenFile.Enabled   = File.Exists(mp4);
+                btnOpenFolder.Enabled = true;
                 progressBar.Value = progressBar.Maximum;
                 lblEstimatedRemaining.Text = "Estimated remaining time: Done";
                 MessageBox.Show(
@@ -403,6 +516,7 @@ namespace MP3toMP4
             }
             catch (Exception ex)
             {
+                btnOpenFolder.Enabled = !string.IsNullOrEmpty(Path.GetDirectoryName(mp4));
                 MessageBox.Show("Conversion failed: " + ex.Message, "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -423,7 +537,7 @@ namespace MP3toMP4
             catch { return TimeSpan.Zero; }
         }
 
-        private Task RunFFmpegAsync(string ffmpeg, string mp3, string image, string mp4)
+        private Task RunFFmpegAsync(string ffmpeg, string mp3, string image, string mp4, string logFile)
         {
             return Task.Run(() =>
             {
@@ -460,9 +574,17 @@ namespace MP3toMP4
 
                 process.Start();
 
+                using var log = new StreamWriter(logFile, append: false, System.Text.Encoding.UTF8);
+                log.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] FFmpeg: {ffmpeg}");
+                log.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}");
+                log.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Image : {image}");
+                log.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP4   : {mp4}");
+                log.WriteLine();
+
                 string? line;
                 while ((line = process.StandardError.ReadLine()) != null)
                 {
+                    log.WriteLine(line);
                     // Track encoding position via "time=HH:MM:SS.ms"
                     var tm = Regex.Match(line, @"time=(\d+):(\d+):(\d+\.\d+)");
                     if (tm.Success && totalDuration > TimeSpan.Zero)
@@ -556,6 +678,40 @@ namespace MP3toMP4
         {
             using var form = new AboutForm();
             form.ShowDialog(this);
+        }
+
+        private void BtnOpenFile_Click(object? sender, EventArgs e)
+        {
+            string mp4 = txtMP4File.Text.Trim();
+            if (!File.Exists(mp4))
+            {
+                MessageBox.Show("File not found.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            Process.Start(new ProcessStartInfo(mp4) { UseShellExecute = true });
+        }
+
+        private void BtnOpenFolder_Click(object? sender, EventArgs e)
+        {
+            string mp4 = txtMP4File.Text.Trim();
+            if (!string.IsNullOrEmpty(mp4) && File.Exists(mp4))
+            {
+                Process.Start("explorer.exe", $"/select,\"{mp4}\"");
+                return;
+            }
+            string? folder = Path.GetDirectoryName(mp4);
+            if (!string.IsNullOrEmpty(folder) && Directory.Exists(folder))
+                Process.Start("explorer.exe", $"\"{folder}\"");
+        }
+
+        private void BtnOpenLogFile_Click(object? sender, EventArgs e)
+        {
+            if (_lastLogFile == null || !File.Exists(_lastLogFile))
+            {
+                MessageBox.Show("Log file not found.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            Process.Start(new ProcessStartInfo(_lastLogFile) { UseShellExecute = true });
         }
 
         private static string? FindFFmpeg()

@@ -35,7 +35,9 @@
             cboImageFile = new ComboBox();
             btnBrowseForMp3File = new Button();
             btnBrowsForImageFile = new Button();
-            groupBox1 = new GroupBox();
+            grpInput = new GroupBox();
+            chkLyrics = new CheckBox();
+            chkUseImageFileFromMp3File = new CheckBox();
             picImage = new PictureBox();
             groupBox2 = new GroupBox();
             txtMP4File = new TextBox();
@@ -50,8 +52,10 @@
             menuCreateShortcut = new ToolStripMenuItem();
             helpToolStripMenuItem = new ToolStripMenuItem();
             aboutToolStripMenuItem = new ToolStripMenuItem();
-            chkUseImageFileFromMp3File = new CheckBox();
-            groupBox1.SuspendLayout();
+            btnOpenLogFile = new Button();
+            btnOpenFolder = new Button();
+            btnOpenFile = new Button();
+            grpInput.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picImage).BeginInit();
             groupBox2.SuspendLayout();
             menuStrip.SuspendLayout();
@@ -112,39 +116,69 @@
             btnBrowsForImageFile.Text = "...";
             btnBrowsForImageFile.UseVisualStyleBackColor = true;
             // 
-            // groupBox1
+            // grpInput
             // 
-            groupBox1.Controls.Add(chkUseImageFileFromMp3File);
-            groupBox1.Controls.Add(picImage);
-            groupBox1.Controls.Add(label2);
-            groupBox1.Controls.Add(btnBrowsForImageFile);
-            groupBox1.Controls.Add(txtMP3File);
-            groupBox1.Controls.Add(btnBrowseForMp3File);
-            groupBox1.Controls.Add(label1);
-            groupBox1.Controls.Add(cboImageFile);
-            groupBox1.Location = new Point(12, 36);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(767, 454);
-            groupBox1.TabIndex = 5;
-            groupBox1.TabStop = false;
-            groupBox1.Text = "Input";
+            grpInput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            grpInput.Controls.Add(chkLyrics);
+            grpInput.Controls.Add(chkUseImageFileFromMp3File);
+            grpInput.Controls.Add(picImage);
+            grpInput.Controls.Add(label2);
+            grpInput.Controls.Add(btnBrowsForImageFile);
+            grpInput.Controls.Add(txtMP3File);
+            grpInput.Controls.Add(btnBrowseForMp3File);
+            grpInput.Controls.Add(label1);
+            grpInput.Controls.Add(cboImageFile);
+            grpInput.Font = new Font("Segoe UI", 12F);
+            grpInput.Location = new Point(12, 36);
+            grpInput.Name = "grpInput";
+            grpInput.Size = new Size(767, 446);
+            grpInput.TabIndex = 5;
+            grpInput.TabStop = false;
+            grpInput.Text = "Input";
+            // 
+            // chkLyrics
+            // 
+            chkLyrics.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            chkLyrics.AutoSize = true;
+            chkLyrics.Checked = true;
+            chkLyrics.CheckState = CheckState.Checked;
+            chkLyrics.Location = new Point(20, 402);
+            chkLyrics.Name = "chkLyrics";
+            chkLyrics.Size = new Size(200, 25);
+            chkLyrics.TabIndex = 6;
+            chkLyrics.Text = "Include Lyrics if available";
+            chkLyrics.UseVisualStyleBackColor = true;
+            // 
+            // chkUseImageFileFromMp3File
+            // 
+            chkUseImageFileFromMp3File.AutoSize = true;
+            chkUseImageFileFromMp3File.Enabled = false;
+            chkUseImageFileFromMp3File.Font = new Font("Segoe UI", 12F);
+            chkUseImageFileFromMp3File.Location = new Point(22, 187);
+            chkUseImageFileFromMp3File.Name = "chkUseImageFileFromMp3File";
+            chkUseImageFileFromMp3File.Size = new Size(232, 25);
+            chkUseImageFileFromMp3File.TabIndex = 5;
+            chkUseImageFileFromMp3File.Text = "Use Image File from MP3 File";
+            chkUseImageFileFromMp3File.UseVisualStyleBackColor = true;
             // 
             // picImage
             // 
+            picImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             picImage.Location = new Point(20, 234);
             picImage.Name = "picImage";
-            picImage.Size = new Size(713, 208);
+            picImage.Size = new Size(724, 162);
             picImage.TabIndex = 4;
             picImage.TabStop = false;
             // 
             // groupBox2
             // 
+            groupBox2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             groupBox2.Controls.Add(txtMP4File);
             groupBox2.Controls.Add(label3);
             groupBox2.Controls.Add(cmdBrowseForMP4File);
-            groupBox2.Location = new Point(12, 508);
+            groupBox2.Location = new Point(12, 509);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(772, 103);
+            groupBox2.Size = new Size(767, 103);
             groupBox2.TabIndex = 6;
             groupBox2.TabStop = false;
             groupBox2.Text = "Output";
@@ -178,8 +212,9 @@
             // 
             // btnConvert
             // 
+            btnConvert.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnConvert.Font = new Font("Segoe UI", 12F);
-            btnConvert.Location = new Point(34, 631);
+            btnConvert.Location = new Point(14, 635);
             btnConvert.Name = "btnConvert";
             btnConvert.Size = new Size(127, 37);
             btnConvert.TabIndex = 2;
@@ -191,7 +226,7 @@
             lblEstimatedRemaining.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lblEstimatedRemaining.AutoSize = true;
             lblEstimatedRemaining.Font = new Font("Segoe UI", 10F);
-            lblEstimatedRemaining.Location = new Point(12, 695);
+            lblEstimatedRemaining.Location = new Point(12, 696);
             lblEstimatedRemaining.Name = "lblEstimatedRemaining";
             lblEstimatedRemaining.Size = new Size(186, 19);
             lblEstimatedRemaining.TabIndex = 15;
@@ -199,17 +234,18 @@
             // 
             // progressBar
             // 
-            progressBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            progressBar.Location = new Point(12, 719);
+            progressBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            progressBar.Location = new Point(12, 720);
             progressBar.Name = "progressBar";
-            progressBar.Size = new Size(776, 23);
+            progressBar.Size = new Size(760, 23);
             progressBar.TabIndex = 16;
             // 
             // btnCancel
             // 
+            btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnCancel.Enabled = false;
             btnCancel.Font = new Font("Segoe UI", 12F);
-            btnCancel.Location = new Point(180, 631);
+            btnCancel.Location = new Point(160, 635);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(127, 37);
             btnCancel.TabIndex = 17;
@@ -222,7 +258,7 @@
             menuStrip.Items.AddRange(new ToolStripItem[] { menuSetup, helpToolStripMenuItem });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
-            menuStrip.Size = new Size(800, 24);
+            menuStrip.Size = new Size(793, 24);
             menuStrip.TabIndex = 18;
             // 
             // menuSetup
@@ -253,37 +289,65 @@
             aboutToolStripMenuItem.Text = "About...";
             aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
             // 
-            // chkUseImageFileFromMp3File
+            // btnOpenLogFile
             // 
-            chkUseImageFileFromMp3File.AutoSize = true;
-            chkUseImageFileFromMp3File.Enabled = false;
-            chkUseImageFileFromMp3File.Font = new Font("Segoe UI", 12F);
-            chkUseImageFileFromMp3File.Location = new Point(22, 187);
-            chkUseImageFileFromMp3File.Name = "chkUseImageFileFromMp3File";
-            chkUseImageFileFromMp3File.Size = new Size(232, 25);
-            chkUseImageFileFromMp3File.TabIndex = 5;
-            chkUseImageFileFromMp3File.Text = "Use Image File from MP3 File";
-            chkUseImageFileFromMp3File.UseVisualStyleBackColor = true;
+            btnOpenLogFile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnOpenLogFile.Enabled = false;
+            btnOpenLogFile.Font = new Font("Segoe UI", 12F);
+            btnOpenLogFile.Location = new Point(363, 761);
+            btnOpenLogFile.Name = "btnOpenLogFile";
+            btnOpenLogFile.Size = new Size(153, 36);
+            btnOpenLogFile.TabIndex = 21;
+            btnOpenLogFile.Text = "Open Log File";
+            btnOpenLogFile.UseVisualStyleBackColor = true;
+            // 
+            // btnOpenFolder
+            // 
+            btnOpenFolder.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnOpenFolder.Enabled = false;
+            btnOpenFolder.Font = new Font("Segoe UI", 12F);
+            btnOpenFolder.Location = new Point(187, 761);
+            btnOpenFolder.Name = "btnOpenFolder";
+            btnOpenFolder.Size = new Size(153, 36);
+            btnOpenFolder.TabIndex = 20;
+            btnOpenFolder.Text = "Open Folder";
+            btnOpenFolder.UseVisualStyleBackColor = true;
+            // 
+            // btnOpenFile
+            // 
+            btnOpenFile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnOpenFile.Enabled = false;
+            btnOpenFile.Font = new Font("Segoe UI", 12F);
+            btnOpenFile.Location = new Point(12, 761);
+            btnOpenFile.Name = "btnOpenFile";
+            btnOpenFile.Size = new Size(153, 36);
+            btnOpenFile.TabIndex = 19;
+            btnOpenFile.Text = "Open File";
+            btnOpenFile.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
+            AcceptButton = btnConvert;
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 757);
+            ClientSize = new Size(793, 809);
+            Controls.Add(btnOpenLogFile);
+            Controls.Add(btnOpenFolder);
+            Controls.Add(btnOpenFile);
             Controls.Add(btnCancel);
             Controls.Add(progressBar);
             Controls.Add(lblEstimatedRemaining);
             Controls.Add(btnConvert);
             Controls.Add(groupBox2);
-            Controls.Add(groupBox1);
+            Controls.Add(grpInput);
             Controls.Add(menuStrip);
             Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = menuStrip;
             Name = "Form1";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "MP3 to MP4";
-            groupBox1.ResumeLayout(false);
-            groupBox1.PerformLayout();
+            grpInput.ResumeLayout(false);
+            grpInput.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)picImage).EndInit();
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
@@ -301,7 +365,7 @@
         private ComboBox cboImageFile;
         private Button btnBrowseForMp3File;
         private Button btnBrowsForImageFile;
-        private GroupBox groupBox1;
+        private GroupBox grpInput;
         private GroupBox groupBox2;
         private TextBox txtMP4File;
         private Label label3;
@@ -317,5 +381,9 @@
         private ToolStripMenuItem helpToolStripMenuItem;
         private ToolStripMenuItem aboutToolStripMenuItem;
         private CheckBox chkUseImageFileFromMp3File;
+        private CheckBox chkLyrics;
+        private Button btnOpenLogFile;
+        private Button btnOpenFolder;
+        private Button btnOpenFile;
     }
 }
