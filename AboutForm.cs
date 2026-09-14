@@ -9,6 +9,9 @@ namespace MP3toMP4
             var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
             lblVersion.Text = $"Version {fvi.FileMajorPart}.{fvi.FileMinorPart}.{fvi.FileBuildPart}";
 
+            lblFfmpegVer.Text = GetFfmpegVersion();
+            lnkFfmpeg.LinkClicked += lnkFfmpeg_LinkClicked;
+
             try
             {
                 string iconPath = Path.Combine(
@@ -23,13 +26,44 @@ namespace MP3toMP4
             catch { }
         }
 
+        private static string GetFfmpegVersion()
+        {
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo("ffmpeg", "-version")
+                {
+                    RedirectStandardOutput = true,
+                    RedirectStandardError  = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+                using var process = System.Diagnostics.Process.Start(psi);
+                if (process == null) return "Not found";
+                string firstLine = process.StandardOutput.ReadLine() ?? "";
+                process.WaitForExit();
+                // First line: "ffmpeg version 7.1.1 Copyright (c) ..."
+                var match = System.Text.RegularExpressions.Regex.Match(firstLine, @"ffmpeg version (\S+)");
+                return match.Success ? match.Groups[1].Value : "Unknown";
+            }
+            catch { return "Not found"; }
+        }
+
         private void btnClose_Click(object sender, EventArgs e) => Close();
 
         private void lnkGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "https://github.com/SweWolf",
+                FileName        = "https://github.com/SweWolf",
+                UseShellExecute = true,
+            });
+        }
+
+        private void lnkFfmpeg_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName        = "https://ffmpeg.org",
                 UseShellExecute = true,
             });
         }

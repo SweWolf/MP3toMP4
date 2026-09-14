@@ -36,9 +36,21 @@
             btnBrowseForMp3File = new Button();
             btnBrowsForImageFile = new Button();
             grpInput = new GroupBox();
-            chkLyrics = new CheckBox();
+            tabImage = new TabControl();
+            tabSingle = new TabPage();
             chkUseImageFileFromMp3File = new CheckBox();
             picImage = new PictureBox();
+            tabMultiple = new TabPage();
+            pictureBox2 = new PictureBox();
+            btnAdd = new Button();
+            btnDelete = new Button();
+            btnMoveDown = new Button();
+            btnMoveUp = new Button();
+            grdFiles = new DataGridView();
+            colFile = new DataGridViewTextBoxColumn();
+            colStart = new DataGridViewTextBoxColumn();
+            colDuration = new DataGridViewTextBoxColumn();
+            chkLyrics = new CheckBox();
             groupBox2 = new GroupBox();
             txtMP4File = new TextBox();
             label3 = new Label();
@@ -56,7 +68,12 @@
             btnOpenFolder = new Button();
             btnOpenFile = new Button();
             grpInput.SuspendLayout();
+            tabImage.SuspendLayout();
+            tabSingle.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picImage).BeginInit();
+            tabMultiple.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)grdFiles).BeginInit();
             groupBox2.SuspendLayout();
             menuStrip.SuspendLayout();
             SuspendLayout();
@@ -83,7 +100,7 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 12F);
-            label2.Location = new Point(20, 114);
+            label2.Location = new Point(12, 14);
             label2.Name = "label2";
             label2.Size = new Size(81, 21);
             label2.TabIndex = 2;
@@ -93,7 +110,7 @@
             // 
             cboImageFile.Font = new Font("Segoe UI", 12F);
             cboImageFile.FormattingEnabled = true;
-            cboImageFile.Location = new Point(20, 138);
+            cboImageFile.Location = new Point(10, 38);
             cboImageFile.Name = "cboImageFile";
             cboImageFile.Size = new Size(645, 29);
             cboImageFile.TabIndex = 2;
@@ -109,7 +126,7 @@
             // 
             // btnBrowsForImageFile
             // 
-            btnBrowsForImageFile.Location = new Point(696, 138);
+            btnBrowsForImageFile.Location = new Point(686, 38);
             btnBrowsForImageFile.Name = "btnBrowsForImageFile";
             btnBrowsForImageFile.Size = new Size(37, 29);
             btnBrowsForImageFile.TabIndex = 3;
@@ -119,22 +136,156 @@
             // grpInput
             // 
             grpInput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            grpInput.Controls.Add(tabImage);
             grpInput.Controls.Add(chkLyrics);
-            grpInput.Controls.Add(chkUseImageFileFromMp3File);
-            grpInput.Controls.Add(picImage);
-            grpInput.Controls.Add(label2);
-            grpInput.Controls.Add(btnBrowsForImageFile);
             grpInput.Controls.Add(txtMP3File);
             grpInput.Controls.Add(btnBrowseForMp3File);
             grpInput.Controls.Add(label1);
-            grpInput.Controls.Add(cboImageFile);
             grpInput.Font = new Font("Segoe UI", 12F);
             grpInput.Location = new Point(12, 36);
             grpInput.Name = "grpInput";
-            grpInput.Size = new Size(767, 446);
+            grpInput.Size = new Size(1042, 446);
             grpInput.TabIndex = 5;
             grpInput.TabStop = false;
             grpInput.Text = "Input";
+            // 
+            // tabImage
+            // 
+            tabImage.Controls.Add(tabSingle);
+            tabImage.Controls.Add(tabMultiple);
+            tabImage.Location = new Point(6, 95);
+            tabImage.Name = "tabImage";
+            tabImage.SelectedIndex = 0;
+            tabImage.Size = new Size(1030, 287);
+            tabImage.TabIndex = 22;
+            // 
+            // tabSingle
+            // 
+            tabSingle.Controls.Add(cboImageFile);
+            tabSingle.Controls.Add(btnBrowsForImageFile);
+            tabSingle.Controls.Add(chkUseImageFileFromMp3File);
+            tabSingle.Controls.Add(label2);
+            tabSingle.Controls.Add(picImage);
+            tabSingle.Location = new Point(4, 30);
+            tabSingle.Name = "tabSingle";
+            tabSingle.Padding = new Padding(3);
+            tabSingle.Size = new Size(1022, 253);
+            tabSingle.TabIndex = 0;
+            tabSingle.Text = "Single Image";
+            tabSingle.UseVisualStyleBackColor = true;
+            // 
+            // chkUseImageFileFromMp3File
+            // 
+            chkUseImageFileFromMp3File.AutoSize = true;
+            chkUseImageFileFromMp3File.Enabled = false;
+            chkUseImageFileFromMp3File.Font = new Font("Segoe UI", 12F);
+            chkUseImageFileFromMp3File.Location = new Point(12, 87);
+            chkUseImageFileFromMp3File.Name = "chkUseImageFileFromMp3File";
+            chkUseImageFileFromMp3File.Size = new Size(232, 25);
+            chkUseImageFileFromMp3File.TabIndex = 5;
+            chkUseImageFileFromMp3File.Text = "Use Image File from MP3 File";
+            chkUseImageFileFromMp3File.UseVisualStyleBackColor = true;
+            // 
+            // picImage
+            // 
+            picImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            picImage.Location = new Point(12, 134);
+            picImage.Name = "picImage";
+            picImage.Size = new Size(404, 103);
+            picImage.TabIndex = 4;
+            picImage.TabStop = false;
+            // 
+            // tabMultiple
+            // 
+            tabMultiple.Controls.Add(pictureBox2);
+            tabMultiple.Controls.Add(btnAdd);
+            tabMultiple.Controls.Add(btnDelete);
+            tabMultiple.Controls.Add(btnMoveDown);
+            tabMultiple.Controls.Add(btnMoveUp);
+            tabMultiple.Controls.Add(grdFiles);
+            tabMultiple.Location = new Point(4, 30);
+            tabMultiple.Name = "tabMultiple";
+            tabMultiple.Padding = new Padding(3);
+            tabMultiple.Size = new Size(1022, 253);
+            tabMultiple.TabIndex = 1;
+            tabMultiple.Text = "Multiple Images";
+            tabMultiple.UseVisualStyleBackColor = true;
+            // 
+            // pictureBox2
+            // 
+            pictureBox2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            pictureBox2.Location = new Point(719, 17);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(283, 210);
+            pictureBox2.TabIndex = 24;
+            pictureBox2.TabStop = false;
+            // 
+            // btnAdd
+            //
+            btnAdd.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnAdd.Location = new Point(624, 17);
+            btnAdd.Name = "btnAdd";
+            btnAdd.Size = new Size(72, 34);
+            btnAdd.TabIndex = 0;
+            btnAdd.Text = "Add...";
+            btnAdd.UseVisualStyleBackColor = true;
+            //
+            // btnMoveUp
+            //
+            btnMoveUp.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnMoveUp.Location = new Point(624, 66);
+            btnMoveUp.Name = "btnMoveUp";
+            btnMoveUp.Size = new Size(72, 34);
+            btnMoveUp.TabIndex = 1;
+            btnMoveUp.Text = "Up";
+            btnMoveUp.UseVisualStyleBackColor = true;
+            //
+            // btnMoveDown
+            //
+            btnMoveDown.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnMoveDown.Location = new Point(624, 115);
+            btnMoveDown.Name = "btnMoveDown";
+            btnMoveDown.Size = new Size(72, 34);
+            btnMoveDown.TabIndex = 2;
+            btnMoveDown.Text = "Down";
+            btnMoveDown.UseVisualStyleBackColor = true;
+            //
+            // btnDelete
+            //
+            btnDelete.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnDelete.Location = new Point(624, 164);
+            btnDelete.Name = "btnDelete";
+            btnDelete.Size = new Size(72, 34);
+            btnDelete.TabIndex = 3;
+            btnDelete.Text = "Delete";
+            btnDelete.UseVisualStyleBackColor = true;
+            // 
+            // grdFiles
+            // 
+            grdFiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            grdFiles.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            grdFiles.Columns.AddRange(new DataGridViewColumn[] { colFile, colStart, colDuration });
+            grdFiles.Location = new Point(24, 17);
+            grdFiles.Name = "grdFiles";
+            grdFiles.Size = new Size(583, 210);
+            grdFiles.TabIndex = 0;
+            // 
+            // colFile
+            // 
+            colFile.HeaderText = "File";
+            colFile.Name = "colFile";
+            colFile.Width = 200;
+            // 
+            // colStart
+            // 
+            colStart.HeaderText = "Start Time";
+            colStart.Name = "colStart";
+            colStart.Width = 120;
+            // 
+            // colDuration
+            // 
+            colDuration.HeaderText = "Duration";
+            colDuration.Name = "colDuration";
             // 
             // chkLyrics
             // 
@@ -148,27 +299,6 @@
             chkLyrics.TabIndex = 6;
             chkLyrics.Text = "Include Lyrics if available";
             chkLyrics.UseVisualStyleBackColor = true;
-            // 
-            // chkUseImageFileFromMp3File
-            // 
-            chkUseImageFileFromMp3File.AutoSize = true;
-            chkUseImageFileFromMp3File.Enabled = false;
-            chkUseImageFileFromMp3File.Font = new Font("Segoe UI", 12F);
-            chkUseImageFileFromMp3File.Location = new Point(22, 187);
-            chkUseImageFileFromMp3File.Name = "chkUseImageFileFromMp3File";
-            chkUseImageFileFromMp3File.Size = new Size(232, 25);
-            chkUseImageFileFromMp3File.TabIndex = 5;
-            chkUseImageFileFromMp3File.Text = "Use Image File from MP3 File";
-            chkUseImageFileFromMp3File.UseVisualStyleBackColor = true;
-            // 
-            // picImage
-            // 
-            picImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            picImage.Location = new Point(20, 234);
-            picImage.Name = "picImage";
-            picImage.Size = new Size(724, 162);
-            picImage.TabIndex = 4;
-            picImage.TabStop = false;
             // 
             // groupBox2
             // 
@@ -237,7 +367,7 @@
             progressBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             progressBar.Location = new Point(12, 720);
             progressBar.Name = "progressBar";
-            progressBar.Size = new Size(760, 23);
+            progressBar.Size = new Size(1042, 23);
             progressBar.TabIndex = 16;
             // 
             // btnCancel
@@ -258,7 +388,7 @@
             menuStrip.Items.AddRange(new ToolStripItem[] { menuSetup, helpToolStripMenuItem });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
-            menuStrip.Size = new Size(793, 24);
+            menuStrip.Size = new Size(1066, 24);
             menuStrip.TabIndex = 18;
             // 
             // menuSetup
@@ -330,7 +460,7 @@
             AcceptButton = btnConvert;
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(793, 809);
+            ClientSize = new Size(1066, 809);
             Controls.Add(btnOpenLogFile);
             Controls.Add(btnOpenFolder);
             Controls.Add(btnOpenFile);
@@ -348,7 +478,13 @@
             Text = "MP3 to MP4";
             grpInput.ResumeLayout(false);
             grpInput.PerformLayout();
+            tabImage.ResumeLayout(false);
+            tabSingle.ResumeLayout(false);
+            tabSingle.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)picImage).EndInit();
+            tabMultiple.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)grdFiles).EndInit();
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
             menuStrip.ResumeLayout(false);
@@ -385,5 +521,17 @@
         private Button btnOpenLogFile;
         private Button btnOpenFolder;
         private Button btnOpenFile;
+        private TabControl tabImage;
+        private TabPage tabSingle;
+        private TabPage tabMultiple;
+        private DataGridView grdFiles;
+        private Button btnAdd;
+        private Button btnDelete;
+        private Button btnMoveDown;
+        private Button btnMoveUp;
+        private DataGridViewTextBoxColumn colFile;
+        private DataGridViewTextBoxColumn colStart;
+        private DataGridViewTextBoxColumn colDuration;
+        private PictureBox pictureBox2;
     }
 }

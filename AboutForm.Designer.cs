@@ -18,6 +18,11 @@ namespace MP3toMP4
             lblAppName = new Label();
             lblVersion = new Label();
             pnlContent = new Panel();
+            grpFfmpeg = new GroupBox();
+            lblFfmpegVer = new Label();
+            lblFfmpegVerHeader = new Label();
+            lnkFfmpeg = new LinkLabel();
+            label1 = new Label();
             lblDescription = new Label();
             lblCopyright = new Label();
             lnkGitHub = new LinkLabel();
@@ -27,6 +32,7 @@ namespace MP3toMP4
             pnlHeader.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picIcon).BeginInit();
             pnlContent.SuspendLayout();
+            grpFfmpeg.SuspendLayout();
             SuspendLayout();
 
             // pnlHeader
@@ -68,6 +74,7 @@ namespace MP3toMP4
 
             // pnlContent
             pnlContent.BackColor = Color.White;
+            pnlContent.Controls.Add(grpFfmpeg);
             pnlContent.Controls.Add(lblDescription);
             pnlContent.Controls.Add(lblCopyright);
             pnlContent.Controls.Add(lnkGitHub);
@@ -77,8 +84,53 @@ namespace MP3toMP4
             pnlContent.Dock = DockStyle.Fill;
             pnlContent.Location = new Point(0, 88);
             pnlContent.Name = "pnlContent";
-            pnlContent.Size = new Size(440, 252);
+            pnlContent.Size = new Size(440, 332);
             pnlContent.TabIndex = 1;
+
+            // grpFfmpeg
+            grpFfmpeg.Controls.Add(lblFfmpegVer);
+            grpFfmpeg.Controls.Add(lblFfmpegVerHeader);
+            grpFfmpeg.Controls.Add(lnkFfmpeg);
+            grpFfmpeg.Controls.Add(label1);
+            grpFfmpeg.Location = new Point(15, 195);
+            grpFfmpeg.Name = "grpFfmpeg";
+            grpFfmpeg.Size = new Size(405, 78);
+            grpFfmpeg.TabIndex = 6;
+            grpFfmpeg.TabStop = false;
+            grpFfmpeg.Text = "FFmpeg";
+
+            // label1
+            label1.AutoSize = true;
+            label1.Location = new Point(6, 19);
+            label1.Name = "label1";
+            label1.Size = new Size(66, 15);
+            label1.TabIndex = 0;
+            label1.Text = "Web Page: ";
+
+            // lnkFfmpeg
+            lnkFfmpeg.AutoSize = true;
+            lnkFfmpeg.Location = new Point(122, 19);
+            lnkFfmpeg.Name = "lnkFfmpeg";
+            lnkFfmpeg.Size = new Size(107, 15);
+            lnkFfmpeg.TabIndex = 1;
+            lnkFfmpeg.TabStop = true;
+            lnkFfmpeg.Text = "https://ffmpeg.org";
+
+            // lblFfmpegVerHeader
+            lblFfmpegVerHeader.AutoSize = true;
+            lblFfmpegVerHeader.Location = new Point(6, 50);
+            lblFfmpegVerHeader.Name = "lblFfmpegVerHeader";
+            lblFfmpegVerHeader.Size = new Size(98, 15);
+            lblFfmpegVerHeader.TabIndex = 2;
+            lblFfmpegVerHeader.Text = "Installed version: ";
+
+            // lblFfmpegVer
+            lblFfmpegVer.AutoSize = true;
+            lblFfmpegVer.Location = new Point(122, 50);
+            lblFfmpegVer.Name = "lblFfmpegVer";
+            lblFfmpegVer.Size = new Size(28, 15);
+            lblFfmpegVer.TabIndex = 3;
+            lblFfmpegVer.Text = "?.?.?";
 
             // lblDescription
             lblDescription.Font = new Font("Segoe UI", 9.5F);
@@ -123,7 +175,7 @@ namespace MP3toMP4
             lblBuiltWith.Name = "lblBuiltWith";
             lblBuiltWith.Size = new Size(400, 52);
             lblBuiltWith.TabIndex = 4;
-            lblBuiltWith.Text = "• FFmpeg (audio/video conversion)\r\n• .NET 10 / Windows Forms";
+            lblBuiltWith.Text = "• .NET 10 / Windows Forms\r\n• TagLibSharp (metadata)";
 
             // btnClose
             btnClose.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
@@ -132,7 +184,7 @@ namespace MP3toMP4
             btnClose.FlatStyle = FlatStyle.Flat;
             btnClose.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             btnClose.ForeColor = Color.White;
-            btnClose.Location = new Point(340, 210);
+            btnClose.Location = new Point(340, 290);
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(80, 28);
             btnClose.TabIndex = 5;
@@ -143,7 +195,7 @@ namespace MP3toMP4
             // AboutForm
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(440, 340);
+            ClientSize = new Size(440, 420);
             Controls.Add(pnlContent);
             Controls.Add(pnlHeader);
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -157,6 +209,8 @@ namespace MP3toMP4
             ((System.ComponentModel.ISupportInitialize)picIcon).EndInit();
             pnlContent.ResumeLayout(false);
             pnlContent.PerformLayout();
+            grpFfmpeg.ResumeLayout(false);
+            grpFfmpeg.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -165,6 +219,11 @@ namespace MP3toMP4
         private Label lblAppName;
         private Label lblVersion;
         private Panel pnlContent;
+        private GroupBox grpFfmpeg;
+        private Label lblFfmpegVerHeader;
+        private LinkLabel lnkFfmpeg;
+        private Label label1;
+        private Label lblFfmpegVer;
         private Label lblDescription;
         private Label lblCopyright;
         private Label lblBuiltWithHeader;
