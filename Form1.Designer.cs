@@ -36,6 +36,15 @@
             btnBrowseForMp3File = new Button();
             btnBrowsForImageFile = new Button();
             grpInput = new GroupBox();
+            lblFadeOut = new Label();
+            lblFadeIn = new Label();
+            txtFadeOutLength = new TextBox();
+            txtFadeInLength = new TextBox();
+            label4 = new Label();
+            lblInputStart = new Label();
+            txtInputEnd = new TextBox();
+            txtInputStart = new TextBox();
+            chkUseTheFullMp3File = new CheckBox();
             tabImage = new TabControl();
             tabSingle = new TabPage();
             chkUseImageFileFromMp3File = new CheckBox();
@@ -136,27 +145,122 @@
             // grpInput
             // 
             grpInput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            grpInput.Controls.Add(lblFadeOut);
+            grpInput.Controls.Add(lblFadeIn);
+            grpInput.Controls.Add(txtFadeOutLength);
+            grpInput.Controls.Add(txtFadeInLength);
+            grpInput.Controls.Add(label4);
+            grpInput.Controls.Add(lblInputStart);
+            grpInput.Controls.Add(txtInputEnd);
+            grpInput.Controls.Add(txtInputStart);
+            grpInput.Controls.Add(chkUseTheFullMp3File);
             grpInput.Controls.Add(tabImage);
             grpInput.Controls.Add(chkLyrics);
             grpInput.Controls.Add(txtMP3File);
             grpInput.Controls.Add(btnBrowseForMp3File);
             grpInput.Controls.Add(label1);
             grpInput.Font = new Font("Segoe UI", 12F);
-            grpInput.Location = new Point(12, 36);
+            grpInput.Location = new Point(12, 27);
             grpInput.Name = "grpInput";
-            grpInput.Size = new Size(1042, 446);
+            grpInput.Size = new Size(1042, 466);
             grpInput.TabIndex = 5;
             grpInput.TabStop = false;
             grpInput.Text = "Input";
+            // 
+            // lblFadeOut
+            // 
+            lblFadeOut.AutoSize = true;
+            lblFadeOut.Location = new Point(845, 82);
+            lblFadeOut.Name = "lblFadeOut";
+            lblFadeOut.Size = new Size(90, 21);
+            lblFadeOut.TabIndex = 31;
+            lblFadeOut.Text = "Fade out (s)";
+            lblFadeOut.Visible = false;
+            // 
+            // lblFadeIn
+            // 
+            lblFadeIn.AutoSize = true;
+            lblFadeIn.Location = new Point(657, 82);
+            lblFadeIn.Name = "lblFadeIn";
+            lblFadeIn.Size = new Size(80, 21);
+            lblFadeIn.TabIndex = 30;
+            lblFadeIn.Text = "Fade in (s)";
+            lblFadeIn.Visible = false;
+            // 
+            // txtFadeOutLength
+            // 
+            txtFadeOutLength.Location = new Point(941, 79);
+            txtFadeOutLength.Name = "txtFadeOutLength";
+            txtFadeOutLength.Size = new Size(82, 29);
+            txtFadeOutLength.TabIndex = 6;
+            txtFadeOutLength.Text = "0";
+            txtFadeOutLength.Visible = false;
+            // 
+            // txtFadeInLength
+            // 
+            txtFadeInLength.Location = new Point(743, 79);
+            txtFadeInLength.Name = "txtFadeInLength";
+            txtFadeInLength.Size = new Size(82, 29);
+            txtFadeInLength.TabIndex = 5;
+            txtFadeInLength.Text = "0";
+            txtFadeInLength.Visible = false;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(461, 82);
+            label4.Name = "label4";
+            label4.Size = new Size(53, 21);
+            label4.TabIndex = 27;
+            label4.Text = "End at";
+            label4.Visible = false;
+            // 
+            // lblInputStart
+            // 
+            lblInputStart.AutoSize = true;
+            lblInputStart.Location = new Point(279, 82);
+            lblInputStart.Name = "lblInputStart";
+            lblInputStart.Size = new Size(59, 21);
+            lblInputStart.TabIndex = 26;
+            lblInputStart.Text = "Start at";
+            lblInputStart.Visible = false;
+            // 
+            // txtInputEnd
+            // 
+            txtInputEnd.Location = new Point(520, 79);
+            txtInputEnd.Name = "txtInputEnd";
+            txtInputEnd.Size = new Size(82, 29);
+            txtInputEnd.TabIndex = 4;
+            txtInputEnd.Visible = false;
+            // 
+            // txtInputStart
+            // 
+            txtInputStart.Location = new Point(344, 79);
+            txtInputStart.Name = "txtInputStart";
+            txtInputStart.Size = new Size(82, 29);
+            txtInputStart.TabIndex = 3;
+            txtInputStart.Visible = false;
+            // 
+            // chkUseTheFullMp3File
+            // 
+            chkUseTheFullMp3File.AutoSize = true;
+            chkUseTheFullMp3File.Checked = true;
+            chkUseTheFullMp3File.CheckState = CheckState.Checked;
+            chkUseTheFullMp3File.Location = new Point(20, 81);
+            chkUseTheFullMp3File.Name = "chkUseTheFullMp3File";
+            chkUseTheFullMp3File.Size = new Size(180, 25);
+            chkUseTheFullMp3File.TabIndex = 2;
+            chkUseTheFullMp3File.Text = "Use the Complete File";
+            chkUseTheFullMp3File.UseVisualStyleBackColor = true;
             // 
             // tabImage
             // 
             tabImage.Controls.Add(tabSingle);
             tabImage.Controls.Add(tabMultiple);
-            tabImage.Location = new Point(6, 95);
+            tabImage.Location = new Point(6, 122);
             tabImage.Name = "tabImage";
             tabImage.SelectedIndex = 0;
-            tabImage.Size = new Size(1030, 287);
+            tabImage.Size = new Size(1030, 260);
             tabImage.TabIndex = 22;
             // 
             // tabSingle
@@ -169,7 +273,7 @@
             tabSingle.Location = new Point(4, 30);
             tabSingle.Name = "tabSingle";
             tabSingle.Padding = new Padding(3);
-            tabSingle.Size = new Size(1022, 253);
+            tabSingle.Size = new Size(1022, 226);
             tabSingle.TabIndex = 0;
             tabSingle.Text = "Single Image";
             tabSingle.UseVisualStyleBackColor = true;
@@ -191,7 +295,7 @@
             picImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             picImage.Location = new Point(12, 134);
             picImage.Name = "picImage";
-            picImage.Size = new Size(404, 103);
+            picImage.Size = new Size(404, 76);
             picImage.TabIndex = 4;
             picImage.TabStop = false;
             // 
@@ -206,7 +310,7 @@
             tabMultiple.Location = new Point(4, 30);
             tabMultiple.Name = "tabMultiple";
             tabMultiple.Padding = new Padding(3);
-            tabMultiple.Size = new Size(1022, 253);
+            tabMultiple.Size = new Size(1022, 226);
             tabMultiple.TabIndex = 1;
             tabMultiple.Text = "Multiple Images";
             tabMultiple.UseVisualStyleBackColor = true;
@@ -216,12 +320,12 @@
             pictureBox2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             pictureBox2.Location = new Point(719, 17);
             pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(283, 210);
+            pictureBox2.Size = new Size(283, 193);
             pictureBox2.TabIndex = 24;
             pictureBox2.TabStop = false;
             // 
             // btnAdd
-            //
+            // 
             btnAdd.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnAdd.Location = new Point(624, 17);
             btnAdd.Name = "btnAdd";
@@ -229,29 +333,9 @@
             btnAdd.TabIndex = 0;
             btnAdd.Text = "Add...";
             btnAdd.UseVisualStyleBackColor = true;
-            //
-            // btnMoveUp
-            //
-            btnMoveUp.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnMoveUp.Location = new Point(624, 66);
-            btnMoveUp.Name = "btnMoveUp";
-            btnMoveUp.Size = new Size(72, 34);
-            btnMoveUp.TabIndex = 1;
-            btnMoveUp.Text = "Up";
-            btnMoveUp.UseVisualStyleBackColor = true;
-            //
-            // btnMoveDown
-            //
-            btnMoveDown.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnMoveDown.Location = new Point(624, 115);
-            btnMoveDown.Name = "btnMoveDown";
-            btnMoveDown.Size = new Size(72, 34);
-            btnMoveDown.TabIndex = 2;
-            btnMoveDown.Text = "Down";
-            btnMoveDown.UseVisualStyleBackColor = true;
-            //
+            // 
             // btnDelete
-            //
+            // 
             btnDelete.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnDelete.Location = new Point(624, 164);
             btnDelete.Name = "btnDelete";
@@ -260,14 +344,34 @@
             btnDelete.Text = "Delete";
             btnDelete.UseVisualStyleBackColor = true;
             // 
+            // btnMoveDown
+            // 
+            btnMoveDown.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnMoveDown.Location = new Point(624, 115);
+            btnMoveDown.Name = "btnMoveDown";
+            btnMoveDown.Size = new Size(72, 34);
+            btnMoveDown.TabIndex = 2;
+            btnMoveDown.Text = "Down";
+            btnMoveDown.UseVisualStyleBackColor = true;
+            // 
+            // btnMoveUp
+            // 
+            btnMoveUp.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnMoveUp.Location = new Point(624, 66);
+            btnMoveUp.Name = "btnMoveUp";
+            btnMoveUp.Size = new Size(72, 34);
+            btnMoveUp.TabIndex = 1;
+            btnMoveUp.Text = "Up";
+            btnMoveUp.UseVisualStyleBackColor = true;
+            // 
             // grdFiles
             // 
             grdFiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             grdFiles.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             grdFiles.Columns.AddRange(new DataGridViewColumn[] { colFile, colStart, colDuration });
-            grdFiles.Location = new Point(24, 17);
+            grdFiles.Location = new Point(12, 17);
             grdFiles.Name = "grdFiles";
-            grdFiles.Size = new Size(583, 210);
+            grdFiles.Size = new Size(595, 193);
             grdFiles.TabIndex = 0;
             // 
             // colFile
@@ -293,7 +397,7 @@
             chkLyrics.AutoSize = true;
             chkLyrics.Checked = true;
             chkLyrics.CheckState = CheckState.Checked;
-            chkLyrics.Location = new Point(20, 402);
+            chkLyrics.Location = new Point(20, 422);
             chkLyrics.Name = "chkLyrics";
             chkLyrics.Size = new Size(200, 25);
             chkLyrics.TabIndex = 6;
@@ -533,5 +637,14 @@
         private DataGridViewTextBoxColumn colStart;
         private DataGridViewTextBoxColumn colDuration;
         private PictureBox pictureBox2;
+        private CheckBox chkUseTheFullMp3File;
+        private Label label4;
+        private Label lblInputStart;
+        private TextBox txtInputEnd;
+        private TextBox txtInputStart;
+        private Label lblFadeOut;
+        private Label lblFadeIn;
+        private TextBox txtFadeOutLength;
+        private TextBox txtFadeInLength;
     }
 }

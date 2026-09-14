@@ -73,7 +73,8 @@ namespace MP3toMP4
             ctxMenu.Opening += (_, _) => pasteItem.Enabled = Clipboard.ContainsImage() || Clipboard.ContainsText();
             cboImageFile.ContextMenuStrip = ctxMenu;
 
-            chkUseImageFileFromMp3File.CheckedChanged += ChkUseImageFileFromMp3File_CheckedChanged;
+            chkUseImageFileFromMp3File.CheckedChanged  += ChkUseImageFileFromMp3File_CheckedChanged;
+            chkUseTheFullMp3File.CheckedChanged        += ChkUseTheFullMp3File_CheckedChanged;
 
             btnOpenFile.Click   += BtnOpenFile_Click;
             btnOpenFolder.Click += BtnOpenFolder_Click;
@@ -488,6 +489,80 @@ namespace MP3toMP4
             cboImageFile.SelectedItem = tempFile;
         }
 
+        private void ChkUseTheFullMp3File_CheckedChanged(object? sender, EventArgs e)
+        {
+            bool show = !chkUseTheFullMp3File.Checked;
+            lblInputStart.Visible    = show;
+            txtInputStart.Visible    = show;
+            label4.Visible           = show;
+            txtInputEnd.Visible      = show;
+            lblFadeIn.Visible        = show;
+            txtFadeInLength.Visible  = show;
+            lblFadeOut.Visible       = show;
+            txtFadeOutLength.Visible = show;
+        }
+
+        private (string InputPrefix, string Codec, string Filter) GetAudioOptions(string mp3Path)
+        {
+            if (chkUseTheFullMp3File.Checked)
+                return ("", "-c:a copy", "");
+
+            bool hasStart = TryParseTime(txtInputStart.Text, out var start);
+            bool hasEnd   = TryParseTime(txtInputEnd.Text,   out var end);
+            TryParseFade(txtFadeInLength.Text,  out double fadeIn);
+            TryParseFade(txtFadeOutLength.Text, out double fadeOut);
+
+            bool hasTrim = hasStart || hasEnd;
+            bool hasFade = fadeIn > 0 || fadeOut > 0;
+
+            if (!hasTrim && !hasFade)
+                return ("", "-c:a copy", "");
+
+            // Build the audio filter chain entirely in -af so FFmpeg controls the
+            // endpoint precisely.  (Input-side -ss/-to combined with -af and AAC
+            // encoding can flush 1–2 extra seconds of buffered frames after the
+            // intended end point.)
+            var filters = new List<string>();
+
+            if (hasTrim)
+            {
+                string startArg = hasStart ? $"start={start.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)}" : "";
+                string endArg   = hasEnd   ? $"end={end.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)}"     : "";
+                string trimArgs = string.Join(":", new[] { startArg, endArg }.Where(s => s.Length > 0));
+                filters.Add($"atrim={trimArgs}");
+                filters.Add("asetpts=PTS-STARTPTS");
+            }
+
+            if (hasFade)
+            {
+                TimeSpan totalDuration  = GetMp3Duration(mp3Path);
+                TimeSpan effectiveStart = hasStart ? start : TimeSpan.Zero;
+                TimeSpan effectiveEnd   = hasEnd   ? end   : totalDuration;
+                double   effectiveSecs  = Math.Max(0, (effectiveEnd - effectiveStart).TotalSeconds);
+
+                if (fadeIn > 0)
+                    filters.Add($"afade=t=in:st=0:d={fadeIn.ToString("F3", CultureInfo.InvariantCulture)}");
+                if (fadeOut > 0)
+                {
+                    double st = Math.Max(0, effectiveSecs - fadeOut);
+                    filters.Add($"afade=t=out:st={st.ToString("F3", CultureInfo.InvariantCulture)}:d={fadeOut.ToString("F3", CultureInfo.InvariantCulture)}");
+                }
+            }
+
+            string filterArg = $"-af \"{string.Join(",", filters)}\"";
+            return ("", "-c:a aac -b:a 192k", filterArg);
+        }
+
+        private static bool TryParseFade(string? input, out double seconds)
+        {
+            seconds = 0;
+            if (string.IsNullOrWhiteSpace(input)) return false;
+            if (!double.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out double val)) return false;
+            if (val <= 0) return false;
+            seconds = val;
+            return true;
+        }
+
         private async void BtnConvert_Click(object? sender, EventArgs e)
         {
             SaveSettings();
@@ -507,6 +582,13 @@ namespace MP3toMP4
                 MessageBox.Show("Please specify an output MP4 file.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            if (!mp4.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("The output file must have the .mp4 extension.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var (audioInputPrefix, audioCodec, audioFilter) = GetAudioOptions(mp3);
 
             // --- Mode-specific validation and arg building ---
             string ffmpegArgs, logInfo;
@@ -521,8 +603,8 @@ namespace MP3toMP4
                 }
                 bool singleIsVideo = IsVideoFile(image);
                 ffmpegArgs = singleIsVideo
-                    ? BuildSingleVideoArgs(image, mp3, mp4)
-                    : BuildSingleImageArgs(image, mp3, mp4);
+                    ? BuildSingleVideoArgs(image, mp3, mp4, audioInputPrefix, audioCodec, audioFilter)
+                    : BuildSingleImageArgs(image, mp3, mp4, audioInputPrefix, audioCodec, audioFilter);
                 string singleLabel = singleIsVideo ? "Video" : "Image";
                 logInfo = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}\n" +
                           $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {singleLabel,-5} : {image}\n" +
@@ -536,7 +618,7 @@ namespace MP3toMP4
                     MessageBox.Show(segError, "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                ffmpegArgs = BuildMultiImageArgs(mp3, mp4, segments);
+                ffmpegArgs = BuildMultiImageArgs(mp3, mp4, segments, audioInputPrefix, audioCodec, audioFilter);
                 var sb = new System.Text.StringBuilder();
                 sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}");
                 for (int i = 0; i < segments.Count; i++)
@@ -636,40 +718,41 @@ namespace MP3toMP4
             catch { return TimeSpan.Zero; }
         }
 
-        private static string BuildSingleImageArgs(string image, string mp3, string mp4) =>
-            string.Join(" ",
-                "-y",
-                "-loop 1",
+        private static string BuildSingleImageArgs(string image, string mp3, string mp4,
+            string audioInputPrefix, string audioCodec, string audioFilter)
+        {
+            var parts = new List<string>
+            {
+                "-y", "-loop 1",
                 $"-i \"{FfmpegPath(image)}\"",
-                $"-i \"{FfmpegPath(mp3)}\"",
-                "-c:v libx264",
-                "-tune stillimage",
-                "-vf \"scale=1280:-2\"",
-                "-r 30",
-                "-pix_fmt yuv420p",
-                "-c:a copy",
-                "-shortest",
-                "-movflags +faststart",
-                $"\"{FfmpegPath(mp4)}\""
-            );
+                $"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\"",
+                "-c:v libx264", "-tune stillimage", "-vf \"scale=1280:-2\"",
+                "-r 30", "-pix_fmt yuv420p",
+                audioCodec,
+            };
+            if (!string.IsNullOrEmpty(audioFilter)) parts.Add(audioFilter);
+            parts.AddRange(["-shortest", "-movflags +faststart", $"\"{FfmpegPath(mp4)}\""]);
+            return string.Join(" ", parts);
+        }
 
-        private static string BuildSingleVideoArgs(string video, string mp3, string mp4) =>
-            string.Join(" ",
+        private static string BuildSingleVideoArgs(string video, string mp3, string mp4,
+            string audioInputPrefix, string audioCodec, string audioFilter)
+        {
+            var parts = new List<string>
+            {
                 "-y",
                 $"-i \"{FfmpegPath(video)}\"",
-                $"-i \"{FfmpegPath(mp3)}\"",
+                $"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\"",
                 // loop=-1 loops indefinitely; size=32767 is the frame buffer (~36 min at 30 fps)
                 "-filter_complex \"[0:v]loop=loop=-1:size=32767[v]\"",
-                "-map \"[v]\"",
-                "-map 1:a",
-                "-c:v libx264",
-                "-r 30",
-                "-pix_fmt yuv420p",
-                "-c:a copy",
-                "-shortest",
-                "-movflags +faststart",
-                $"\"{FfmpegPath(mp4)}\""
-            );
+                "-map \"[v]\"", "-map 1:a",
+                "-c:v libx264", "-r 30", "-pix_fmt yuv420p",
+                audioCodec,
+            };
+            if (!string.IsNullOrEmpty(audioFilter)) parts.Add(audioFilter);
+            parts.AddRange(["-shortest", "-movflags +faststart", $"\"{FfmpegPath(mp4)}\""]);
+            return string.Join(" ", parts);
+        }
 
         private static (int W, int H) GetImagePixelSize(string path)
         {
@@ -729,7 +812,8 @@ namespace MP3toMP4
             }
         }
 
-        private static string BuildMultiImageArgs(string mp3, string mp4, List<ImageSegment> segments)
+        private static string BuildMultiImageArgs(string mp3, string mp4, List<ImageSegment> segments,
+            string audioInputPrefix, string audioCodec, string audioFilter)
         {
             // Derive target size from the first image; make both dimensions even (libx264 requirement)
             var (tw, th) = GetImagePixelSize(segments[0].FilePath);
@@ -749,7 +833,7 @@ namespace MP3toMP4
                     sb.Append($"-loop 1 -t {seg.Duration.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)} -i \"{FfmpegPath(seg.FilePath)}\" ");
             }
 
-            sb.Append($"-i \"{FfmpegPath(mp3)}\" ");
+            sb.Append($"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\" ");
 
             sb.Append("-filter_complex \"");
             for (int i = 0; i < segments.Count; i++)
@@ -770,7 +854,9 @@ namespace MP3toMP4
             sb.Append($"concat=n={segments.Count}:v=1:a=0[v]\" ");
 
             sb.Append($"-map \"[v]\" -map \"{segments.Count}:a\" ");
-            sb.Append("-c:v libx264 -tune stillimage -r 30 -pix_fmt yuv420p -c:a copy -shortest -movflags +faststart ");
+            sb.Append($"-c:v libx264 -tune stillimage -r 30 -pix_fmt yuv420p {audioCodec} ");
+            if (!string.IsNullOrEmpty(audioFilter)) sb.Append($"{audioFilter} ");
+            sb.Append("-shortest -movflags +faststart ");
             sb.Append($"\"{mp4}\"");
 
             return sb.ToString();
