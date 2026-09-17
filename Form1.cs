@@ -32,6 +32,7 @@ namespace MP3toMP4
             cmdBrowseForMP4File.Click += CmdBrowseForMP4File_Click;
             btnConvert.Click += BtnConvert_Click;
             txtMP3File.TextChanged += TxtMP3File_TextChanged;
+            txtMP3File.Leave += (_, _) => UpdateMp3Length();
 
             txtMP3File.AllowDrop = true;
             cboImageFile.AllowDrop = true;
@@ -110,6 +111,7 @@ namespace MP3toMP4
             {
                 txtMP3File.Text = args[1];
                 PopulateImageCombo(args[1]);
+                UpdateMp3Length();
             }
         }
 
@@ -125,6 +127,7 @@ namespace MP3toMP4
 
             txtMP3File.Text = dlg.FileName;
             PopulateImageCombo(dlg.FileName);
+            UpdateMp3Length();
         }
 
         private void BtnBrowseForImageFile_Click(object? sender, EventArgs e)
@@ -171,6 +174,7 @@ namespace MP3toMP4
             if (e.Data?.GetData(DataFormats.FileDrop) is not string[] files || files.Length == 0) return;
             txtMP3File.Text = files[0];
             PopulateImageCombo(files[0]);
+            UpdateMp3Length();
         }
 
         private async void CboImageFile_DragDrop(object? sender, DragEventArgs e)
@@ -706,6 +710,34 @@ namespace MP3toMP4
                 btnCancel.Enabled  = false;
                 _ffmpegProcess     = null;
             }
+        }
+
+        private async void UpdateMp3Length()
+        {
+            string mp3 = txtMP3File.Text.Trim();
+            if (string.IsNullOrEmpty(mp3) || !File.Exists(mp3))
+            {
+                lblLength.Text = "";
+                return;
+            }
+
+            TimeSpan duration = await Task.Run(() => GetMp3Duration(mp3));
+
+            // Discard result if the path changed while we were reading
+            if (txtMP3File.Text.Trim() != mp3) return;
+
+            lblLength.Text = duration > TimeSpan.Zero ? $"Length: {FormatLengthDisplay(duration)}" : "";
+        }
+
+        private static string FormatLengthDisplay(TimeSpan t)
+        {
+            int totalSeconds = (int)Math.Round(t.TotalSeconds, MidpointRounding.AwayFromZero);
+            int hours   = totalSeconds / 3600;
+            int minutes = totalSeconds % 3600 / 60;
+            int seconds = totalSeconds % 60;
+            if (hours >= 1)   return $"{hours}:{minutes:D2}:{seconds:D2}";
+            if (minutes >= 1) return $"{minutes}:{seconds:D2}";
+            return $"{seconds} s";
         }
 
         private static TimeSpan GetMp3Duration(string mp3)

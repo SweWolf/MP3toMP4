@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             txtMP3File = new TextBox();
+            lblLength = new Label();
             label1 = new Label();
             label2 = new Label();
             cboImageFile = new ComboBox();
@@ -132,7 +133,15 @@
             btnBrowseForMp3File.TabIndex = 1;
             btnBrowseForMp3File.Text = "...";
             btnBrowseForMp3File.UseVisualStyleBackColor = true;
-            // 
+            //
+            // lblLength
+            //
+            lblLength.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lblLength.AutoSize = true;
+            lblLength.Location = new Point(750, 53);
+            lblLength.Name = "lblLength";
+            lblLength.TabIndex = 33;
+            //
             // btnBrowsForImageFile
             // 
             btnBrowsForImageFile.Location = new Point(686, 38);
@@ -145,6 +154,7 @@
             // grpInput
             // 
             grpInput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            grpInput.Controls.Add(lblLength);
             grpInput.Controls.Add(lblFadeOut);
             grpInput.Controls.Add(lblFadeIn);
             grpInput.Controls.Add(txtFadeOutLength);
@@ -600,6 +610,7 @@
         #endregion
 
         private TextBox txtMP3File;
+        private Label lblLength;
         private Label label1;
         private Label label2;
         private ComboBox cboImageFile;
