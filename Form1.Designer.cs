@@ -28,8 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             txtMP3File = new TextBox();
+            toolTip = new ToolTip(components);
             lblLength = new Label();
             label1 = new Label();
             label2 = new Label();
@@ -45,7 +47,7 @@
             lblInputStart = new Label();
             txtInputEnd = new TextBox();
             txtInputStart = new TextBox();
-            chkUseTheFullMp3File = new CheckBox();
+            chkTrimToRange = new CheckBox();
             tabImage = new TabControl();
             tabSingle = new TabPage();
             chkUseImageFileFromMp3File = new CheckBox();
@@ -69,6 +71,7 @@
             lblEstimatedRemaining = new Label();
             progressBar = new TextProgressBar();
             btnCancel = new Button();
+            btnClear = new Button();
             menuStrip = new MenuStrip();
             menuSetup = new ToolStripMenuItem();
             menuCreateShortcut = new ToolStripMenuItem();
@@ -95,6 +98,21 @@
             txtMP3File.Name = "txtMP3File";
             txtMP3File.Size = new Size(645, 29);
             txtMP3File.TabIndex = 0;
+            // 
+            // toolTip
+            // 
+            toolTip.AutoPopDelay = 15000;
+            toolTip.InitialDelay = 400;
+            toolTip.ReshowDelay = 100;
+            // 
+            // lblLength
+            // 
+            lblLength.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lblLength.AutoSize = true;
+            lblLength.Location = new Point(750, 53);
+            lblLength.Name = "lblLength";
+            lblLength.Size = new Size(0, 21);
+            lblLength.TabIndex = 33;
             // 
             // label1
             // 
@@ -132,16 +150,9 @@
             btnBrowseForMp3File.Size = new Size(37, 29);
             btnBrowseForMp3File.TabIndex = 1;
             btnBrowseForMp3File.Text = "...";
+            toolTip.SetToolTip(btnBrowseForMp3File, "Browse for an MP3 file");
             btnBrowseForMp3File.UseVisualStyleBackColor = true;
-            //
-            // lblLength
-            //
-            lblLength.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            lblLength.AutoSize = true;
-            lblLength.Location = new Point(750, 53);
-            lblLength.Name = "lblLength";
-            lblLength.TabIndex = 33;
-            //
+            // 
             // btnBrowsForImageFile
             // 
             btnBrowsForImageFile.Location = new Point(686, 38);
@@ -149,6 +160,7 @@
             btnBrowsForImageFile.Size = new Size(37, 29);
             btnBrowsForImageFile.TabIndex = 3;
             btnBrowsForImageFile.Text = "...";
+            toolTip.SetToolTip(btnBrowsForImageFile, "Browse for an image or video file");
             btnBrowsForImageFile.UseVisualStyleBackColor = true;
             // 
             // grpInput
@@ -163,7 +175,7 @@
             grpInput.Controls.Add(lblInputStart);
             grpInput.Controls.Add(txtInputEnd);
             grpInput.Controls.Add(txtInputStart);
-            grpInput.Controls.Add(chkUseTheFullMp3File);
+            grpInput.Controls.Add(chkTrimToRange);
             grpInput.Controls.Add(tabImage);
             grpInput.Controls.Add(chkLyrics);
             grpInput.Controls.Add(txtMP3File);
@@ -251,17 +263,15 @@
             txtInputStart.TabIndex = 3;
             txtInputStart.Visible = false;
             // 
-            // chkUseTheFullMp3File
+            // chkTrimToRange
             // 
-            chkUseTheFullMp3File.AutoSize = true;
-            chkUseTheFullMp3File.Checked = true;
-            chkUseTheFullMp3File.CheckState = CheckState.Checked;
-            chkUseTheFullMp3File.Location = new Point(20, 81);
-            chkUseTheFullMp3File.Name = "chkUseTheFullMp3File";
-            chkUseTheFullMp3File.Size = new Size(180, 25);
-            chkUseTheFullMp3File.TabIndex = 2;
-            chkUseTheFullMp3File.Text = "Use the Complete File";
-            chkUseTheFullMp3File.UseVisualStyleBackColor = true;
+            chkTrimToRange.AutoSize = true;
+            chkTrimToRange.Location = new Point(20, 81);
+            chkTrimToRange.Name = "chkTrimToRange";
+            chkTrimToRange.Size = new Size(138, 25);
+            chkTrimToRange.TabIndex = 2;
+            chkTrimToRange.Text = "Trim to a Range";
+            chkTrimToRange.UseVisualStyleBackColor = true;
             // 
             // tabImage
             // 
@@ -342,6 +352,7 @@
             btnAdd.Size = new Size(72, 34);
             btnAdd.TabIndex = 0;
             btnAdd.Text = "Add...";
+            toolTip.SetToolTip(btnAdd, "Add image or video files");
             btnAdd.UseVisualStyleBackColor = true;
             // 
             // btnDelete
@@ -352,6 +363,7 @@
             btnDelete.Size = new Size(72, 34);
             btnDelete.TabIndex = 3;
             btnDelete.Text = "Delete";
+            toolTip.SetToolTip(btnDelete, "Delete the selected row");
             btnDelete.UseVisualStyleBackColor = true;
             // 
             // btnMoveDown
@@ -361,7 +373,8 @@
             btnMoveDown.Name = "btnMoveDown";
             btnMoveDown.Size = new Size(72, 34);
             btnMoveDown.TabIndex = 2;
-            btnMoveDown.Text = "Down";
+            btnMoveDown.Text = "▼";
+            toolTip.SetToolTip(btnMoveDown, "Move the selected row down");
             btnMoveDown.UseVisualStyleBackColor = true;
             // 
             // btnMoveUp
@@ -371,7 +384,8 @@
             btnMoveUp.Name = "btnMoveUp";
             btnMoveUp.Size = new Size(72, 34);
             btnMoveUp.TabIndex = 1;
-            btnMoveUp.Text = "Up";
+            btnMoveUp.Text = "▲";
+            toolTip.SetToolTip(btnMoveUp, "Move the selected row up");
             btnMoveUp.UseVisualStyleBackColor = true;
             // 
             // grdFiles
@@ -452,6 +466,7 @@
             cmdBrowseForMP4File.Size = new Size(37, 29);
             cmdBrowseForMP4File.TabIndex = 1;
             cmdBrowseForMP4File.Text = "...";
+            toolTip.SetToolTip(cmdBrowseForMP4File, "Choose where to save the MP4 file");
             cmdBrowseForMP4File.UseVisualStyleBackColor = true;
             // 
             // btnConvert
@@ -463,6 +478,7 @@
             btnConvert.Size = new Size(127, 37);
             btnConvert.TabIndex = 2;
             btnConvert.Text = "Convert";
+            toolTip.SetToolTip(btnConvert, "Start converting the MP3 file to an MP4 file");
             btnConvert.UseVisualStyleBackColor = true;
             // 
             // lblEstimatedRemaining
@@ -497,13 +513,24 @@
             btnCancel.UseVisualStyleBackColor = true;
             btnCancel.Click += btnCancel_Click;
             // 
+            // btnClear
+            // 
+            btnClear.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnClear.Font = new Font("Segoe UI", 12F);
+            btnClear.Location = new Point(308, 635);
+            btnClear.Name = "btnClear";
+            btnClear.Size = new Size(127, 37);
+            btnClear.TabIndex = 18;
+            btnClear.Text = "Clear";
+            btnClear.UseVisualStyleBackColor = true;
+            // 
             // menuStrip
             // 
             menuStrip.Items.AddRange(new ToolStripItem[] { menuSetup, helpToolStripMenuItem });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
             menuStrip.Size = new Size(1066, 24);
-            menuStrip.TabIndex = 18;
+            menuStrip.TabIndex = 22;
             // 
             // menuSetup
             // 
@@ -578,6 +605,7 @@
             Controls.Add(btnOpenLogFile);
             Controls.Add(btnOpenFolder);
             Controls.Add(btnOpenFile);
+            Controls.Add(btnClear);
             Controls.Add(btnCancel);
             Controls.Add(progressBar);
             Controls.Add(lblEstimatedRemaining);
@@ -626,6 +654,7 @@
         private TextProgressBar progressBar;
         private PictureBox picImage;
         private Button btnCancel;
+        private Button btnClear;
         private MenuStrip menuStrip;
         private ToolStripMenuItem menuSetup;
         private ToolStripMenuItem menuCreateShortcut;
@@ -648,7 +677,8 @@
         private DataGridViewTextBoxColumn colStart;
         private DataGridViewTextBoxColumn colDuration;
         private PictureBox pictureBox2;
-        private CheckBox chkUseTheFullMp3File;
+        private CheckBox chkTrimToRange;
+        private ToolTip toolTip;
         private Label label4;
         private Label lblInputStart;
         private TextBox txtInputEnd;

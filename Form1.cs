@@ -31,6 +31,7 @@ namespace MP3toMP4
             btnBrowsForImageFile.Click += BtnBrowseForImageFile_Click;
             cmdBrowseForMP4File.Click += CmdBrowseForMP4File_Click;
             btnConvert.Click += BtnConvert_Click;
+            btnClear.Click += BtnClear_Click;
             txtMP3File.TextChanged += TxtMP3File_TextChanged;
             txtMP3File.Leave += (_, _) => UpdateMp3Length();
 
@@ -75,7 +76,16 @@ namespace MP3toMP4
             cboImageFile.ContextMenuStrip = ctxMenu;
 
             chkUseImageFileFromMp3File.CheckedChanged  += ChkUseImageFileFromMp3File_CheckedChanged;
-            chkUseTheFullMp3File.CheckedChanged        += ChkUseTheFullMp3File_CheckedChanged;
+            chkTrimToRange.CheckedChanged              += ChkTrimToRange_CheckedChanged;
+            toolTip.SetToolTip(chkTrimToRange,
+                "Unchecked: use the complete file.\n" +
+                "Checked: shows Start at/End at (and Fade in/out) fields to trim the file to a specific range.");
+            string startEndTooltip =
+                "Optional - leave blank for the start/end of the file.\n" +
+                "Time format: h:mm:ss.f, m:ss, or plain seconds (e.g. 1:23:45, 2:07, 90, 7.5) - '.' or ',' both work for the fraction.\n" +
+                "Or a percentage of the MP3 file's length (e.g. 45%).";
+            toolTip.SetToolTip(txtInputStart, startEndTooltip);
+            toolTip.SetToolTip(txtInputEnd, startEndTooltip);
 
             btnOpenFile.Click   += BtnOpenFile_Click;
             btnOpenFolder.Click += BtnOpenFolder_Click;
@@ -113,6 +123,37 @@ namespace MP3toMP4
                 PopulateImageCombo(args[1]);
                 UpdateMp3Length();
             }
+        }
+
+        /// <summary>Resets every field to how it looks when the window is first opened.</summary>
+        private void BtnClear_Click(object? sender, EventArgs e)
+        {
+            // Clearing the MP3 path also clears the image combo items and the image/lyrics checkboxes
+            txtMP3File.Text = "";
+            lblLength.Text = "";
+            cboImageFile.Text = "";
+
+            chkTrimToRange.Checked = false;
+            txtInputStart.Text = "";
+            txtInputEnd.Text = "";
+            txtFadeInLength.Text = "0";
+            txtFadeOutLength.Text = "0";
+
+            grdFiles.CancelEdit();
+            grdFiles.Rows.Clear();
+            RefreshMultipleState();
+            tabImage.SelectedIndex = 0;
+
+            txtMP4File.Text = "";
+
+            progressBar.Value = 0;
+            lblEstimatedRemaining.Text = "Estimated remaining time: —";
+
+            btnOpenFile.Enabled = false;
+            btnOpenFolder.Enabled = false;
+            btnOpenLogFile.Enabled = false;
+
+            _lastLogFile = null;
         }
 
         private void BtnBrowseForMp3File_Click(object? sender, EventArgs e)
@@ -493,9 +534,9 @@ namespace MP3toMP4
             cboImageFile.SelectedItem = tempFile;
         }
 
-        private void ChkUseTheFullMp3File_CheckedChanged(object? sender, EventArgs e)
+        private void ChkTrimToRange_CheckedChanged(object? sender, EventArgs e)
         {
-            bool show = !chkUseTheFullMp3File.Checked;
+            bool show = chkTrimToRange.Checked;
             lblInputStart.Visible    = show;
             txtInputStart.Visible    = show;
             label4.Visible           = show;
@@ -508,11 +549,12 @@ namespace MP3toMP4
 
         private (string InputPrefix, string Codec, string Filter) GetAudioOptions(string mp3Path)
         {
-            if (chkUseTheFullMp3File.Checked)
+            if (!chkTrimToRange.Checked)
                 return ("", "-c:a copy", "");
 
-            bool hasStart = TryParseTime(txtInputStart.Text, out var start);
-            bool hasEnd   = TryParseTime(txtInputEnd.Text,   out var end);
+            TimeSpan totalDuration = GetMp3Duration(mp3Path);
+            bool hasStart = TryParseRangeValue(txtInputStart.Text, totalDuration, out var start);
+            bool hasEnd   = TryParseRangeValue(txtInputEnd.Text,   totalDuration, out var end);
             TryParseFade(txtFadeInLength.Text,  out double fadeIn);
             TryParseFade(txtFadeOutLength.Text, out double fadeOut);
 
@@ -539,7 +581,6 @@ namespace MP3toMP4
 
             if (hasFade)
             {
-                TimeSpan totalDuration  = GetMp3Duration(mp3Path);
                 TimeSpan effectiveStart = hasStart ? start : TimeSpan.Zero;
                 TimeSpan effectiveEnd   = hasEnd   ? end   : totalDuration;
                 double   effectiveSecs  = Math.Max(0, (effectiveEnd - effectiveStart).TotalSeconds);
@@ -561,7 +602,8 @@ namespace MP3toMP4
         {
             seconds = 0;
             if (string.IsNullOrWhiteSpace(input)) return false;
-            if (!double.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out double val)) return false;
+            string normalized = input.Trim().Replace(',', '.');
+            if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double val)) return false;
             if (val <= 0) return false;
             seconds = val;
             return true;
@@ -662,6 +704,7 @@ namespace MP3toMP4
             }
 
             btnConvert.Enabled     = false;
+            btnClear.Enabled       = false;
             btnCancel.Enabled      = true;
             btnOpenFile.Enabled    = false;
             btnOpenFolder.Enabled  = false;
@@ -707,6 +750,7 @@ namespace MP3toMP4
             finally
             {
                 btnConvert.Enabled = true;
+                btnClear.Enabled   = true;
                 btnCancel.Enabled  = false;
                 _ffmpegProcess     = null;
             }
@@ -1159,43 +1203,67 @@ namespace MP3toMP4
             }
         }
 
+        /// <summary>
+        /// Parses "7", "0:07", "0:00:07" and fractional/comma variants ("7.5", "7,5") as a duration.
+        /// </summary>
         private static bool TryParseTime(string? input, out TimeSpan result)
         {
             result = TimeSpan.Zero;
             if (string.IsNullOrWhiteSpace(input)) return false;
 
-            var parts = input.Split(':');
+            string normalized = input.Trim().Replace(',', '.');
+            var parts = normalized.Split(':');
+
+            static bool TryNum(string s, out double v) => double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out v);
+
+            // Plain seconds
+            if (parts.Length == 1 && TryNum(parts[0], out double secOnly) && secOnly >= 0)
+            {
+                result = TimeSpan.FromSeconds(secOnly);
+                return true;
+            }
 
             // M:SS  — two parts means minutes:seconds, not hours:minutes
-            if (parts.Length == 2 &&
-                double.TryParse(parts[0], out double min) &&
-                double.TryParse(parts[1], System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture, out double sec))
+            if (parts.Length == 2 && TryNum(parts[0], out double min) && TryNum(parts[1], out double sec) && min >= 0 && sec >= 0)
             {
                 result = TimeSpan.FromSeconds(min * 60 + sec);
                 return true;
             }
 
             // H:MM:SS — three parts
-            if (parts.Length == 3 &&
-                double.TryParse(parts[0], out double hr) &&
-                double.TryParse(parts[1], out double mn) &&
-                double.TryParse(parts[2], System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture, out double sc))
+            if (parts.Length == 3 && TryNum(parts[0], out double hr) && TryNum(parts[1], out double mn) && TryNum(parts[2], out double sc) &&
+                hr >= 0 && mn >= 0 && sc >= 0)
             {
                 result = TimeSpan.FromSeconds(hr * 3600 + mn * 60 + sc);
                 return true;
             }
 
-            // Plain seconds
-            if (double.TryParse(input, System.Globalization.NumberStyles.Any,
-                System.Globalization.CultureInfo.InvariantCulture, out double secs))
+            return false;
+        }
+
+        /// <summary>
+        /// Same as <see cref="TryParseTime"/>, but also accepts a trailing "%" (e.g. "45%",
+        /// "45.5 %") meaning that percentage of <paramref name="totalDuration"/>. Deliberately does
+        /// NOT rewrite the textbox to the resolved time - the percentage is meant to stay reusable
+        /// across different MP3 files of different lengths, re-evaluated fresh each time.
+        /// </summary>
+        private static bool TryParseRangeValue(string? input, TimeSpan totalDuration, out TimeSpan result)
+        {
+            result = TimeSpan.Zero;
+            if (string.IsNullOrWhiteSpace(input)) return false;
+
+            string trimmed = input.Trim();
+            if (trimmed.EndsWith('%'))
             {
-                result = TimeSpan.FromSeconds(secs);
+                string normalized = trimmed[..^1].Trim().Replace(',', '.');
+                if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double percent) || percent < 0)
+                    return false;
+
+                result = TimeSpan.FromSeconds(totalDuration.TotalSeconds * percent / 100.0);
                 return true;
             }
 
-            return false;
+            return TryParseTime(trimmed, out result);
         }
 
         private static string FormatTime(TimeSpan t)
