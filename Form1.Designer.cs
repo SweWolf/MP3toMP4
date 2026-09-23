@@ -408,12 +408,15 @@
             // 
             colStart.HeaderText = "Start Time";
             colStart.Name = "colStart";
+            colStart.ToolTipText = "When this image appears in the finished video. The first image always starts at 0:00.";
             colStart.Width = 120;
             // 
             // colDuration
             // 
             colDuration.HeaderText = "Duration";
             colDuration.Name = "colDuration";
+            colDuration.ReadOnly = true;
+            colDuration.ToolTipText = "Calculated from the Start Times. The last image lasts until the end of the audio.";
             // 
             // chkLyrics
             // 

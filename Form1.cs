@@ -22,6 +22,7 @@ namespace MP3toMP4
         private Process? _ffmpegProcess;
         private bool     _cancelRequested;
         private string?  _lastLogFile;
+        private TimeSpan _mp3Length;
 
         public Form1()
         {
@@ -97,13 +98,19 @@ namespace MP3toMP4
             btnDelete.Click    += CmdDelete_Click;
 
             grdFiles.SelectionChanged += (_, _) => RefreshMultipleState();
-            grdFiles.CellValueChanged += GrdFiles_CellValueChanged;
             grdFiles.CellValidating  += GrdFiles_CellValidating;
-            grdFiles.EditingControlShowing += GrdFiles_EditingControlShowing;
+            grdFiles.RowsAdded       += (_, _) => ScheduleRecalculateDurations();
+            grdFiles.RowsRemoved     += (_, _) => ScheduleRecalculateDurations();
 
             colFile.SortMode     = DataGridViewColumnSortMode.NotSortable;
             colStart.SortMode    = DataGridViewColumnSortMode.NotSortable;
             colDuration.SortMode = DataGridViewColumnSortMode.NotSortable;
+            colDuration.DefaultCellStyle.ForeColor = SystemColors.GrayText;
+
+            // The last image runs until the end of the audio, so its duration depends on the trim range too
+            txtInputStart.TextChanged     += (_, _) => ScheduleRecalculateDurations();
+            txtInputEnd.TextChanged       += (_, _) => ScheduleRecalculateDurations();
+            chkTrimToRange.CheckedChanged += (_, _) => ScheduleRecalculateDurations();
 
             grdFiles.AllowDrop = true;
             grdFiles.DragEnter += GrdFiles_DragEnter;
@@ -659,7 +666,7 @@ namespace MP3toMP4
             else
             {
                 TimeSpan mp3Duration = GetMp3Duration(mp3);
-                if (!TryBuildSegments(mp3Duration, out var segments, out string segError))
+                if (!TryBuildSegments(GetEffectiveAudioLength(mp3Duration), out var segments, out string segError))
                 {
                     MessageBox.Show(segError, "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
@@ -762,6 +769,8 @@ namespace MP3toMP4
             if (string.IsNullOrEmpty(mp3) || !File.Exists(mp3))
             {
                 lblLength.Text = "";
+                _mp3Length = TimeSpan.Zero;
+                ScheduleRecalculateDurations();
                 return;
             }
 
@@ -771,6 +780,21 @@ namespace MP3toMP4
             if (txtMP3File.Text.Trim() != mp3) return;
 
             lblLength.Text = duration > TimeSpan.Zero ? $"Length: {FormatLengthDisplay(duration)}" : "";
+            _mp3Length = duration;
+            ScheduleRecalculateDurations();
+        }
+
+        /// <summary>
+        /// The length of the audio that actually ends up in the MP4: the whole MP3, or just the
+        /// Start at/End at range when "Trim to a Range" is checked.
+        /// </summary>
+        private TimeSpan GetEffectiveAudioLength(TimeSpan mp3Length)
+        {
+            if (!chkTrimToRange.Checked) return mp3Length;
+
+            TimeSpan start = TryParseRangeValue(txtInputStart.Text, mp3Length, out var s) ? s : TimeSpan.Zero;
+            TimeSpan end   = TryParseRangeValue(txtInputEnd.Text,   mp3Length, out var e) && e < mp3Length ? e : mp3Length;
+            return end > start ? end - start : TimeSpan.Zero;
         }
 
         private static string FormatLengthDisplay(TimeSpan t)
@@ -938,14 +962,18 @@ namespace MP3toMP4
             return sb.ToString();
         }
 
-        private bool TryBuildSegments(TimeSpan mp3Duration, out List<ImageSegment> segments, out string error)
+        /// <summary>
+        /// Start Time is the single source of truth: each image lasts until the next row's Start
+        /// Time, and the last one until the end of the audio. The Duration column is display-only.
+        /// The images together therefore always cover exactly <paramref name="audioLength"/>, so
+        /// -shortest never cuts the audio.
+        /// </summary>
+        private bool TryBuildSegments(TimeSpan audioLength, out List<ImageSegment> segments, out string error)
         {
             segments = [];
             error    = "";
 
-            var dataRows = grdFiles.Rows.Cast<DataGridViewRow>()
-                .Where(r => !r.IsNewRow)
-                .ToList();
+            var dataRows = GetGridDataRows();
 
             if (dataRows.Count == 0)
             {
@@ -953,6 +981,13 @@ namespace MP3toMP4
                 return false;
             }
 
+            if (audioLength <= TimeSpan.Zero)
+            {
+                error = "Could not determine the length of the audio. Check the MP3 file and the Start at/End at values.";
+                return false;
+            }
+
+            var starts = new List<TimeSpan>();
             for (int i = 0; i < dataRows.Count; i++)
             {
                 string? file = dataRows[i].Cells[colFile.Index].Value?.ToString()?.Trim();
@@ -962,36 +997,34 @@ namespace MP3toMP4
                     return false;
                 }
 
-                if (!TryParseTime(dataRows[i].Cells[colStart.Index].Value?.ToString(), out var start))
+                // The first image always starts at the very beginning
+                TimeSpan start = TimeSpan.Zero;
+                if (i > 0)
                 {
-                    error = $"Row {i + 1}: invalid or missing Start Time.";
+                    if (!TryParseTime(dataRows[i].Cells[colStart.Index].Value?.ToString(), out start))
+                    {
+                        error = $"Row {i + 1}: invalid or missing Start Time.";
+                        return false;
+                    }
+                    if (start <= starts[i - 1])
+                    {
+                        error = $"Row {i + 1}: the Start Time must be later than the Start Time of row {i}.";
+                        return false;
+                    }
+                }
+                if (start >= audioLength)
+                {
+                    error = $"Row {i + 1}: the Start Time is at or after the end of the audio ({FormatTime(audioLength)}).";
                     return false;
                 }
+                starts.Add(start);
+            }
 
-                TimeSpan duration;
-                string? durStr = dataRows[i].Cells[colDuration.Index].Value?.ToString();
-
-                if (!string.IsNullOrWhiteSpace(durStr) && TryParseTime(durStr, out var explicit_))
-                {
-                    duration = explicit_;
-                }
-                else if (i < dataRows.Count - 1 &&
-                         TryParseTime(dataRows[i + 1].Cells[colStart.Index].Value?.ToString(), out var nextStart))
-                {
-                    duration = nextStart - start;
-                }
-                else
-                {
-                    duration = mp3Duration - start;
-                }
-
-                if (duration <= TimeSpan.Zero)
-                {
-                    error = $"Row {i + 1}: duration must be greater than zero.";
-                    return false;
-                }
-
-                segments.Add(new ImageSegment(file, duration));
+            for (int i = 0; i < dataRows.Count; i++)
+            {
+                TimeSpan end = i < dataRows.Count - 1 ? starts[i + 1] : audioLength;
+                string file  = dataRows[i].Cells[colFile.Index].Value!.ToString()!.Trim();
+                segments.Add(new ImageSegment(file, end - starts[i]));
             }
 
             return true;
@@ -1123,78 +1156,78 @@ namespace MP3toMP4
             form.ShowDialog(this);
         }
 
-        private void GrdFiles_EditingControlShowing(object? sender, DataGridViewEditingControlShowingEventArgs e)
-        {
-            if (grdFiles.CurrentCell?.ColumnIndex != colStart.Index &&
-                grdFiles.CurrentCell?.ColumnIndex != colDuration.Index) return;
-
-            if (e.Control is TextBox tb)
-            {
-                tb.KeyPress -= GridTimeCell_KeyPress;
-                tb.KeyPress += GridTimeCell_KeyPress;
-            }
-        }
-
-        private static void GridTimeCell_KeyPress(object? sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == ',')
-            {
-                e.Handled = true;
-                if (sender is TextBox tb)
-                {
-                    int pos = tb.SelectionStart;
-                    tb.Text = tb.Text.Remove(tb.SelectionStart, tb.SelectionLength).Insert(pos, ".");
-                    tb.SelectionStart = pos + 1;
-                }
-            }
-        }
-
         private bool _gridUpdating;
+        private bool _recalcPending;
+
+        private List<DataGridViewRow> GetGridDataRows() =>
+            grdFiles.Rows.Cast<DataGridViewRow>().Where(r => !r.IsNewRow).ToList();
 
         private void GrdFiles_CellValidating(object? sender, DataGridViewCellValidatingEventArgs e)
         {
-            if (e.ColumnIndex != colStart.Index && e.ColumnIndex != colDuration.Index) return;
+            if (e.ColumnIndex != colStart.Index) return;
             string? val = e.FormattedValue?.ToString();
             if (string.IsNullOrWhiteSpace(val)) return;
             if (!TryParseTime(val, out _))
             {
                 e.Cancel = true;
-                MessageBox.Show("Enter a time as H:MM:SS, M:SS, or plain seconds (e.g. 90).",
+                MessageBox.Show("Enter a time as H:MM:SS, M:SS, or plain seconds (e.g. 1:23:45, 2:07, 90, 7.5). " +
+                                "'.' or ',' both work for the fraction.",
                     "Invalid time", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
-        private void GrdFiles_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
+        /// <summary>
+        /// Queues <see cref="RecalculateDurations"/> to run once the current grid event has
+        /// finished. Row add/remove events fire in the middle of DataGridView's own processing,
+        /// where changing cell values or ReadOnly flags isn't safe.
+        /// </summary>
+        private void ScheduleRecalculateDurations()
         {
-            if (_gridUpdating || e.RowIndex < 0) return;
-            if (e.ColumnIndex != colStart.Index && e.ColumnIndex != colDuration.Index) return;
+            if (_recalcPending || !IsHandleCreated) return;
+            _recalcPending = true;
+            BeginInvoke(() =>
+            {
+                _recalcPending = false;
+                RecalculateDurations();
+            });
+        }
+
+        /// <summary>
+        /// Refreshes the display-only Duration column from the Start Times, and locks the first
+        /// row's Start Time at 0:00. Uses the same rules as <see cref="TryBuildSegments"/>.
+        /// </summary>
+        private void RecalculateDurations()
+        {
+            // Mid-edit: the value being typed isn't committed yet. CellEndEdit schedules another run.
+            if (_gridUpdating || grdFiles.IsCurrentCellInEditMode) return;
+
+            var dataRows = GetGridDataRows();
+            TimeSpan audioLength = GetEffectiveAudioLength(_mp3Length);
 
             _gridUpdating = true;
             try
             {
-                var rows = grdFiles.Rows;
-                int row  = e.RowIndex;
+                for (int i = 0; i < dataRows.Count; i++)
+                {
+                    var startCell = dataRows[i].Cells[colStart.Index];
+                    startCell.ReadOnly = i == 0;
+                    if (i == 0 && startCell.Value?.ToString() != "0:00")
+                        startCell.Value = "0:00";
 
-                if (e.ColumnIndex == colStart.Index)
-                {
-                    // Start Time changed on row N → update Duration of row N-1
-                    if (row > 0 &&
-                        TryParseTime(rows[row].Cells[colStart.Index].Value?.ToString(), out var thisStart) &&
-                        TryParseTime(rows[row - 1].Cells[colStart.Index].Value?.ToString(), out var prevStart) &&
-                        thisStart > prevStart)
+                    string duration = "";
+                    if (TryParseTime(startCell.Value?.ToString(), out var start))
                     {
-                        rows[row - 1].Cells[colDuration.Index].Value = FormatTime(thisStart - prevStart);
+                        if (i < dataRows.Count - 1)
+                        {
+                            if (TryParseTime(dataRows[i + 1].Cells[colStart.Index].Value?.ToString(), out var next) && next > start)
+                                duration = FormatTime(next - start);
+                        }
+                        else if (audioLength <= TimeSpan.Zero)
+                            duration = "(to the end)";
+                        else if (audioLength > start)
+                            duration = FormatTime(audioLength - start);
                     }
-                }
-                else // colDuration
-                {
-                    // Duration changed on row N → update Start Time of row N+1
-                    if (row < rows.Count - 1 &&
-                        TryParseTime(rows[row].Cells[colStart.Index].Value?.ToString(), out var start) &&
-                        TryParseTime(rows[row].Cells[colDuration.Index].Value?.ToString(), out var duration))
-                    {
-                        rows[row + 1].Cells[colStart.Index].Value = FormatTime(start + duration);
-                    }
+                    dataRows[i].Cells[colDuration.Index].Value = duration;
                 }
             }
             finally
@@ -1268,8 +1301,10 @@ namespace MP3toMP4
 
         private static string FormatTime(TimeSpan t)
         {
+            // Round (not truncate) to one decimal place, e.g. 7.25 → "0:07.3"
+            t = TimeSpan.FromMilliseconds(Math.Round(t.TotalMilliseconds / 100, MidpointRounding.AwayFromZero) * 100);
             string frac = t.Milliseconds > 0
-                ? $".{t.Milliseconds / 100}"   // one decimal place, e.g. ".5"
+                ? $".{t.Milliseconds / 100}"
                 : "";
 
             return t.TotalHours >= 1
@@ -1279,20 +1314,21 @@ namespace MP3toMP4
 
         private void GrdFiles_CellEndEdit(object? sender, DataGridViewCellEventArgs e)
         {
+            ScheduleRecalculateDurations();
             if (e.ColumnIndex != colStart.Index || e.RowIndex < 0) return;
 
-            var dataRows = grdFiles.Rows.Cast<DataGridViewRow>().Where(r => !r.IsNewRow).ToList();
+            var dataRows = GetGridDataRows();
             if (dataRows.Count < 2) return;
 
             int editedListIdx = dataRows.FindIndex(r => r.Index == e.RowIndex);
             if (editedListIdx < 0) return;
 
-            // Build sortable snapshot
+            // Keep rows in Start Time order: the edited image moves together with its new time.
+            // Durations aren't carried along - RecalculateDurations rebuilds them afterwards.
             var snapshot = dataRows.Select(r => (
-                File:     r.Cells[colFile.Index].Value?.ToString() ?? "",
-                Start:    r.Cells[colStart.Index].Value?.ToString() ?? "",
-                Duration: r.Cells[colDuration.Index].Value?.ToString() ?? "",
-                T:        TryParseTime(r.Cells[colStart.Index].Value?.ToString(), out var t) ? t : TimeSpan.MaxValue
+                File:  r.Cells[colFile.Index].Value?.ToString() ?? "",
+                Start: r.Cells[colStart.Index].Value?.ToString() ?? "",
+                T:     TryParseTime(r.Cells[colStart.Index].Value?.ToString(), out var t) ? t : TimeSpan.MaxValue
             )).ToList();
 
             var sortedOrder = Enumerable.Range(0, snapshot.Count).OrderBy(i => snapshot[i].T).ToList();
@@ -1307,9 +1343,8 @@ namespace MP3toMP4
                 var sorted = sortedOrder.Select(i => snapshot[i]).ToList();
                 for (int i = 0; i < sorted.Count; i++)
                 {
-                    dataRows[i].Cells[colFile.Index].Value     = sorted[i].File;
-                    dataRows[i].Cells[colStart.Index].Value    = sorted[i].Start;
-                    dataRows[i].Cells[colDuration.Index].Value = sorted[i].Duration;
+                    dataRows[i].Cells[colFile.Index].Value  = sorted[i].File;
+                    dataRows[i].Cells[colStart.Index].Value = sorted[i].Start;
                 }
 
                 // Follow the edited row to its new position
@@ -1467,15 +1502,16 @@ namespace MP3toMP4
             RefreshMultipleState();
         }
 
+        /// <summary>
+        /// Swaps only the files: the time slots (Start Time, and so Duration) stay in place, so
+        /// moving an image up/down changes which image is shown when, not the timing itself.
+        /// </summary>
         private void SwapRows(int a, int b)
         {
-            foreach (DataGridViewColumn col in grdFiles.Columns)
-            {
-                (grdFiles.Rows[a].Cells[col.Index].Value,
-                 grdFiles.Rows[b].Cells[col.Index].Value) =
-                (grdFiles.Rows[b].Cells[col.Index].Value,
-                 grdFiles.Rows[a].Cells[col.Index].Value);
-            }
+            (grdFiles.Rows[a].Cells[colFile.Index].Value,
+             grdFiles.Rows[b].Cells[colFile.Index].Value) =
+            (grdFiles.Rows[b].Cells[colFile.Index].Value,
+             grdFiles.Rows[a].Cells[colFile.Index].Value);
         }
 
         private void CmdDelete_Click(object? sender, EventArgs e)
