@@ -77,7 +77,7 @@
             btnCancel = new Button();
             btnClear = new Button();
             menuStrip = new MenuStrip();
-            menuSetup = new ToolStripMenuItem();
+            menuTools = new ToolStripMenuItem();
             menuCreateShortcut = new ToolStripMenuItem();
             menuSettings = new ToolStripMenuItem();
             helpToolStripMenuItem = new ToolStripMenuItem();
@@ -584,18 +584,18 @@
             // 
             // menuStrip
             // 
-            menuStrip.Items.AddRange(new ToolStripItem[] { menuSetup, helpToolStripMenuItem });
+            menuStrip.Items.AddRange(new ToolStripItem[] { menuTools, helpToolStripMenuItem });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
             menuStrip.Size = new Size(1066, 24);
             menuStrip.TabIndex = 22;
             // 
-            // menuSetup
+            // menuTools
             // 
-            menuSetup.DropDownItems.AddRange(new ToolStripItem[] { menuCreateShortcut, menuSettings });
-            menuSetup.Name = "menuSetup";
-            menuSetup.Size = new Size(49, 20);
-            menuSetup.Text = "Setup";
+            menuTools.DropDownItems.AddRange(new ToolStripItem[] { menuCreateShortcut, menuSettings });
+            menuTools.Name = "menuTools";
+            menuTools.Size = new Size(49, 20);
+            menuTools.Text = "Tools";
             // 
             // menuCreateShortcut
             // 
@@ -608,7 +608,7 @@
             //
             menuSettings.Name = "menuSettings";
             menuSettings.Size = new Size(165, 22);
-            menuSettings.Text = "Settings...";
+            menuSettings.Text = "Settings";
             menuSettings.Click += menuSettings_Click;
             //
             // helpToolStripMenuItem
@@ -622,7 +622,7 @@
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             aboutToolStripMenuItem.Size = new Size(116, 22);
-            aboutToolStripMenuItem.Text = "About...";
+            aboutToolStripMenuItem.Text = "About";
             aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
             // 
             // btnOpenLogFile
@@ -721,7 +721,7 @@
         private Button btnCancel;
         private Button btnClear;
         private MenuStrip menuStrip;
-        private ToolStripMenuItem menuSetup;
+        private ToolStripMenuItem menuTools;
         private ToolStripMenuItem menuCreateShortcut;
         private ToolStripMenuItem menuSettings;
         private ToolStripMenuItem helpToolStripMenuItem;

@@ -156,7 +156,7 @@ namespace MP3toMP4
             lnkGitHub.Name = "lnkGitHub";
             lnkGitHub.TabIndex = 2;
             lnkGitHub.TabStop = true;
-            lnkGitHub.Text = "https://github.com/SweWolf";
+            lnkGitHub.Text = "https://github.com/SweWolf/MP3toMP4";
             lnkGitHub.LinkClicked += lnkGitHub_LinkClicked;
 
             // lblBuiltWithHeader

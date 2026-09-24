@@ -54,7 +54,7 @@ namespace MP3toMP4
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                FileName        = "https://github.com/SweWolf",
+                FileName        = "https://github.com/SweWolf/MP3toMP4",
                 UseShellExecute = true,
             });
         }
