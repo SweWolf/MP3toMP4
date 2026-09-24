@@ -32,12 +32,18 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             txtMP3File = new TextBox();
             toolTip = new ToolTip(components);
+            btnBrowseForMp3File = new Button();
+            btnBrowsForImageFile = new Button();
+            btnAdd = new Button();
+            btnDelete = new Button();
+            btnMoveDown = new Button();
+            btnMoveUp = new Button();
+            cmdBrowseForMP4File = new Button();
+            btnConvert = new Button();
             lblLength = new Label();
             label1 = new Label();
             label2 = new Label();
             cboImageFile = new ComboBox();
-            btnBrowseForMp3File = new Button();
-            btnBrowsForImageFile = new Button();
             grpInput = new GroupBox();
             lblFadeOut = new Label();
             lblFadeIn = new Label();
@@ -54,10 +60,6 @@
             picImage = new PictureBox();
             tabMultiple = new TabPage();
             pictureBox2 = new PictureBox();
-            btnAdd = new Button();
-            btnDelete = new Button();
-            btnMoveDown = new Button();
-            btnMoveUp = new Button();
             grdFiles = new DataGridView();
             colFile = new DataGridViewTextBoxColumn();
             colStart = new DataGridViewTextBoxColumn();
@@ -66,8 +68,6 @@
             groupBox2 = new GroupBox();
             txtMP4File = new TextBox();
             label3 = new Label();
-            cmdBrowseForMP4File = new Button();
-            btnConvert = new Button();
             lblEstimatedRemaining = new Label();
             progressBar = new TextProgressBar();
             btnCancel = new Button();
@@ -105,6 +105,93 @@
             toolTip.InitialDelay = 400;
             toolTip.ReshowDelay = 100;
             // 
+            // btnBrowseForMp3File
+            // 
+            btnBrowseForMp3File.Location = new Point(696, 46);
+            btnBrowseForMp3File.Name = "btnBrowseForMp3File";
+            btnBrowseForMp3File.Size = new Size(37, 29);
+            btnBrowseForMp3File.TabIndex = 1;
+            btnBrowseForMp3File.Text = "...";
+            toolTip.SetToolTip(btnBrowseForMp3File, "Browse for an MP3 file");
+            btnBrowseForMp3File.UseVisualStyleBackColor = true;
+            // 
+            // btnBrowsForImageFile
+            // 
+            btnBrowsForImageFile.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnBrowsForImageFile.Location = new Point(686, 38);
+            btnBrowsForImageFile.Name = "btnBrowsForImageFile";
+            btnBrowsForImageFile.Size = new Size(37, 29);
+            btnBrowsForImageFile.TabIndex = 3;
+            btnBrowsForImageFile.Text = "...";
+            toolTip.SetToolTip(btnBrowsForImageFile, "Browse for an image or video file");
+            btnBrowsForImageFile.UseVisualStyleBackColor = true;
+            // 
+            // btnAdd
+            // 
+            btnAdd.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnAdd.Location = new Point(624, 17);
+            btnAdd.Name = "btnAdd";
+            btnAdd.Size = new Size(72, 34);
+            btnAdd.TabIndex = 0;
+            btnAdd.Text = "Add...";
+            toolTip.SetToolTip(btnAdd, "Add image or video files");
+            btnAdd.UseVisualStyleBackColor = true;
+            // 
+            // btnDelete
+            // 
+            btnDelete.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnDelete.Location = new Point(624, 164);
+            btnDelete.Name = "btnDelete";
+            btnDelete.Size = new Size(72, 34);
+            btnDelete.TabIndex = 3;
+            btnDelete.Text = "Delete";
+            toolTip.SetToolTip(btnDelete, "Delete the selected row");
+            btnDelete.UseVisualStyleBackColor = true;
+            // 
+            // btnMoveDown
+            // 
+            btnMoveDown.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnMoveDown.Location = new Point(624, 115);
+            btnMoveDown.Name = "btnMoveDown";
+            btnMoveDown.Size = new Size(72, 34);
+            btnMoveDown.TabIndex = 2;
+            btnMoveDown.Text = "▼";
+            toolTip.SetToolTip(btnMoveDown, "Move the selected row down");
+            btnMoveDown.UseVisualStyleBackColor = true;
+            // 
+            // btnMoveUp
+            // 
+            btnMoveUp.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnMoveUp.Location = new Point(624, 66);
+            btnMoveUp.Name = "btnMoveUp";
+            btnMoveUp.Size = new Size(72, 34);
+            btnMoveUp.TabIndex = 1;
+            btnMoveUp.Text = "▲";
+            toolTip.SetToolTip(btnMoveUp, "Move the selected row up");
+            btnMoveUp.UseVisualStyleBackColor = true;
+            // 
+            // cmdBrowseForMP4File
+            // 
+            cmdBrowseForMP4File.Location = new Point(698, 52);
+            cmdBrowseForMP4File.Name = "cmdBrowseForMP4File";
+            cmdBrowseForMP4File.Size = new Size(37, 29);
+            cmdBrowseForMP4File.TabIndex = 1;
+            cmdBrowseForMP4File.Text = "...";
+            toolTip.SetToolTip(cmdBrowseForMP4File, "Choose where to save the MP4 file");
+            cmdBrowseForMP4File.UseVisualStyleBackColor = true;
+            // 
+            // btnConvert
+            // 
+            btnConvert.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnConvert.Font = new Font("Segoe UI", 12F);
+            btnConvert.Location = new Point(14, 635);
+            btnConvert.Name = "btnConvert";
+            btnConvert.Size = new Size(127, 37);
+            btnConvert.TabIndex = 2;
+            btnConvert.Text = "Convert";
+            toolTip.SetToolTip(btnConvert, "Start converting the MP3 file to an MP4 file");
+            btnConvert.UseVisualStyleBackColor = true;
+            // 
             // lblLength
             // 
             lblLength.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -136,6 +223,7 @@
             // 
             // cboImageFile
             // 
+            cboImageFile.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             cboImageFile.Font = new Font("Segoe UI", 12F);
             cboImageFile.FormattingEnabled = true;
             cboImageFile.Location = new Point(10, 38);
@@ -143,29 +231,9 @@
             cboImageFile.Size = new Size(645, 29);
             cboImageFile.TabIndex = 2;
             // 
-            // btnBrowseForMp3File
-            // 
-            btnBrowseForMp3File.Location = new Point(696, 46);
-            btnBrowseForMp3File.Name = "btnBrowseForMp3File";
-            btnBrowseForMp3File.Size = new Size(37, 29);
-            btnBrowseForMp3File.TabIndex = 1;
-            btnBrowseForMp3File.Text = "...";
-            toolTip.SetToolTip(btnBrowseForMp3File, "Browse for an MP3 file");
-            btnBrowseForMp3File.UseVisualStyleBackColor = true;
-            // 
-            // btnBrowsForImageFile
-            // 
-            btnBrowsForImageFile.Location = new Point(686, 38);
-            btnBrowsForImageFile.Name = "btnBrowsForImageFile";
-            btnBrowsForImageFile.Size = new Size(37, 29);
-            btnBrowsForImageFile.TabIndex = 3;
-            btnBrowsForImageFile.Text = "...";
-            toolTip.SetToolTip(btnBrowsForImageFile, "Browse for an image or video file");
-            btnBrowsForImageFile.UseVisualStyleBackColor = true;
-            // 
             // grpInput
             // 
-            grpInput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            grpInput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             grpInput.Controls.Add(lblLength);
             grpInput.Controls.Add(lblFadeOut);
             grpInput.Controls.Add(lblFadeIn);
@@ -275,6 +343,7 @@
             // 
             // tabImage
             // 
+            tabImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tabImage.Controls.Add(tabSingle);
             tabImage.Controls.Add(tabMultiple);
             tabImage.Location = new Point(6, 122);
@@ -307,15 +376,15 @@
             chkUseImageFileFromMp3File.Name = "chkUseImageFileFromMp3File";
             chkUseImageFileFromMp3File.Size = new Size(232, 25);
             chkUseImageFileFromMp3File.TabIndex = 5;
-            chkUseImageFileFromMp3File.Text = "Use Image File from MP3 File";
+            chkUseImageFileFromMp3File.Text = "Use Image from the MP3 File";
             chkUseImageFileFromMp3File.UseVisualStyleBackColor = true;
             // 
             // picImage
             // 
-            picImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            picImage.Location = new Point(12, 134);
+            picImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            picImage.Location = new Point(740, 6);
             picImage.Name = "picImage";
-            picImage.Size = new Size(404, 76);
+            picImage.Size = new Size(273, 214);
             picImage.TabIndex = 4;
             picImage.TabStop = false;
             // 
@@ -343,50 +412,6 @@
             pictureBox2.Size = new Size(283, 193);
             pictureBox2.TabIndex = 24;
             pictureBox2.TabStop = false;
-            // 
-            // btnAdd
-            // 
-            btnAdd.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnAdd.Location = new Point(624, 17);
-            btnAdd.Name = "btnAdd";
-            btnAdd.Size = new Size(72, 34);
-            btnAdd.TabIndex = 0;
-            btnAdd.Text = "Add...";
-            toolTip.SetToolTip(btnAdd, "Add image or video files");
-            btnAdd.UseVisualStyleBackColor = true;
-            // 
-            // btnDelete
-            // 
-            btnDelete.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnDelete.Location = new Point(624, 164);
-            btnDelete.Name = "btnDelete";
-            btnDelete.Size = new Size(72, 34);
-            btnDelete.TabIndex = 3;
-            btnDelete.Text = "Delete";
-            toolTip.SetToolTip(btnDelete, "Delete the selected row");
-            btnDelete.UseVisualStyleBackColor = true;
-            // 
-            // btnMoveDown
-            // 
-            btnMoveDown.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnMoveDown.Location = new Point(624, 115);
-            btnMoveDown.Name = "btnMoveDown";
-            btnMoveDown.Size = new Size(72, 34);
-            btnMoveDown.TabIndex = 2;
-            btnMoveDown.Text = "▼";
-            toolTip.SetToolTip(btnMoveDown, "Move the selected row down");
-            btnMoveDown.UseVisualStyleBackColor = true;
-            // 
-            // btnMoveUp
-            // 
-            btnMoveUp.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnMoveUp.Location = new Point(624, 66);
-            btnMoveUp.Name = "btnMoveUp";
-            btnMoveUp.Size = new Size(72, 34);
-            btnMoveUp.TabIndex = 1;
-            btnMoveUp.Text = "▲";
-            toolTip.SetToolTip(btnMoveUp, "Move the selected row up");
-            btnMoveUp.UseVisualStyleBackColor = true;
             // 
             // grdFiles
             // 
@@ -461,28 +486,6 @@
             label3.Size = new Size(70, 21);
             label3.TabIndex = 1;
             label3.Text = "MP4 File";
-            // 
-            // cmdBrowseForMP4File
-            // 
-            cmdBrowseForMP4File.Location = new Point(698, 52);
-            cmdBrowseForMP4File.Name = "cmdBrowseForMP4File";
-            cmdBrowseForMP4File.Size = new Size(37, 29);
-            cmdBrowseForMP4File.TabIndex = 1;
-            cmdBrowseForMP4File.Text = "...";
-            toolTip.SetToolTip(cmdBrowseForMP4File, "Choose where to save the MP4 file");
-            cmdBrowseForMP4File.UseVisualStyleBackColor = true;
-            // 
-            // btnConvert
-            // 
-            btnConvert.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnConvert.Font = new Font("Segoe UI", 12F);
-            btnConvert.Location = new Point(14, 635);
-            btnConvert.Name = "btnConvert";
-            btnConvert.Size = new Size(127, 37);
-            btnConvert.TabIndex = 2;
-            btnConvert.Text = "Convert";
-            toolTip.SetToolTip(btnConvert, "Start converting the MP3 file to an MP4 file");
-            btnConvert.UseVisualStyleBackColor = true;
             // 
             // lblEstimatedRemaining
             // 

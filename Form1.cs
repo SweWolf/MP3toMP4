@@ -20,8 +20,8 @@ namespace MP3toMP4
         private record ImageSegment(string FilePath, TimeSpan Duration);
 
         private Process? _ffmpegProcess;
-        private bool     _cancelRequested;
-        private string?  _lastLogFile;
+        private bool _cancelRequested;
+        private string? _lastLogFile;
         private TimeSpan _mp3Length;
 
         public Form1()
@@ -52,15 +52,21 @@ namespace MP3toMP4
             picImage.DragEnter += OnDragEnter;
             picImage.DragDrop += CboImageFile_DragDrop;
 
-            picImage.SizeMode    = PictureBoxSizeMode.Zoom;
+            picImage.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
             cboImageFile.TextChanged += (_, _) =>
             {
                 string t = cboImageFile.Text;
                 if (t.Length >= 2 && t[0] == '"' && t[^1] == '"')
-                    { cboImageFile.Text = t[1..^1]; return; }
+                { cboImageFile.Text = t[1..^1]; return; }
                 LoadImagePreview(t.Trim(), picImage);
             };
+            // WinForms quirk: resizing an editable ComboBox selects all its text. Anchored
+            // Left|Right, it resizes with the window, so undo that unless the user is in it.
+            cboImageFile.SizeChanged += (_, _) => BeginInvoke(() =>
+            {
+                if (!cboImageFile.Focused) cboImageFile.SelectionLength = 0;
+            });
             txtMP4File.TextChanged += (_, _) =>
             {
                 string t = txtMP4File.Text;
@@ -76,8 +82,8 @@ namespace MP3toMP4
             ctxMenu.Opening += (_, _) => pasteItem.Enabled = Clipboard.ContainsImage() || Clipboard.ContainsText();
             cboImageFile.ContextMenuStrip = ctxMenu;
 
-            chkUseImageFileFromMp3File.CheckedChanged  += ChkUseImageFileFromMp3File_CheckedChanged;
-            chkTrimToRange.CheckedChanged              += ChkTrimToRange_CheckedChanged;
+            chkUseImageFileFromMp3File.CheckedChanged += ChkUseImageFileFromMp3File_CheckedChanged;
+            chkTrimToRange.CheckedChanged += ChkTrimToRange_CheckedChanged;
             toolTip.SetToolTip(chkTrimToRange,
                 "Unchecked: use the complete file.\n" +
                 "Checked: shows Start at/End at (and Fade in/out) fields to trim the file to a specific range.");
@@ -88,35 +94,35 @@ namespace MP3toMP4
             toolTip.SetToolTip(txtInputStart, startEndTooltip);
             toolTip.SetToolTip(txtInputEnd, startEndTooltip);
 
-            btnOpenFile.Click   += BtnOpenFile_Click;
+            btnOpenFile.Click += BtnOpenFile_Click;
             btnOpenFolder.Click += BtnOpenFolder_Click;
             btnOpenLogFile.Click += BtnOpenLogFile_Click;
 
-            btnAdd.Click       += BtnAdd_Click;
-            btnMoveUp.Click    += CmdMoveUp_Click;
-            btnMoveDown.Click  += CmdMoveDown_Click;
-            btnDelete.Click    += CmdDelete_Click;
+            btnAdd.Click += BtnAdd_Click;
+            btnMoveUp.Click += CmdMoveUp_Click;
+            btnMoveDown.Click += CmdMoveDown_Click;
+            btnDelete.Click += CmdDelete_Click;
 
             grdFiles.SelectionChanged += (_, _) => RefreshMultipleState();
-            grdFiles.CellValidating  += GrdFiles_CellValidating;
-            grdFiles.RowsAdded       += (_, _) => ScheduleRecalculateDurations();
-            grdFiles.RowsRemoved     += (_, _) => ScheduleRecalculateDurations();
+            grdFiles.CellValidating += GrdFiles_CellValidating;
+            grdFiles.RowsAdded += (_, _) => ScheduleRecalculateDurations();
+            grdFiles.RowsRemoved += (_, _) => ScheduleRecalculateDurations();
 
-            colFile.SortMode     = DataGridViewColumnSortMode.NotSortable;
-            colStart.SortMode    = DataGridViewColumnSortMode.NotSortable;
+            colFile.SortMode = DataGridViewColumnSortMode.NotSortable;
+            colStart.SortMode = DataGridViewColumnSortMode.NotSortable;
             colDuration.SortMode = DataGridViewColumnSortMode.NotSortable;
             colDuration.DefaultCellStyle.ForeColor = SystemColors.GrayText;
 
             // The last image runs until the end of the audio, so its duration depends on the trim range too
-            txtInputStart.TextChanged     += (_, _) => ScheduleRecalculateDurations();
-            txtInputEnd.TextChanged       += (_, _) => ScheduleRecalculateDurations();
+            txtInputStart.TextChanged += (_, _) => ScheduleRecalculateDurations();
+            txtInputEnd.TextChanged += (_, _) => ScheduleRecalculateDurations();
             chkTrimToRange.CheckedChanged += (_, _) => ScheduleRecalculateDurations();
 
             grdFiles.AllowDrop = true;
             grdFiles.DragEnter += GrdFiles_DragEnter;
-            grdFiles.DragDrop  += GrdFiles_DragDrop;
+            grdFiles.DragDrop += GrdFiles_DragDrop;
             grdFiles.CellFormatting += GrdFiles_CellFormatting;
-            grdFiles.CellEndEdit    += GrdFiles_CellEndEdit;
+            grdFiles.CellEndEdit += GrdFiles_CellEndEdit;
             tabImage.SelectedIndexChanged += TabImage_SelectedIndexChanged;
             UpdateMultipleButtons();
 
@@ -167,8 +173,10 @@ namespace MP3toMP4
         {
             using var dlg = new OpenFileDialog
             {
-                Title = "Select MP3 file",
-                Filter = "MP3 files (*.mp3)|*.mp3|All files (*.*)|*.*"
+                Title = "Select MP3 or other audio file",
+                Filter = "MP3 files (*.mp3)|*.mp3|" +
+                         "Audio files (*.mp3;*.wav;*.flac;*.m4a;*.aac;*.ogg;*.opus;*.wma;*.aiff;*.aif)|*.mp3;*.wav;*.flac;*.m4a;*.aac;*.ogg;*.opus;*.wma;*.aiff;*.aif|" +
+                         "All files (*.*)|*.*"
             };
 
             if (dlg.ShowDialog() != DialogResult.OK) return;
@@ -499,10 +507,10 @@ namespace MP3toMP4
                 string ext = pic.MimeType switch
                 {
                     "image/jpeg" => ".jpg",
-                    "image/png"  => ".png",
-                    "image/gif"  => ".gif",
-                    "image/bmp"  => ".bmp",
-                    _            => ".jpg"
+                    "image/png" => ".png",
+                    "image/gif" => ".gif",
+                    "image/bmp" => ".bmp",
+                    _ => ".jpg"
                 };
 
                 string tempDir = Path.Combine(
@@ -520,6 +528,13 @@ namespace MP3toMP4
 
         private void ChkUseImageFileFromMp3File_CheckedChanged(object? sender, EventArgs e)
         {
+            // While the MP3's own artwork is used, lock every other way of choosing an image
+            // (typing, Browse, and dropping onto the preview)
+            bool manualImage = !chkUseImageFileFromMp3File.Checked;
+            cboImageFile.Enabled = manualImage;
+            btnBrowsForImageFile.Enabled = manualImage;
+            picImage.AllowDrop = manualImage;
+
             if (!chkUseImageFileFromMp3File.Checked) return;
 
             string mp3 = txtMP3File.Text.Trim();
@@ -544,32 +559,44 @@ namespace MP3toMP4
         private void ChkTrimToRange_CheckedChanged(object? sender, EventArgs e)
         {
             bool show = chkTrimToRange.Checked;
-            lblInputStart.Visible    = show;
-            txtInputStart.Visible    = show;
-            label4.Visible           = show;
-            txtInputEnd.Visible      = show;
-            lblFadeIn.Visible        = show;
-            txtFadeInLength.Visible  = show;
-            lblFadeOut.Visible       = show;
+            lblInputStart.Visible = show;
+            txtInputStart.Visible = show;
+            label4.Visible = show;
+            txtInputEnd.Visible = show;
+            lblFadeIn.Visible = show;
+            txtFadeInLength.Visible = show;
+            lblFadeOut.Visible = show;
             txtFadeOutLength.Visible = show;
         }
+
+        private const string AacCodec = "-c:a aac -b:a 192k";
+
+        /// <summary>
+        /// MP3 and AAC play everywhere inside an MP4, so they're copied untouched. Anything else
+        /// (WAV, FLAC, OGG, WMA, ...) is re-encoded to AAC: FFmpeg either refuses it in MP4 (WMA)
+        /// or produces files many players can't handle (PCM, Vorbis), and WAV would be ~10x bigger.
+        /// </summary>
+        private static string UntrimmedAudioCodec(string audioPath) =>
+            Path.GetExtension(audioPath).ToLowerInvariant() is ".mp3" or ".m4a" or ".aac"
+                ? "-c:a copy"
+                : AacCodec;
 
         private (string InputPrefix, string Codec, string Filter) GetAudioOptions(string mp3Path)
         {
             if (!chkTrimToRange.Checked)
-                return ("", "-c:a copy", "");
+                return ("", UntrimmedAudioCodec(mp3Path), "");
 
             TimeSpan totalDuration = GetMp3Duration(mp3Path);
             bool hasStart = TryParseRangeValue(txtInputStart.Text, totalDuration, out var start);
-            bool hasEnd   = TryParseRangeValue(txtInputEnd.Text,   totalDuration, out var end);
-            TryParseFade(txtFadeInLength.Text,  out double fadeIn);
+            bool hasEnd = TryParseRangeValue(txtInputEnd.Text, totalDuration, out var end);
+            TryParseFade(txtFadeInLength.Text, out double fadeIn);
             TryParseFade(txtFadeOutLength.Text, out double fadeOut);
 
             bool hasTrim = hasStart || hasEnd;
             bool hasFade = fadeIn > 0 || fadeOut > 0;
 
             if (!hasTrim && !hasFade)
-                return ("", "-c:a copy", "");
+                return ("", UntrimmedAudioCodec(mp3Path), "");
 
             // Build the audio filter chain entirely in -af so FFmpeg controls the
             // endpoint precisely.  (Input-side -ss/-to combined with -af and AAC
@@ -580,7 +607,7 @@ namespace MP3toMP4
             if (hasTrim)
             {
                 string startArg = hasStart ? $"start={start.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)}" : "";
-                string endArg   = hasEnd   ? $"end={end.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)}"     : "";
+                string endArg = hasEnd ? $"end={end.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)}" : "";
                 string trimArgs = string.Join(":", new[] { startArg, endArg }.Where(s => s.Length > 0));
                 filters.Add($"atrim={trimArgs}");
                 filters.Add("asetpts=PTS-STARTPTS");
@@ -589,8 +616,8 @@ namespace MP3toMP4
             if (hasFade)
             {
                 TimeSpan effectiveStart = hasStart ? start : TimeSpan.Zero;
-                TimeSpan effectiveEnd   = hasEnd   ? end   : totalDuration;
-                double   effectiveSecs  = Math.Max(0, (effectiveEnd - effectiveStart).TotalSeconds);
+                TimeSpan effectiveEnd = hasEnd ? end : totalDuration;
+                double effectiveSecs = Math.Max(0, (effectiveEnd - effectiveStart).TotalSeconds);
 
                 if (fadeIn > 0)
                     filters.Add($"afade=t=in:st=0:d={fadeIn.ToString("F3", CultureInfo.InvariantCulture)}");
@@ -602,7 +629,7 @@ namespace MP3toMP4
             }
 
             string filterArg = $"-af \"{string.Join(",", filters)}\"";
-            return ("", "-c:a aac -b:a 192k", filterArg);
+            return ("", AacCodec, filterArg);
         }
 
         private static bool TryParseFade(string? input, out double seconds)
@@ -649,19 +676,37 @@ namespace MP3toMP4
             if (!multiMode)
             {
                 string image = cboImageFile.Text.Trim();
-                if (string.IsNullOrEmpty(image) || !File.Exists(image))
+                if (string.IsNullOrEmpty(image))
                 {
-                    MessageBox.Show("Please select a valid image or video file.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    var answer = MessageBox.Show(
+                        "No image or video file is selected.\n\nDo you want to create the MP4 with a black background instead?",
+                        "MP3toMP4", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                    if (answer != DialogResult.OK)
+                    {
+                        cboImageFile.Focus();
+                        return;
+                    }
+                    ffmpegArgs = BuildBlackBackgroundArgs(mp3, mp4, audioInputPrefix, audioCodec, audioFilter);
+                    logInfo = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}\n" +
+                              $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Image : (black background, {BlackBackgroundSize})\n" +
+                              $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP4   : {mp4}\n";
                 }
-                bool singleIsVideo = IsVideoFile(image);
-                ffmpegArgs = singleIsVideo
-                    ? BuildSingleVideoArgs(image, mp3, mp4, audioInputPrefix, audioCodec, audioFilter)
-                    : BuildSingleImageArgs(image, mp3, mp4, audioInputPrefix, audioCodec, audioFilter);
-                string singleLabel = singleIsVideo ? "Video" : "Image";
-                logInfo = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}\n" +
-                          $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {singleLabel,-5} : {image}\n" +
-                          $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP4   : {mp4}\n";
+                else
+                {
+                    if (!File.Exists(image))
+                    {
+                        MessageBox.Show("Please select a valid image or video file.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    bool singleIsVideo = IsVideoFile(image);
+                    ffmpegArgs = singleIsVideo
+                        ? BuildSingleVideoArgs(image, mp3, mp4, audioInputPrefix, audioCodec, audioFilter)
+                        : BuildSingleImageArgs(image, mp3, mp4, audioInputPrefix, audioCodec, audioFilter);
+                    string singleLabel = singleIsVideo ? "Video" : "Image";
+                    logInfo = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}\n" +
+                              $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {singleLabel,-5} : {image}\n" +
+                              $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP4   : {mp4}\n";
+                }
             }
             else
             {
@@ -710,14 +755,14 @@ namespace MP3toMP4
                 return;
             }
 
-            btnConvert.Enabled     = false;
-            btnClear.Enabled       = false;
-            btnCancel.Enabled      = true;
-            btnOpenFile.Enabled    = false;
-            btnOpenFolder.Enabled  = false;
+            btnConvert.Enabled = false;
+            btnClear.Enabled = false;
+            btnCancel.Enabled = true;
+            btnOpenFile.Enabled = false;
+            btnOpenFolder.Enabled = false;
             btnOpenLogFile.Enabled = false;
-            _cancelRequested       = false;
-            progressBar.Value      = 0;
+            _cancelRequested = false;
+            progressBar.Value = 0;
             lblEstimatedRemaining.Text = "Estimated remaining time: —";
 
             string logDir = Path.Combine(
@@ -736,7 +781,7 @@ namespace MP3toMP4
                 if (chkLyrics.Checked)
                     WriteLyricsToMp4(mp3, mp4);
 
-                btnOpenFile.Enabled   = File.Exists(mp4);
+                btnOpenFile.Enabled = File.Exists(mp4);
                 btnOpenFolder.Enabled = true;
                 progressBar.Value = progressBar.Maximum;
                 lblEstimatedRemaining.Text = "Estimated remaining time: Done";
@@ -757,9 +802,9 @@ namespace MP3toMP4
             finally
             {
                 btnConvert.Enabled = true;
-                btnClear.Enabled   = true;
-                btnCancel.Enabled  = false;
-                _ffmpegProcess     = null;
+                btnClear.Enabled = true;
+                btnCancel.Enabled = false;
+                _ffmpegProcess = null;
             }
         }
 
@@ -793,17 +838,17 @@ namespace MP3toMP4
             if (!chkTrimToRange.Checked) return mp3Length;
 
             TimeSpan start = TryParseRangeValue(txtInputStart.Text, mp3Length, out var s) ? s : TimeSpan.Zero;
-            TimeSpan end   = TryParseRangeValue(txtInputEnd.Text,   mp3Length, out var e) && e < mp3Length ? e : mp3Length;
+            TimeSpan end = TryParseRangeValue(txtInputEnd.Text, mp3Length, out var e) && e < mp3Length ? e : mp3Length;
             return end > start ? end - start : TimeSpan.Zero;
         }
 
         private static string FormatLengthDisplay(TimeSpan t)
         {
             int totalSeconds = (int)Math.Round(t.TotalSeconds, MidpointRounding.AwayFromZero);
-            int hours   = totalSeconds / 3600;
+            int hours = totalSeconds / 3600;
             int minutes = totalSeconds % 3600 / 60;
             int seconds = totalSeconds % 60;
-            if (hours >= 1)   return $"{hours}:{minutes:D2}:{seconds:D2}";
+            if (hours >= 1) return $"{hours}:{minutes:D2}:{seconds:D2}";
             if (minutes >= 1) return $"{minutes}:{seconds:D2}";
             return $"{seconds} s";
         }
@@ -828,6 +873,28 @@ namespace MP3toMP4
                 $"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\"",
                 "-c:v libx264", "-tune stillimage", "-vf \"scale=1280:-2\"",
                 "-r 30", "-pix_fmt yuv420p",
+                audioCodec,
+            };
+            if (!string.IsNullOrEmpty(audioFilter)) parts.Add(audioFilter);
+            parts.AddRange(["-shortest", "-movflags +faststart", $"\"{FfmpegPath(mp4)}\""]);
+            return string.Join(" ", parts);
+        }
+
+        private const string BlackBackgroundSize = "1280x720";
+
+        /// <summary>
+        /// Used when no image is selected: FFmpeg generates a solid black 16:9 video itself.
+        /// </summary>
+        private static string BuildBlackBackgroundArgs(string mp3, string mp4,
+            string audioInputPrefix, string audioCodec, string audioFilter)
+        {
+            var parts = new List<string>
+            {
+                "-y",
+                $"-f lavfi -i \"color=c=black:s={BlackBackgroundSize}:r=30\"",
+                $"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\"",
+                "-map 0:v", "-map 1:a",
+                "-c:v libx264", "-tune stillimage", "-pix_fmt yuv420p",
                 audioCodec,
             };
             if (!string.IsNullOrEmpty(audioFilter)) parts.Add(audioFilter);
@@ -873,8 +940,8 @@ namespace MP3toMP4
                         $"-v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 \"{FfmpegPath(path)}\"")
                     {
                         RedirectStandardOutput = true,
-                        UseShellExecute        = false,
-                        CreateNoWindow         = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
                     };
                     using var proc = System.Diagnostics.Process.Start(psi);
                     if (proc != null)
@@ -971,7 +1038,7 @@ namespace MP3toMP4
         private bool TryBuildSegments(TimeSpan audioLength, out List<ImageSegment> segments, out string error)
         {
             segments = [];
-            error    = "";
+            error = "";
 
             var dataRows = GetGridDataRows();
 
@@ -1023,7 +1090,7 @@ namespace MP3toMP4
             for (int i = 0; i < dataRows.Count; i++)
             {
                 TimeSpan end = i < dataRows.Count - 1 ? starts[i + 1] : audioLength;
-                string file  = dataRows[i].Cells[colFile.Index].Value!.ToString()!.Trim();
+                string file = dataRows[i].Cells[colFile.Index].Value!.ToString()!.Trim();
                 segments.Add(new ImageSegment(file, end - starts[i]));
             }
 
@@ -1100,6 +1167,14 @@ namespace MP3toMP4
                 if (process.ExitCode != 0)
                     throw new Exception($"FFmpeg exited with code {process.ExitCode}.");
             });
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            // The start-up size is the smallest the layout looks right at. Taken here, after
+            // DPI/font scaling, so it holds at any display scale.
+            MinimumSize = Size;
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -1326,9 +1401,9 @@ namespace MP3toMP4
             // Keep rows in Start Time order: the edited image moves together with its new time.
             // Durations aren't carried along - RecalculateDurations rebuilds them afterwards.
             var snapshot = dataRows.Select(r => (
-                File:  r.Cells[colFile.Index].Value?.ToString() ?? "",
+                File: r.Cells[colFile.Index].Value?.ToString() ?? "",
                 Start: r.Cells[colStart.Index].Value?.ToString() ?? "",
-                T:     TryParseTime(r.Cells[colStart.Index].Value?.ToString(), out var t) ? t : TimeSpan.MaxValue
+                T: TryParseTime(r.Cells[colStart.Index].Value?.ToString(), out var t) ? t : TimeSpan.MaxValue
             )).ToList();
 
             var sortedOrder = Enumerable.Range(0, snapshot.Count).OrderBy(i => snapshot[i].T).ToList();
@@ -1343,7 +1418,7 @@ namespace MP3toMP4
                 var sorted = sortedOrder.Select(i => snapshot[i]).ToList();
                 for (int i = 0; i < sorted.Count; i++)
                 {
-                    dataRows[i].Cells[colFile.Index].Value  = sorted[i].File;
+                    dataRows[i].Cells[colFile.Index].Value = sorted[i].File;
                     dataRows[i].Cells[colStart.Index].Value = sorted[i].Start;
                 }
 
@@ -1452,19 +1527,19 @@ namespace MP3toMP4
 
         private void UpdateMultipleButtons()
         {
-            int idx      = grdFiles.CurrentRow?.Index ?? -1;
+            int idx = grdFiles.CurrentRow?.Index ?? -1;
             int lastData = grdFiles.Rows.Cast<DataGridViewRow>().Count(r => !r.IsNewRow) - 1;
-            btnMoveUp.Enabled   = idx > 0 && idx <= lastData;
+            btnMoveUp.Enabled = idx > 0 && idx <= lastData;
             btnMoveDown.Enabled = idx >= 0 && idx < lastData;
-            btnDelete.Enabled   = idx >= 0 && idx <= lastData;
+            btnDelete.Enabled = idx >= 0 && idx <= lastData;
         }
 
         private void BtnAdd_Click(object? sender, EventArgs e)
         {
             using var dlg = new OpenFileDialog
             {
-                Title       = "Add Image or Video Files",
-                Filter      = "Image & video files (*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.mp4;*.mov;*.avi;*.mkv;*.webm;*.m4v)|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.mp4;*.mov;*.avi;*.mkv;*.webm;*.m4v|All files (*.*)|*.*",
+                Title = "Add Image or Video Files",
+                Filter = "Image & video files (*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.mp4;*.mov;*.avi;*.mkv;*.webm;*.m4v)|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.mp4;*.mov;*.avi;*.mkv;*.webm;*.m4v|All files (*.*)|*.*",
                 Multiselect = true,
             };
             if (dlg.ShowDialog() != DialogResult.OK) return;
@@ -1494,7 +1569,7 @@ namespace MP3toMP4
 
         private void CmdMoveDown_Click(object? sender, EventArgs e)
         {
-            int idx      = grdFiles.CurrentRow?.Index ?? -1;
+            int idx = grdFiles.CurrentRow?.Index ?? -1;
             int lastData = grdFiles.Rows.Cast<DataGridViewRow>().Count(r => !r.IsNewRow) - 1;
             if (idx < 0 || idx >= lastData) return;
             SwapRows(idx, idx + 1);
