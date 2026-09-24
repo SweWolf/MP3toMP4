@@ -193,7 +193,7 @@
             btnConvert.Size = new Size(127, 37);
             btnConvert.TabIndex = 2;
             btnConvert.Text = "Convert";
-            toolTip.SetToolTip(btnConvert, "Start converting the audio file (MP3 or other audio file type) to an MP4 file");
+            toolTip.SetToolTip(btnConvert, "Start converting the audio file (MP3 or other type) to an MP4 file");
             btnConvert.UseVisualStyleBackColor = true;
             // 
             // lblLength
