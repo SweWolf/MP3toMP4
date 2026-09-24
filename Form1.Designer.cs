@@ -56,6 +56,10 @@
             chkTrimToRange = new CheckBox();
             tabImage = new TabControl();
             tabSingle = new TabPage();
+            txtVideoText = new TextBox();
+            radText = new RadioButton();
+            radBlack = new RadioButton();
+            radFile = new RadioButton();
             chkUseImageFileFromMp3File = new CheckBox();
             picImage = new PictureBox();
             tabMultiple = new TabPage();
@@ -118,7 +122,7 @@
             // btnBrowsForImageFile
             // 
             btnBrowsForImageFile.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnBrowsForImageFile.Location = new Point(686, 38);
+            btnBrowsForImageFile.Location = new Point(676, 37);
             btnBrowsForImageFile.Name = "btnBrowsForImageFile";
             btnBrowsForImageFile.Size = new Size(37, 29);
             btnBrowsForImageFile.TabIndex = 3;
@@ -189,7 +193,7 @@
             btnConvert.Size = new Size(127, 37);
             btnConvert.TabIndex = 2;
             btnConvert.Text = "Convert";
-            toolTip.SetToolTip(btnConvert, "Start converting the MP3 file to an MP4 file");
+            toolTip.SetToolTip(btnConvert, "Start converting the audio file (MP3 or other audio file type) to an MP4 file");
             btnConvert.UseVisualStyleBackColor = true;
             // 
             // lblLength
@@ -215,20 +219,20 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 12F);
-            label2.Location = new Point(12, 14);
+            label2.Location = new Point(31, 14);
             label2.Name = "label2";
-            label2.Size = new Size(81, 21);
+            label2.Size = new Size(144, 21);
             label2.TabIndex = 2;
-            label2.Text = "Image File";
+            label2.Text = "Image or Video File";
             // 
             // cboImageFile
             // 
             cboImageFile.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             cboImageFile.Font = new Font("Segoe UI", 12F);
             cboImageFile.FormattingEnabled = true;
-            cboImageFile.Location = new Point(10, 38);
+            cboImageFile.Location = new Point(31, 38);
             cboImageFile.Name = "cboImageFile";
-            cboImageFile.Size = new Size(645, 29);
+            cboImageFile.Size = new Size(624, 29);
             cboImageFile.TabIndex = 2;
             // 
             // grpInput
@@ -260,7 +264,7 @@
             // lblFadeOut
             // 
             lblFadeOut.AutoSize = true;
-            lblFadeOut.Location = new Point(845, 82);
+            lblFadeOut.Location = new Point(845, 92);
             lblFadeOut.Name = "lblFadeOut";
             lblFadeOut.Size = new Size(90, 21);
             lblFadeOut.TabIndex = 31;
@@ -270,7 +274,7 @@
             // lblFadeIn
             // 
             lblFadeIn.AutoSize = true;
-            lblFadeIn.Location = new Point(657, 82);
+            lblFadeIn.Location = new Point(657, 92);
             lblFadeIn.Name = "lblFadeIn";
             lblFadeIn.Size = new Size(80, 21);
             lblFadeIn.TabIndex = 30;
@@ -279,7 +283,7 @@
             // 
             // txtFadeOutLength
             // 
-            txtFadeOutLength.Location = new Point(941, 79);
+            txtFadeOutLength.Location = new Point(941, 89);
             txtFadeOutLength.Name = "txtFadeOutLength";
             txtFadeOutLength.Size = new Size(82, 29);
             txtFadeOutLength.TabIndex = 6;
@@ -288,7 +292,7 @@
             // 
             // txtFadeInLength
             // 
-            txtFadeInLength.Location = new Point(743, 79);
+            txtFadeInLength.Location = new Point(743, 89);
             txtFadeInLength.Name = "txtFadeInLength";
             txtFadeInLength.Size = new Size(82, 29);
             txtFadeInLength.TabIndex = 5;
@@ -298,7 +302,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(461, 82);
+            label4.Location = new Point(461, 92);
             label4.Name = "label4";
             label4.Size = new Size(53, 21);
             label4.TabIndex = 27;
@@ -308,7 +312,7 @@
             // lblInputStart
             // 
             lblInputStart.AutoSize = true;
-            lblInputStart.Location = new Point(279, 82);
+            lblInputStart.Location = new Point(279, 92);
             lblInputStart.Name = "lblInputStart";
             lblInputStart.Size = new Size(59, 21);
             lblInputStart.TabIndex = 26;
@@ -317,7 +321,7 @@
             // 
             // txtInputEnd
             // 
-            txtInputEnd.Location = new Point(520, 79);
+            txtInputEnd.Location = new Point(520, 89);
             txtInputEnd.Name = "txtInputEnd";
             txtInputEnd.Size = new Size(82, 29);
             txtInputEnd.TabIndex = 4;
@@ -325,7 +329,7 @@
             // 
             // txtInputStart
             // 
-            txtInputStart.Location = new Point(344, 79);
+            txtInputStart.Location = new Point(344, 89);
             txtInputStart.Name = "txtInputStart";
             txtInputStart.Size = new Size(82, 29);
             txtInputStart.TabIndex = 3;
@@ -334,7 +338,7 @@
             // chkTrimToRange
             // 
             chkTrimToRange.AutoSize = true;
-            chkTrimToRange.Location = new Point(20, 81);
+            chkTrimToRange.Location = new Point(20, 91);
             chkTrimToRange.Name = "chkTrimToRange";
             chkTrimToRange.Size = new Size(138, 25);
             chkTrimToRange.TabIndex = 2;
@@ -346,7 +350,7 @@
             tabImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tabImage.Controls.Add(tabSingle);
             tabImage.Controls.Add(tabMultiple);
-            tabImage.Location = new Point(6, 122);
+            tabImage.Location = new Point(6, 132);
             tabImage.Name = "tabImage";
             tabImage.SelectedIndex = 0;
             tabImage.Size = new Size(1030, 260);
@@ -354,6 +358,10 @@
             // 
             // tabSingle
             // 
+            tabSingle.Controls.Add(txtVideoText);
+            tabSingle.Controls.Add(radText);
+            tabSingle.Controls.Add(radBlack);
+            tabSingle.Controls.Add(radFile);
             tabSingle.Controls.Add(cboImageFile);
             tabSingle.Controls.Add(btnBrowsForImageFile);
             tabSingle.Controls.Add(chkUseImageFileFromMp3File);
@@ -364,17 +372,60 @@
             tabSingle.Padding = new Padding(3);
             tabSingle.Size = new Size(1022, 226);
             tabSingle.TabIndex = 0;
-            tabSingle.Text = "Single Image";
+            tabSingle.Text = "Single Image/Video";
             tabSingle.UseVisualStyleBackColor = true;
+            // 
+            // txtVideoText
+            // 
+            txtVideoText.AcceptsReturn = true;
+            txtVideoText.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            txtVideoText.Location = new Point(94, 150);
+            txtVideoText.Multiline = true;
+            txtVideoText.Name = "txtVideoText";
+            txtVideoText.Size = new Size(561, 60);
+            txtVideoText.TabIndex = 9;
+            txtVideoText.Visible = false;
+            // 
+            // radText
+            // 
+            radText.AutoSize = true;
+            radText.Location = new Point(7, 156);
+            radText.Name = "radText";
+            radText.Size = new Size(62, 25);
+            radText.TabIndex = 8;
+            radText.TabStop = true;
+            radText.Text = "  Text";
+            radText.UseVisualStyleBackColor = true;
+            // 
+            // radBlack
+            // 
+            radBlack.AutoSize = true;
+            radBlack.Location = new Point(7, 116);
+            radBlack.Name = "radBlack";
+            radBlack.Size = new Size(123, 25);
+            radBlack.TabIndex = 7;
+            radBlack.Text = "  Black Screen";
+            radBlack.UseVisualStyleBackColor = true;
+            // 
+            // radFile
+            // 
+            radFile.AutoSize = true;
+            radFile.Checked = true;
+            radFile.Location = new Point(7, 18);
+            radFile.Name = "radFile";
+            radFile.Size = new Size(14, 13);
+            radFile.TabIndex = 6;
+            radFile.TabStop = true;
+            radFile.UseVisualStyleBackColor = true;
             // 
             // chkUseImageFileFromMp3File
             // 
             chkUseImageFileFromMp3File.AutoSize = true;
             chkUseImageFileFromMp3File.Enabled = false;
             chkUseImageFileFromMp3File.Font = new Font("Segoe UI", 12F);
-            chkUseImageFileFromMp3File.Location = new Point(12, 87);
+            chkUseImageFileFromMp3File.Location = new Point(31, 73);
             chkUseImageFileFromMp3File.Name = "chkUseImageFileFromMp3File";
-            chkUseImageFileFromMp3File.Size = new Size(232, 25);
+            chkUseImageFileFromMp3File.Size = new Size(230, 25);
             chkUseImageFileFromMp3File.TabIndex = 5;
             chkUseImageFileFromMp3File.Text = "Use Image from the MP3 File";
             chkUseImageFileFromMp3File.UseVisualStyleBackColor = true;
@@ -382,9 +433,9 @@
             // picImage
             // 
             picImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            picImage.Location = new Point(740, 6);
+            picImage.Location = new Point(733, 6);
             picImage.Name = "picImage";
-            picImage.Size = new Size(273, 214);
+            picImage.Size = new Size(280, 214);
             picImage.TabIndex = 4;
             picImage.TabStop = false;
             // 
@@ -401,7 +452,7 @@
             tabMultiple.Padding = new Padding(3);
             tabMultiple.Size = new Size(1022, 226);
             tabMultiple.TabIndex = 1;
-            tabMultiple.Text = "Multiple Images";
+            tabMultiple.Text = "Multiple Images/Videos";
             tabMultiple.UseVisualStyleBackColor = true;
             // 
             // pictureBox2
@@ -433,7 +484,7 @@
             // 
             colStart.HeaderText = "Start Time";
             colStart.Name = "colStart";
-            colStart.ToolTipText = "When this image appears in the finished video. The first image always starts at 0:00.";
+            colStart.ToolTipText = "When this image or video appears in the finished MP4. The first one always starts at 0:00.";
             colStart.Width = 120;
             // 
             // colDuration
@@ -441,7 +492,7 @@
             colDuration.HeaderText = "Duration";
             colDuration.Name = "colDuration";
             colDuration.ReadOnly = true;
-            colDuration.ToolTipText = "Calculated from the Start Times. The last image lasts until the end of the audio.";
+            colDuration.ToolTipText = "Calculated from the Start Times. The last image or video lasts until the end of the audio.";
             // 
             // chkLyrics
             // 
@@ -449,11 +500,11 @@
             chkLyrics.AutoSize = true;
             chkLyrics.Checked = true;
             chkLyrics.CheckState = CheckState.Checked;
-            chkLyrics.Location = new Point(20, 422);
+            chkLyrics.Location = new Point(17, 425);
             chkLyrics.Name = "chkLyrics";
-            chkLyrics.Size = new Size(200, 25);
+            chkLyrics.Size = new Size(149, 25);
             chkLyrics.TabIndex = 6;
-            chkLyrics.Text = "Include Lyrics if available";
+            chkLyrics.Text = "Include Lyrics Tag";
             chkLyrics.UseVisualStyleBackColor = true;
             // 
             // groupBox2
@@ -693,5 +744,9 @@
         private Label lblFadeIn;
         private TextBox txtFadeOutLength;
         private TextBox txtFadeInLength;
+        private RadioButton radFile;
+        private RadioButton radBlack;
+        private TextBox txtVideoText;
+        private RadioButton radText;
     }
 }

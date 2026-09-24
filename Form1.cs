@@ -10,6 +10,23 @@ namespace MP3toMP4
         private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"];
         private static readonly string[] VideoExtensions = [".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v"];
 
+        // Open-dialog filter for images/videos, built from the lists above so it can't drift from them
+        private static readonly string ImageVideoFilter = BuildImageVideoFilter();
+
+        private static string BuildImageVideoFilter()
+        {
+            static string Entry(string name, IEnumerable<string> exts)
+            {
+                string patterns = string.Join(";", exts.Select(e => "*" + e));
+                return $"{name} ({patterns})|{patterns}";
+            }
+            return string.Join("|",
+                Entry("Image or video files", ImageExtensions.Concat(VideoExtensions)),
+                Entry("Image files", ImageExtensions),
+                Entry("Video files", VideoExtensions),
+                "All files (*.*)|*.*");
+        }
+
         private static bool IsVideoFile(string path) =>
             VideoExtensions.Contains(Path.GetExtension(path).ToLowerInvariant());
 
@@ -19,10 +36,17 @@ namespace MP3toMP4
 
         private record ImageSegment(string FilePath, TimeSpan Duration);
 
+        // Caption for the app's message boxes (same as the window title)
+        private const string AppTitle = "MP3 to MP4";
+
         private Process? _ffmpegProcess;
         private bool _cancelRequested;
         private string? _lastLogFile;
         private TimeSpan _mp3Length;
+        private bool _mp3HasArtwork;
+        // The Artist/"Title" text last filled in automatically; while the text box still holds
+        // exactly this, the user hasn't edited it and it may be refreshed for a new MP3.
+        private string _autoVideoText = "";
 
         public Form1()
         {
@@ -59,8 +83,14 @@ namespace MP3toMP4
                 string t = cboImageFile.Text;
                 if (t.Length >= 2 && t[0] == '"' && t[^1] == '"')
                 { cboImageFile.Text = t[1..^1]; return; }
-                LoadImagePreview(t.Trim(), picImage);
+                UpdateSinglePreview();
             };
+
+            radFile.CheckedChanged += RadImageSource_CheckedChanged;
+            radBlack.CheckedChanged += RadImageSource_CheckedChanged;
+            radText.CheckedChanged += RadImageSource_CheckedChanged;
+            label2.Click += (_, _) => radFile.Checked = true;   // radFile has no text of its own
+            txtVideoText.TextChanged += (_, _) => UpdateSinglePreview();
             // WinForms quirk: resizing an editable ComboBox selects all its text. Anchored
             // Left|Right, it resizes with the window, so undo that unless the user is in it.
             cboImageFile.SizeChanged += (_, _) => BeginInvoke(() =>
@@ -87,6 +117,12 @@ namespace MP3toMP4
             toolTip.SetToolTip(chkTrimToRange,
                 "Unchecked: use the complete file.\n" +
                 "Checked: shows Start at/End at (and Fade in/out) fields to trim the file to a specific range.");
+            toolTip.SetToolTip(chkLyrics,
+                "Copies the lyrics stored in the MP3 file's tags into the MP4 file, so players that " +
+                "support it can display them.\n" +
+                "The lyrics are not shown in the video itself.\n" +
+                "Available only when the MP3 file contains the lyrics tag.");
+            ShowToolTipWhenDisabled(chkLyrics);
             string startEndTooltip =
                 "Optional - leave blank for the start/end of the file.\n" +
                 "Time format: h:mm:ss.f, m:ss, or plain seconds (e.g. 1:23:45, 2:07, 90, 7.5) - '.' or ',' both work for the fraction.\n" +
@@ -145,6 +181,9 @@ namespace MP3toMP4
             txtMP3File.Text = "";
             lblLength.Text = "";
             cboImageFile.Text = "";
+            radFile.Checked = true;
+            txtVideoText.Text = "";
+            _autoVideoText = "";
 
             chkTrimToRange.Checked = false;
             txtInputStart.Text = "";
@@ -191,7 +230,7 @@ namespace MP3toMP4
             using var dlg = new OpenFileDialog
             {
                 Title = "Select image or video file",
-                Filter = "Image & video files (*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.mp4;*.mov;*.avi;*.mkv;*.webm;*.m4v)|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.mp4;*.mov;*.avi;*.mkv;*.webm;*.m4v|All files (*.*)|*.*"
+                Filter = ImageVideoFilter
             };
 
             if (dlg.ShowDialog() != DialogResult.OK) return;
@@ -277,7 +316,7 @@ namespace MP3toMP4
             {
                 string available = string.Join("\n", data.GetFormats());
                 MessageBox.Show($"No image URL found in drag data.\n\nAvailable formats:\n{available}",
-                    "MP3toMP4 – drag diagnostic", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    AppTitle + " – drag diagnostic", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -308,7 +347,7 @@ namespace MP3toMP4
             catch (Exception ex)
             {
                 MessageBox.Show($"Could not download image:\n{ex.Message}",
-                    "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -402,17 +441,19 @@ namespace MP3toMP4
             else
             {
                 cboImageFile.Items.Clear();
-                chkUseImageFileFromMp3File.Enabled = false;
+                _mp3HasArtwork = false;
                 chkUseImageFileFromMp3File.Checked = false;
                 chkLyrics.Enabled = false;
                 chkLyrics.Checked = false;
             }
+            UpdateImageSourceState();
+            RefreshDefaultVideoText();
         }
 
         private void PopulateImageCombo(string mp3Path)
         {
             cboImageFile.Items.Clear();
-            chkUseImageFileFromMp3File.Enabled = false;
+            _mp3HasArtwork = false;
             chkUseImageFileFromMp3File.Checked = false;
             chkLyrics.Enabled = false;
             chkLyrics.Checked = false;
@@ -434,8 +475,9 @@ namespace MP3toMP4
                 cboImageFile.SelectedIndex = 0;
 
             // Enable checkboxes based on what the MP3 contains
-            chkUseImageFileFromMp3File.Enabled = HasEmbeddedArtwork(mp3Path);
+            _mp3HasArtwork = HasEmbeddedArtwork(mp3Path);
             chkLyrics.Enabled = HasLyrics(mp3Path);
+            UpdateImageSourceState();
         }
 
         private static bool HasEmbeddedArtwork(string mp3Path)
@@ -469,6 +511,34 @@ namespace MP3toMP4
                     System.Text.Json.JsonSerializer.Serialize(new { includeLyrics = chkLyrics.Checked }));
             }
             catch { }
+        }
+
+        /// <summary>
+        /// WinForms never shows a ToolTip on a disabled control; its mouse moves go to the parent
+        /// instead. So show the control's tooltip from the parent while the pointer is over it.
+        /// </summary>
+        private void ShowToolTipWhenDisabled(Control control)
+        {
+            Control parent = control.Parent!;
+            bool shown = false;
+            parent.MouseMove += (_, e) =>
+            {
+                bool over = !control.Enabled && control.Bounds.Contains(e.Location);
+                if (over && !shown)
+                {
+                    toolTip.Show(toolTip.GetToolTip(control), parent, control.Left, control.Bottom + 4);
+                    shown = true;
+                }
+                else if (!over && shown)
+                {
+                    toolTip.Hide(parent);
+                    shown = false;
+                }
+            };
+            parent.MouseLeave += (_, _) =>
+            {
+                if (shown) { toolTip.Hide(parent); shown = false; }
+            };
         }
 
         private static bool HasLyrics(string mp3Path)
@@ -528,12 +598,7 @@ namespace MP3toMP4
 
         private void ChkUseImageFileFromMp3File_CheckedChanged(object? sender, EventArgs e)
         {
-            // While the MP3's own artwork is used, lock every other way of choosing an image
-            // (typing, Browse, and dropping onto the preview)
-            bool manualImage = !chkUseImageFileFromMp3File.Checked;
-            cboImageFile.Enabled = manualImage;
-            btnBrowsForImageFile.Enabled = manualImage;
-            picImage.AllowDrop = manualImage;
+            UpdateImageSourceState();
 
             if (!chkUseImageFileFromMp3File.Checked) return;
 
@@ -544,7 +609,7 @@ namespace MP3toMP4
             if (tempFile == null)
             {
                 MessageBox.Show("Could not extract artwork from the MP3 file.",
-                    "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 chkUseImageFileFromMp3File.Checked = false;
                 return;
             }
@@ -554,6 +619,167 @@ namespace MP3toMP4
                 cboImageFile.Items.Insert(0, tempFile);
 
             cboImageFile.SelectedItem = tempFile;
+        }
+
+        // ----- Single Image tab: Image File / Black Screen / Text -----
+
+        private void RadImageSource_CheckedChanged(object? sender, EventArgs e)
+        {
+            if (sender is not RadioButton { Checked: true }) return;   // each switch fires twice
+
+            if (radText.Checked && txtVideoText.Text.Trim().Length == 0)
+                RefreshDefaultVideoText(force: true);
+            UpdateImageSourceState();
+        }
+
+        /// <summary>
+        /// Enables the controls that belong to the chosen image source. While the MP3's own
+        /// artwork is used, every other way of choosing an image is locked too (typing, Browse,
+        /// and dropping onto the preview).
+        /// </summary>
+        private void UpdateImageSourceState()
+        {
+            bool fileMode = radFile.Checked;
+            bool manualImage = fileMode && !chkUseImageFileFromMp3File.Checked;
+            cboImageFile.Enabled = manualImage;
+            btnBrowsForImageFile.Enabled = manualImage;
+            picImage.AllowDrop = manualImage;
+            chkUseImageFileFromMp3File.Enabled = fileMode && _mp3HasArtwork;
+            txtVideoText.Visible = radText.Checked;
+            UpdateSinglePreview();
+        }
+
+        private void UpdateSinglePreview()
+        {
+            var old = picImage.Image;
+            if (radFile.Checked)
+                LoadImagePreview(cboImageFile.Text.Trim(), picImage);
+            else
+                picImage.Image = RenderVideoTextPreview(radText.Checked ? GetVideoTextLines() : []);
+            if (!ReferenceEquals(old, picImage.Image)) old?.Dispose();
+        }
+
+        /// <summary>
+        /// Default text for Text mode: contributing artist (album artist if there is none),
+        /// then the title in quotes on the next line. The file name stands in for a missing title.
+        /// </summary>
+        private void RefreshDefaultVideoText(bool force = false)
+        {
+            string mp3 = txtMP3File.Text.Trim();
+            string def = "";
+            if (File.Exists(mp3))
+            {
+                string artist = "", title = "";
+                try
+                {
+                    using var f = TagLib.File.Create(mp3);
+                    artist = f.Tag.JoinedPerformers?.Trim() ?? "";   // "Contributing artists" in Explorer
+                    if (artist.Length == 0) artist = f.Tag.JoinedAlbumArtists?.Trim() ?? "";
+                    title = f.Tag.Title?.Trim() ?? "";
+                }
+                catch { }
+                if (title.Length == 0) title = Path.GetFileNameWithoutExtension(mp3);
+                def = artist.Length > 0 ? $"{artist}\r\n\"{title}\"" : $"\"{title}\"";
+            }
+
+            // Only replace text the user hasn't edited
+            if (force || txtVideoText.Text == _autoVideoText) txtVideoText.Text = def;
+            _autoVideoText = def;
+        }
+
+        /// <summary>The text box's lines, trimmed, without leading/trailing blank lines.</summary>
+        private string[] GetVideoTextLines()
+        {
+            var lines = txtVideoText.Text.Replace("\r", "").Split('\n').Select(l => l.Trim()).ToList();
+            while (lines.Count > 0 && lines[0].Length == 0) lines.RemoveAt(0);
+            while (lines.Count > 0 && lines[^1].Length == 0) lines.RemoveAt(lines.Count - 1);
+            return [.. lines];
+        }
+
+        private const float VideoTextLineSpacing = 1.3f;
+
+        // Segoe UI ships with every Windows since Vista; Arial is the fallback
+        private static readonly (string File, string Family) VideoTextFont =
+            File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "segoeui.ttf"))
+                ? (Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "segoeui.ttf"), "Segoe UI")
+                : (Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf"), "Arial");
+
+        /// <summary>
+        /// Font size and vertical placement shared by the FFmpeg filter and the preview:
+        /// the largest size (max 64 px) at which the widest line and the whole block fit
+        /// within 90% of the video.
+        /// </summary>
+        private static (int FontPx, float LineHeight, float Top) LayoutVideoText(string[] lines)
+        {
+            using var bmp = new Bitmap(1, 1);
+            using var g = Graphics.FromImage(bmp);
+            int size = 64;
+            for (; size > 16; size -= 2)
+            {
+                using var font = new Font(VideoTextFont.Family, size, GraphicsUnit.Pixel);
+                float widest = lines.Max(l => l.Length == 0 ? 0 :
+                    g.MeasureString(l, font, PointF.Empty, StringFormat.GenericTypographic).Width);
+                if (widest <= VideoWidth * 0.9f && size * VideoTextLineSpacing * lines.Length <= VideoHeight * 0.9f)
+                    break;
+            }
+            float lineHeight = size * VideoTextLineSpacing;
+            return (size, lineHeight, (VideoHeight - lineHeight * lines.Length) / 2);
+        }
+
+        private static float VideoTextLineY(int line, (int FontPx, float LineHeight, float Top) layout) =>
+            layout.Top + line * layout.LineHeight + (layout.LineHeight - layout.FontPx) / 2;
+
+        /// <summary>
+        /// One drawtext per line so every line is centred on its own. The text is read from
+        /// line{i}.txt files (see <see cref="WriteVideoTextFiles"/>) in FFmpeg's working folder,
+        /// which avoids escaping quotes, colons and backslashes in the filter; expansion=none
+        /// keeps '%' literal.
+        /// </summary>
+        private static string BuildDrawTextFilter(string[] lines)
+        {
+            var layout = LayoutVideoText(lines);
+            string font = VideoTextFont.File.Replace('\\', '/').Replace(":", "\\:");
+            var filters = new List<string>();
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (lines[i].Length == 0) continue;
+                int y = (int)Math.Round(VideoTextLineY(i, layout));
+                filters.Add($"drawtext=fontfile='{font}':textfile='line{i}.txt':expansion=none:" +
+                            $"fontcolor=white:fontsize={layout.FontPx}:x=(w-text_w)/2:y={y}");
+            }
+            return string.Join(",", filters);
+        }
+
+        private static string WriteVideoTextFiles(string[] lines)
+        {
+            string dir = Path.Combine(Path.GetTempPath(), "MP3toMP4", "text_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(dir);
+            var utf8NoBom = new System.Text.UTF8Encoding(false);   // a BOM would be drawn as a glyph
+            for (int i = 0; i < lines.Length; i++)
+                if (lines[i].Length > 0)
+                    File.WriteAllText(Path.Combine(dir, $"line{i}.txt"), lines[i], utf8NoBom);
+            return dir;
+        }
+
+        /// <summary>What the Black Screen / Text video will look like, for the preview box.</summary>
+        private static Bitmap RenderVideoTextPreview(string[] lines)
+        {
+            var bmp = new Bitmap(VideoWidth, VideoHeight);
+            using var g = Graphics.FromImage(bmp);
+            g.Clear(Color.Black);
+            if (lines.Length == 0) return bmp;
+
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+            var layout = LayoutVideoText(lines);
+            using var font = new Font(VideoTextFont.Family, layout.FontPx, GraphicsUnit.Pixel);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (lines[i].Length == 0) continue;
+                float w = g.MeasureString(lines[i], font, PointF.Empty, StringFormat.GenericTypographic).Width;
+                g.DrawString(lines[i], font, Brushes.White, (VideoWidth - w) / 2, VideoTextLineY(i, layout),
+                             StringFormat.GenericTypographic);
+            }
+            return bmp;
         }
 
         private void ChkTrimToRange_CheckedChanged(object? sender, EventArgs e)
@@ -569,7 +795,9 @@ namespace MP3toMP4
             txtFadeOutLength.Visible = show;
         }
 
-        private const string AacCodec = "-c:a aac -b:a 192k";
+        // YouTube's recommended stereo upload bitrate. YouTube re-encodes the audio anyway, so every
+        // generation of lossy compression before that should lose as little as possible.
+        private const string AacCodec = "-c:a aac -b:a 384k";
 
         /// <summary>
         /// MP3 and AAC play everywhere inside an MP4, so they're copied untouched. Anything else
@@ -654,17 +882,17 @@ namespace MP3toMP4
             // --- Common validation ---
             if (string.IsNullOrEmpty(mp3) || !File.Exists(mp3))
             {
-                MessageBox.Show("Please select a valid MP3 file.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please select a valid MP3 file.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             if (string.IsNullOrEmpty(mp4))
             {
-                MessageBox.Show("Please specify an output MP4 file.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please specify an output MP4 file.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             if (!mp4.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
             {
-                MessageBox.Show("The output file must have the .mp4 extension.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("The output file must have the .mp4 extension.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -672,30 +900,39 @@ namespace MP3toMP4
 
             // --- Mode-specific validation and arg building ---
             string ffmpegArgs, logInfo;
+            string[]? videoTextLines = null;   // Text mode: written to temp files just before FFmpeg runs
 
             if (!multiMode)
             {
                 string image = cboImageFile.Text.Trim();
-                if (string.IsNullOrEmpty(image))
+                if (radBlack.Checked)
                 {
-                    var answer = MessageBox.Show(
-                        "No image or video file is selected.\n\nDo you want to create the MP4 with a black background instead?",
-                        "MP3toMP4", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
-                    if (answer != DialogResult.OK)
-                    {
-                        cboImageFile.Focus();
-                        return;
-                    }
                     ffmpegArgs = BuildBlackBackgroundArgs(mp3, mp4, audioInputPrefix, audioCodec, audioFilter);
                     logInfo = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}\n" +
-                              $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Image : (black background, {BlackBackgroundSize})\n" +
+                              $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Image : (black background, {VideoWidth}x{VideoHeight})\n" +
+                              $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP4   : {mp4}\n";
+                }
+                else if (radText.Checked)
+                {
+                    string[] lines = GetVideoTextLines();
+                    if (lines.Length == 0)
+                    {
+                        MessageBox.Show("Please enter the text to show in the video.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtVideoText.Focus();
+                        return;
+                    }
+                    videoTextLines = lines;
+                    ffmpegArgs = BuildBlackBackgroundArgs(mp3, mp4, audioInputPrefix, audioCodec, audioFilter,
+                                                          BuildDrawTextFilter(lines));
+                    logInfo = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}\n" +
+                              $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Text  : {string.Join(" / ", lines)}\n" +
                               $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP4   : {mp4}\n";
                 }
                 else
                 {
-                    if (!File.Exists(image))
+                    if (string.IsNullOrEmpty(image) || !File.Exists(image))
                     {
-                        MessageBox.Show("Please select a valid image or video file.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show("Please select a valid image or video file.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
                     bool singleIsVideo = IsVideoFile(image);
@@ -713,7 +950,7 @@ namespace MP3toMP4
                 TimeSpan mp3Duration = GetMp3Duration(mp3);
                 if (!TryBuildSegments(GetEffectiveAudioLength(mp3Duration), out var segments, out string segError))
                 {
-                    MessageBox.Show(segError, "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(segError, AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
                 ffmpegArgs = BuildMultiImageArgs(mp3, mp4, segments, audioInputPrefix, audioCodec, audioFilter);
@@ -727,6 +964,8 @@ namespace MP3toMP4
                 sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP4   : {mp4}");
                 logInfo = sb.ToString();
             }
+
+            if (!EnsureOutputFolderExists(mp4)) return;
 
             // --- Overwrite check ---
             if (File.Exists(mp4))
@@ -751,7 +990,7 @@ namespace MP3toMP4
             {
                 MessageBox.Show(
                     "FFmpeg not found. Place ffmpeg.exe next to this application or add it to PATH.",
-                    "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -773,10 +1012,15 @@ namespace MP3toMP4
             btnOpenLogFile.Enabled = true;
 
             TimeSpan totalDuration = GetMp3Duration(mp3);
+            string? textWorkDir = null;
 
             try
             {
-                await RunFFmpegAsync(ffmpeg, ffmpegArgs, totalDuration, mp4, _lastLogFile, logInfo);
+                // FFmpeg runs inside this folder so the text filter can use bare file names
+                if (videoTextLines != null)
+                    textWorkDir = WriteVideoTextFiles(videoTextLines);
+
+                await RunFFmpegAsync(ffmpeg, ffmpegArgs, totalDuration, mp4, _lastLogFile, logInfo, textWorkDir);
 
                 if (chkLyrics.Checked)
                     WriteLyricsToMp4(mp3, mp4);
@@ -787,7 +1031,7 @@ namespace MP3toMP4
                 lblEstimatedRemaining.Text = "Estimated remaining time: Done";
                 MessageBox.Show(
                     "Conversion completed successfully!\n\nOutput file:\n" + mp4,
-                    "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (OperationCanceledException)
             {
@@ -797,7 +1041,7 @@ namespace MP3toMP4
             catch (Exception ex)
             {
                 btnOpenFolder.Enabled = !string.IsNullOrEmpty(Path.GetDirectoryName(mp4));
-                MessageBox.Show("Conversion failed: " + ex.Message, "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Conversion failed: " + ex.Message, AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -805,6 +1049,36 @@ namespace MP3toMP4
                 btnClear.Enabled = true;
                 btnCancel.Enabled = false;
                 _ffmpegProcess = null;
+                if (textWorkDir != null)
+                    try { Directory.Delete(textWorkDir, recursive: true); } catch { }
+            }
+        }
+
+        /// <summary>
+        /// FFmpeg can't create folders, so offer to create a missing output folder
+        /// (same routine as in SplitMediaFiles). False = cancelled or failed.
+        /// </summary>
+        private static bool EnsureOutputFolderExists(string outputPath)
+        {
+            string? folder = Path.GetDirectoryName(Path.GetFullPath(outputPath));
+            if (string.IsNullOrEmpty(folder) || Directory.Exists(folder)) return true;
+
+            var answer = MessageBox.Show(
+                $"The folder \"{folder}\" does not exist.\n\nDo you want to create it now?",
+                AppTitle, MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+
+            if (answer != DialogResult.OK) return false;
+
+            try
+            {
+                Directory.CreateDirectory(folder); // creates any missing intermediate subfolders too
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Could not create the folder:\n{folder}\n\n{ex.Message}",
+                    AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
         }
 
@@ -880,25 +1154,33 @@ namespace MP3toMP4
             return string.Join(" ", parts);
         }
 
-        private const string BlackBackgroundSize = "1280x720";
+        // Size of the generated video for Black Screen and Text (16:9)
+        private const int VideoWidth = 1280;
+        private const int VideoHeight = 720;
 
         /// <summary>
-        /// Used when no image is selected: FFmpeg generates a solid black 16:9 video itself.
+        /// Black Screen and Text modes: FFmpeg generates a solid black 16:9 video itself.
+        /// <paramref name="videoFilter"/> draws on top of it (the text).
         /// </summary>
         private static string BuildBlackBackgroundArgs(string mp3, string mp4,
-            string audioInputPrefix, string audioCodec, string audioFilter)
+            string audioInputPrefix, string audioCodec, string audioFilter, string? videoFilter = null)
         {
             var parts = new List<string>
             {
                 "-y",
-                $"-f lavfi -i \"color=c=black:s={BlackBackgroundSize}:r=30\"",
-                $"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\"",
+                $"-f lavfi -i \"color=c=black:s={VideoWidth}x{VideoHeight}:r=30\"",
+                // Full paths: in Text mode FFmpeg runs in a temp folder
+                $"{audioInputPrefix}-i \"{FfmpegPath(Path.GetFullPath(mp3))}\"",
+            };
+            if (!string.IsNullOrEmpty(videoFilter)) parts.Add($"-vf \"{videoFilter}\"");
+            parts.AddRange(
+            [
                 "-map 0:v", "-map 1:a",
                 "-c:v libx264", "-tune stillimage", "-pix_fmt yuv420p",
                 audioCodec,
-            };
+            ]);
             if (!string.IsNullOrEmpty(audioFilter)) parts.Add(audioFilter);
-            parts.AddRange(["-shortest", "-movflags +faststart", $"\"{FfmpegPath(mp4)}\""]);
+            parts.AddRange(["-shortest", "-movflags +faststart", $"\"{FfmpegPath(Path.GetFullPath(mp4))}\""]);
             return string.Join(" ", parts);
         }
 
@@ -1044,7 +1326,7 @@ namespace MP3toMP4
 
             if (dataRows.Count == 0)
             {
-                error = "Add at least one image to the Multiple Images list.";
+                error = "Add at least one image or video to the Multiple Images/Videos list.";
                 return false;
             }
 
@@ -1098,7 +1380,7 @@ namespace MP3toMP4
         }
 
         private Task RunFFmpegAsync(string ffmpeg, string ffmpegArgs, TimeSpan totalDuration,
-                                     string mp4, string logFile, string logInfo)
+                                     string mp4, string logFile, string logInfo, string? workingDir = null)
         {
             return Task.Run(() =>
             {
@@ -1106,6 +1388,7 @@ namespace MP3toMP4
                 {
                     FileName = ffmpeg,
                     Arguments = ffmpegArgs,
+                    WorkingDirectory = workingDir ?? "",
                     UseShellExecute = false,
                     RedirectStandardError = true,
                     StandardErrorEncoding = System.Text.Encoding.UTF8,
@@ -1539,7 +1822,7 @@ namespace MP3toMP4
             using var dlg = new OpenFileDialog
             {
                 Title = "Add Image or Video Files",
-                Filter = "Image & video files (*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.mp4;*.mov;*.avi;*.mkv;*.webm;*.m4v)|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.mp4;*.mov;*.avi;*.mkv;*.webm;*.m4v|All files (*.*)|*.*",
+                Filter = ImageVideoFilter,
                 Multiselect = true,
             };
             if (dlg.ShowDialog() != DialogResult.OK) return;
@@ -1606,7 +1889,7 @@ namespace MP3toMP4
             string mp4 = txtMP4File.Text.Trim();
             if (!File.Exists(mp4))
             {
-                MessageBox.Show("File not found.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("File not found.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             Process.Start(new ProcessStartInfo(mp4) { UseShellExecute = true });
@@ -1629,7 +1912,7 @@ namespace MP3toMP4
         {
             if (_lastLogFile == null || !File.Exists(_lastLogFile))
             {
-                MessageBox.Show("Log file not found.", "MP3toMP4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Log file not found.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             Process.Start(new ProcessStartInfo(_lastLogFile) { UseShellExecute = true });
