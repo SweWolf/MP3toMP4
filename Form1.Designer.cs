@@ -188,7 +188,7 @@
             // btnConvert
             // 
             btnConvert.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnConvert.Font = new Font("Segoe UI", 12F);
+            btnConvert.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnConvert.Location = new Point(14, 635);
             btnConvert.Name = "btnConvert";
             btnConvert.Size = new Size(127, 37);
@@ -594,7 +594,7 @@
             // 
             menuTools.DropDownItems.AddRange(new ToolStripItem[] { menuCreateShortcut, menuSettings });
             menuTools.Name = "menuTools";
-            menuTools.Size = new Size(49, 20);
+            menuTools.Size = new Size(47, 20);
             menuTools.Text = "Tools";
             // 
             // menuCreateShortcut
@@ -603,14 +603,14 @@
             menuCreateShortcut.Size = new Size(165, 22);
             menuCreateShortcut.Text = "Create Shortcut...";
             menuCreateShortcut.Click += menuCreateShortcut_Click;
-            //
+            // 
             // menuSettings
-            //
+            // 
             menuSettings.Name = "menuSettings";
             menuSettings.Size = new Size(165, 22);
             menuSettings.Text = "Settings";
             menuSettings.Click += menuSettings_Click;
-            //
+            // 
             // helpToolStripMenuItem
             // 
             helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { aboutToolStripMenuItem });
@@ -621,7 +621,7 @@
             // aboutToolStripMenuItem
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            aboutToolStripMenuItem.Size = new Size(116, 22);
+            aboutToolStripMenuItem.Size = new Size(107, 22);
             aboutToolStripMenuItem.Text = "About";
             aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
             // 

@@ -13,6 +13,11 @@ namespace MP3toMP4
 
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
+            toolTip = new ToolTip(components);
+            grpAudio = new GroupBox();
+            cboOptimizeAudioFor = new ComboBox();
+            lblOptimizeAudioFor = new Label();
             grpUpdate = new GroupBox();
             cboNewVersionCheck = new ComboBox();
             lblNewVersionCheck = new Label();
@@ -32,8 +37,15 @@ namespace MP3toMP4
             btnCancel = new Button();
             grpUpdate.SuspendLayout();
             grpOutputFolder.SuspendLayout();
+            grpAudio.SuspendLayout();
             grpActionWhenFinished.SuspendLayout();
             SuspendLayout();
+            //
+            // toolTip
+            //
+            toolTip.AutoPopDelay = 15000;
+            toolTip.InitialDelay = 400;
+            toolTip.ReshowDelay = 100;
             //
             // grpUpdate
             //
@@ -92,6 +104,40 @@ namespace MP3toMP4
             btnBrowseDefaultOutputFolder.UseVisualStyleBackColor = true;
             btnBrowseDefaultOutputFolder.Click += btnBrowseDefaultOutputFolder_Click;
             //
+            // grpAudio
+            //
+            grpAudio.Controls.Add(cboOptimizeAudioFor);
+            grpAudio.Controls.Add(lblOptimizeAudioFor);
+            grpAudio.Location = new Point(12, 176);
+            grpAudio.Name = "grpAudio";
+            grpAudio.Size = new Size(360, 90);
+            grpAudio.TabIndex = 2;
+            grpAudio.TabStop = false;
+            grpAudio.Text = "Audio";
+            //
+            // lblOptimizeAudioFor
+            //
+            lblOptimizeAudioFor.AutoSize = true;
+            lblOptimizeAudioFor.Location = new Point(10, 28);
+            lblOptimizeAudioFor.Name = "lblOptimizeAudioFor";
+            lblOptimizeAudioFor.TabIndex = 0;
+            lblOptimizeAudioFor.Text = "&Optimize Audio For";
+            //
+            // cboOptimizeAudioFor
+            //
+            cboOptimizeAudioFor.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboOptimizeAudioFor.FormattingEnabled = true;
+            cboOptimizeAudioFor.Items.AddRange(new object[] { "Quality (Recommended)", "Smaller File Size" });
+            cboOptimizeAudioFor.Location = new Point(10, 46);
+            cboOptimizeAudioFor.Name = "cboOptimizeAudioFor";
+            cboOptimizeAudioFor.Size = new Size(218, 23);
+            cboOptimizeAudioFor.TabIndex = 1;
+            toolTip.SetToolTip(cboOptimizeAudioFor,
+                "Used whenever the audio has to be converted to AAC: for WAV, FLAC, OGG and other formats,\n" +
+                "and for MP3 or M4A files that are trimmed or faded. Otherwise the audio is copied unchanged.\n" +
+                "Quality: 384 kbit/s, as recommended by YouTube.\n" +
+                "Smaller File Size: 192 kbit/s, about half the size of the audio.");
+            //
             // grpActionWhenFinished
             //
             grpActionWhenFinished.Controls.Add(btnBrowseCustomSoundFile);
@@ -102,10 +148,10 @@ namespace MP3toMP4
             grpActionWhenFinished.Controls.Add(lblFinishedSound);
             grpActionWhenFinished.Controls.Add(cboActionWhenFinished);
             grpActionWhenFinished.Controls.Add(lblAction);
-            grpActionWhenFinished.Location = new Point(12, 176);
+            grpActionWhenFinished.Location = new Point(12, 272);
             grpActionWhenFinished.Name = "grpActionWhenFinished";
             grpActionWhenFinished.Size = new Size(360, 210);
-            grpActionWhenFinished.TabIndex = 2;
+            grpActionWhenFinished.TabIndex = 3;
             grpActionWhenFinished.TabStop = false;
             grpActionWhenFinished.Text = "When the Conversion Is Finished";
             //
@@ -188,10 +234,10 @@ namespace MP3toMP4
             // btnOK
             //
             btnOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnOK.Location = new Point(216, 398);
+            btnOK.Location = new Point(216, 494);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(75, 27);
-            btnOK.TabIndex = 3;
+            btnOK.TabIndex = 4;
             btnOK.Text = "OK";
             btnOK.UseVisualStyleBackColor = true;
             btnOK.Click += btnOK_Click;
@@ -200,10 +246,10 @@ namespace MP3toMP4
             //
             btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnCancel.DialogResult = DialogResult.Cancel;
-            btnCancel.Location = new Point(297, 398);
+            btnCancel.Location = new Point(297, 494);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(75, 27);
-            btnCancel.TabIndex = 4;
+            btnCancel.TabIndex = 5;
             btnCancel.Text = "Cancel";
             btnCancel.UseVisualStyleBackColor = true;
             btnCancel.Click += btnCancel_Click;
@@ -214,10 +260,11 @@ namespace MP3toMP4
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new Size(384, 437);
+            ClientSize = new Size(384, 533);
             ControlBox = false;
             Controls.Add(grpUpdate);
             Controls.Add(grpOutputFolder);
+            Controls.Add(grpAudio);
             Controls.Add(grpActionWhenFinished);
             Controls.Add(btnOK);
             Controls.Add(btnCancel);
@@ -233,6 +280,8 @@ namespace MP3toMP4
             grpUpdate.PerformLayout();
             grpOutputFolder.ResumeLayout(false);
             grpOutputFolder.PerformLayout();
+            grpAudio.ResumeLayout(false);
+            grpAudio.PerformLayout();
             grpActionWhenFinished.ResumeLayout(false);
             grpActionWhenFinished.PerformLayout();
             ResumeLayout(false);
@@ -244,6 +293,10 @@ namespace MP3toMP4
         private GroupBox grpOutputFolder;
         private TextBox txtDefaultOutputFolder;
         private Button btnBrowseDefaultOutputFolder;
+        private ToolTip toolTip;
+        private GroupBox grpAudio;
+        private Label lblOptimizeAudioFor;
+        private ComboBox cboOptimizeAudioFor;
         private GroupBox grpActionWhenFinished;
         private Label lblAction;
         private ComboBox cboActionWhenFinished;

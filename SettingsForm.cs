@@ -7,12 +7,20 @@ namespace MP3toMP4
         public SettingsForm()
         {
             InitializeComponent();
+
+            // The Designer sets ClientSize before ControlBox = false / FixedDialog, and changing
+            // those keeps the window size, so the client area ends up ~33 px too short and the
+            // bottom-anchored OK/Cancel slide up over the last group. Size it from the layout instead.
+            ClientSize = new Size(grpActionWhenFinished.Right + 12,
+                                  grpActionWhenFinished.Bottom + 12 + btnOK.Height + 12);
         }
 
         private void SettingsForm_Load(object sender, EventArgs e)
         {
             cboNewVersionCheck.SelectedItem = AppSettings.CheckForUpdatesOnStartup;
             txtDefaultOutputFolder.Text = AppSettings.DefaultOutputFolder;
+            // Item 0 = "Quality (Recommended)", item 1 = "Smaller File Size"
+            cboOptimizeAudioFor.SelectedIndex = AppSettings.OptimizeAudioFor == "Smaller File Size" ? 1 : 0;
 
             cboFinishedSound.Items.AddRange(SoundLibrary.GetAvailableSounds().ToArray());
             cboFinishedSound.Items.Add(CustomSoundSentinel);
@@ -129,6 +137,7 @@ namespace MP3toMP4
 
             AppSettings.CheckForUpdatesOnStartup = cboNewVersionCheck.SelectedItem?.ToString() ?? "Yes";
             AppSettings.DefaultOutputFolder = txtDefaultOutputFolder.Text.Trim();
+            AppSettings.OptimizeAudioFor = cboOptimizeAudioFor.SelectedIndex == 1 ? "Smaller File Size" : "Quality";
             AppSettings.ActionWhenConversionFinished = cboActionWhenFinished.SelectedItem?.ToString() ?? "Play a Sound";
             AppSettings.FinishedConversionSoundFile = GetSelectedSoundIdentifier();
 

@@ -91,6 +91,50 @@ namespace MP3toMP4
         }
 
         // -------------------------------------------------------------------------
+        // What re-encoded audio is optimized for: "Quality" (default, AAC 384k) |
+        // "Smaller File Size" (AAC 192k)
+        // -------------------------------------------------------------------------
+
+        private static readonly string OptimizeAudioForFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", "MP3toMP4", "optimize-audio-for.txt");
+
+        private static string? _cachedOptimizeAudioFor;
+
+        public static string OptimizeAudioFor
+        {
+            get
+            {
+                if (_cachedOptimizeAudioFor != null) return _cachedOptimizeAudioFor;
+                try
+                {
+                    if (File.Exists(OptimizeAudioForFile))
+                    {
+                        string v = File.ReadAllText(OptimizeAudioForFile, System.Text.Encoding.UTF8).Trim();
+                        if (v == "Quality" || v == "Smaller File Size")
+                        {
+                            _cachedOptimizeAudioFor = v;
+                            return v;
+                        }
+                    }
+                }
+                catch { }
+                _cachedOptimizeAudioFor = "Quality";
+                return _cachedOptimizeAudioFor;
+            }
+            set
+            {
+                _cachedOptimizeAudioFor = value;
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(OptimizeAudioForFile)!);
+                    File.WriteAllText(OptimizeAudioForFile, value, System.Text.Encoding.UTF8);
+                }
+                catch { /* never crash the host app */ }
+            }
+        }
+
+        // -------------------------------------------------------------------------
         // Action to take when a conversion finishes: "Play a Sound" (default, matching
         // FFmpegAssistant and SplitMediaFiles) | "Message Box" | "None"
         // -------------------------------------------------------------------------

@@ -808,9 +808,11 @@ namespace MP3toMP4
             txtFadeOutLength.Visible = show;
         }
 
-        // YouTube's recommended stereo upload bitrate. YouTube re-encodes the audio anyway, so every
-        // generation of lossy compression before that should lose as little as possible.
-        private const string AacCodec = "-c:a aac -b:a 384k";
+        // Settings > Optimize Audio For. Quality = 384k, YouTube's recommended stereo upload bitrate:
+        // YouTube re-encodes the audio anyway, so every generation of lossy compression before that
+        // should lose as little as possible. Smaller File Size = 192k, about half the audio size.
+        private static string AacCodec =>
+            AppSettings.OptimizeAudioFor == "Smaller File Size" ? "-c:a aac -b:a 192k" : "-c:a aac -b:a 384k";
 
         /// <summary>
         /// MP3 and AAC play everywhere inside an MP4, so they're copied untouched. Anything else
