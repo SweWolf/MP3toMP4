@@ -79,6 +79,7 @@
             menuStrip = new MenuStrip();
             menuSetup = new ToolStripMenuItem();
             menuCreateShortcut = new ToolStripMenuItem();
+            menuSettings = new ToolStripMenuItem();
             helpToolStripMenuItem = new ToolStripMenuItem();
             aboutToolStripMenuItem = new ToolStripMenuItem();
             btnOpenLogFile = new Button();
@@ -591,7 +592,7 @@
             // 
             // menuSetup
             // 
-            menuSetup.DropDownItems.AddRange(new ToolStripItem[] { menuCreateShortcut });
+            menuSetup.DropDownItems.AddRange(new ToolStripItem[] { menuCreateShortcut, menuSettings });
             menuSetup.Name = "menuSetup";
             menuSetup.Size = new Size(49, 20);
             menuSetup.Text = "Setup";
@@ -602,7 +603,14 @@
             menuCreateShortcut.Size = new Size(165, 22);
             menuCreateShortcut.Text = "Create Shortcut...";
             menuCreateShortcut.Click += menuCreateShortcut_Click;
-            // 
+            //
+            // menuSettings
+            //
+            menuSettings.Name = "menuSettings";
+            menuSettings.Size = new Size(165, 22);
+            menuSettings.Text = "Settings...";
+            menuSettings.Click += menuSettings_Click;
+            //
             // helpToolStripMenuItem
             // 
             helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { aboutToolStripMenuItem });
@@ -715,6 +723,7 @@
         private MenuStrip menuStrip;
         private ToolStripMenuItem menuSetup;
         private ToolStripMenuItem menuCreateShortcut;
+        private ToolStripMenuItem menuSettings;
         private ToolStripMenuItem helpToolStripMenuItem;
         private ToolStripMenuItem aboutToolStripMenuItem;
         private CheckBox chkUseImageFileFromMp3File;

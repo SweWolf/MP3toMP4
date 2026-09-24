@@ -37,7 +37,7 @@ namespace MP3toMP4
         private record ImageSegment(string FilePath, TimeSpan Duration);
 
         // Caption for the app's message boxes (same as the window title)
-        private const string AppTitle = "MP3 to MP4";
+        internal const string AppTitle = "MP3 to MP4";
 
         private Process? _ffmpegProcess;
         private bool _cancelRequested;
@@ -422,6 +422,19 @@ namespace MP3toMP4
             }
         }
 
+        /// <summary>
+        /// The suggested output file for an MP3: same name with .mp4, in the default output
+        /// folder from Settings, or next to the MP3 if no default folder is set.
+        /// </summary>
+        private static string DefaultMp4Path(string mp3)
+        {
+            string folder = AppSettings.DefaultOutputFolder;
+            if (string.IsNullOrEmpty(folder))
+                return Path.ChangeExtension(mp3, ".mp4");
+
+            return Path.Combine(folder, Path.GetFileNameWithoutExtension(mp3) + ".mp4");
+        }
+
         private void TxtMP3File_TextChanged(object? sender, EventArgs e)
         {
             // Strip surrounding quotes (Windows Explorer copies paths with quotes)
@@ -434,7 +447,7 @@ namespace MP3toMP4
 
             string mp3 = text.Trim();
             if (!string.IsNullOrEmpty(mp3))
-                txtMP4File.Text = Path.ChangeExtension(mp3, ".mp4");
+                txtMP4File.Text = DefaultMp4Path(mp3);
 
             if (File.Exists(mp3))
                 PopulateImageCombo(mp3);
@@ -1029,9 +1042,7 @@ namespace MP3toMP4
                 btnOpenFolder.Enabled = true;
                 progressBar.Value = progressBar.Maximum;
                 lblEstimatedRemaining.Text = "Estimated remaining time: Done";
-                MessageBox.Show(
-                    "Conversion completed successfully!\n\nOutput file:\n" + mp4,
-                    AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                NotifyConversionFinished(mp4);
             }
             catch (OperationCanceledException)
             {
@@ -1458,6 +1469,51 @@ namespace MP3toMP4
             // The start-up size is the smallest the layout looks right at. Taken here, after
             // DPI/font scaling, so it holds at any display scale.
             MinimumSize = Size;
+
+            // Check for updates in the background, does not block startup
+            if (AppSettings.CheckForUpdatesOnStartup == "Yes")
+                _ = CheckForUpdatesAsync();
+        }
+
+        /// <summary>
+        /// Plays a sound, shows a message box, or does nothing, as chosen in Settings.
+        /// </summary>
+        private void NotifyConversionFinished(string mp4)
+        {
+            switch (AppSettings.ActionWhenConversionFinished)
+            {
+                case "Play a Sound":
+                    SoundLibrary.Play(AppSettings.FinishedConversionSoundFile);
+                    break;
+                case "None":
+                    break;
+                default: // "Message Box"
+                    MessageBox.Show(
+                        "Conversion completed successfully!\n\nOutput file:\n" + mp4,
+                        AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    break;
+            }
+        }
+
+        private async Task CheckForUpdatesAsync()
+        {
+            var currentVersion = System.Reflection.Assembly
+                .GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0);
+
+            var result = await GitHubUpdateChecker.CheckAsync(
+                "SweWolf", "MP3toMP4", currentVersion);
+
+            if (result is { IsUpdateAvailable: true } && !IsDisposed)
+            {
+                var answer = MessageBox.Show(this,
+                    $"A new version is available: {result.LatestVersion}\n\n" +
+                    $"You are running version {currentVersion.Major}.{currentVersion.Minor}.{currentVersion.Build}.\n\n" +
+                    $"Do you want to go to the download page?",
+                    AppTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+
+                if (answer == DialogResult.Yes)
+                    Process.Start(new ProcessStartInfo(result.ReleasePageUrl) { UseShellExecute = true });
+            }
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -1505,6 +1561,12 @@ namespace MP3toMP4
         private void menuCreateShortcut_Click(object? sender, EventArgs e)
         {
             using var form = new CreateShortcutForm(Application.ExecutablePath);
+            form.ShowDialog(this);
+        }
+
+        private void menuSettings_Click(object? sender, EventArgs e)
+        {
+            using var form = new SettingsForm();
             form.ShowDialog(this);
         }
 
