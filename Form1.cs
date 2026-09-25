@@ -993,7 +993,7 @@ namespace MP3toMP4
             {
                 var answer = MessageBox.Show(
                     $"The output file already exists:\n{mp4}\n\nDo you want to overwrite it?",
-                    "File Already Exists",
+                    AppTitle,
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question,
                     MessageBoxDefaultButton.Button2);
@@ -1606,7 +1606,7 @@ namespace MP3toMP4
         {
             var result = MessageBox.Show(
                 "Are you sure you want to cancel the conversion?",
-                "Cancel Conversion",
+                AppTitle,
                 MessageBoxButtons.OKCancel,
                 MessageBoxIcon.Question,
                 MessageBoxDefaultButton.Button2);
@@ -1649,9 +1649,9 @@ namespace MP3toMP4
             if (!TryParseTime(val, out _))
             {
                 e.Cancel = true;
-                MessageBox.Show("Enter a time as H:MM:SS, M:SS, or plain seconds (e.g. 1:23:45, 2:07, 90, 7.5). " +
+                MessageBox.Show("The time is not valid. Enter it as H:MM:SS, M:SS, or plain seconds (e.g. 1:23:45, 2:07, 90, 7.5). " +
                                 "'.' or ',' both work for the fraction.",
-                    "Invalid time", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
