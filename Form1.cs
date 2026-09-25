@@ -158,6 +158,7 @@ namespace MP3toMP4
             grdFiles.DragEnter += GrdFiles_DragEnter;
             grdFiles.DragDrop += GrdFiles_DragDrop;
             grdFiles.CellFormatting += GrdFiles_CellFormatting;
+            grdFiles.CellParsing += GrdFiles_CellParsing;
             grdFiles.CellEndEdit += GrdFiles_CellEndEdit;
             tabImage.SelectedIndexChanged += TabImage_SelectedIndexChanged;
             UpdateMultipleButtons();
@@ -1845,6 +1846,10 @@ namespace MP3toMP4
             if (e.ColumnIndex != colFile.Index || e.Value is not string fullPath || string.IsNullOrEmpty(fullPath))
                 return;
 
+            // A relative path (typed while no MP3 was chosen) would be resolved against the
+            // working directory, not the MP3 folder: show it as typed.
+            if (!Path.IsPathFullyQualified(fullPath)) return;
+
             string? mp3Folder = Path.GetDirectoryName(txtMP3File.Text.Trim());
             if (string.IsNullOrEmpty(mp3Folder)) return;
 
@@ -1856,6 +1861,31 @@ namespace MP3toMP4
                     e.Value = relative;
                     e.FormattingApplied = true;
                 }
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// The File column stores full paths and only displays them relative to the MP3 folder
+        /// (see <see cref="GrdFiles_CellFormatting"/>). Turns a typed or edited relative path
+        /// ("one.jpg", "Images\one.jpg") back into a full path based on the MP3 folder.
+        /// </summary>
+        private void GrdFiles_CellParsing(object? sender, DataGridViewCellParsingEventArgs e)
+        {
+            if (e.ColumnIndex != colFile.Index || e.Value is not string typed) return;
+
+            // "Copy as path" in Explorer adds quotes
+            typed = typed.Trim().Trim('"').Trim();
+            e.Value = typed;
+            e.ParsingApplied = true;
+            if (typed.Length == 0 || Path.IsPathFullyQualified(typed)) return;
+
+            string? mp3Folder = Path.GetDirectoryName(txtMP3File.Text.Trim());
+            if (string.IsNullOrEmpty(mp3Folder)) return;
+
+            try
+            {
+                e.Value = Path.GetFullPath(typed, mp3Folder);
             }
             catch { }
         }
