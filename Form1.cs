@@ -1548,13 +1548,40 @@ namespace MP3toMP4
             }
         }
 
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            Button? button = keyData switch
+            {
+                Keys.Control | Keys.O => btnOpenFile,
+                Keys.Control | Keys.Shift | Keys.O => btnOpenFolder,
+                Keys.Control | Keys.E => btnConvert,
+                Keys.Alt | Keys.B => btnBrowseForMp3File,
+                _ => null
+            };
+
+            if (button != null)
+            {
+                if (button.Enabled) button.PerformClick();
+                return true;
+            }
+
+            if (keyData == Keys.F6)
+            {
+                txtMP3File.Focus();
+                txtMP3File.SelectAll();
+                return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             if (_ffmpegProcess != null && !_ffmpegProcess.HasExited)
             {
                 var result = MessageBox.Show(
                     "Conversion in progress. If you close the application, the output file will be deleted.",
-                    "Close Application",
+                    AppTitle,
                     MessageBoxButtons.OKCancel,
                     MessageBoxIcon.Warning,
                     MessageBoxDefaultButton.Button2);
