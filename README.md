@@ -8,8 +8,9 @@ A clean Windows desktop application that combines an MP3 audio file with a stati
 
 - **Browse, drag & drop, or paste** your files — all input fields accept files dragged from Windows Explorer or straight from a web browser (e.g. Chrome), and the image field also supports pasting from the clipboard (Ctrl+V or right-click → Paste)
 - **Auto-fill** — selecting an MP3 file automatically suggests matching image files from the same folder and pre-fills the output MP4 path
+- **MP4 or MKV output** — MP4 plays everywhere; MKV keeps 100% of the original audio quality (WAV, FLAC and other formats are copied untouched, or converted to lossless FLAC when trimmed or faded). Tools → Settings → Default Output Format picks MP4, MKV, or MKV only for lossless sources (WAV, FLAC, AIFF)
 - **Embedded artwork** — if the MP3 contains album art in its ID3 tags, a checkbox lets you extract and use it with one click
-- **Lyrics transfer** — if the MP3 contains lyrics, an optional checkbox copies them into the output MP4 (stored in the standard `©lyr` tag, readable by iTunes, MusicBee, foobar2000, and others); the checkbox state is remembered between sessions
+- **Lyrics transfer** — if the MP3 contains lyrics, an optional checkbox copies them into the output file (stored in the standard `©lyr` tag in MP4, readable by iTunes, MusicBee, foobar2000, and others, or the `LYRICS` tag in MKV); the checkbox state is remembered between sessions
 - **Image preview** — the selected image is displayed instantly inside the application, including WebP files
 - **Live progress bar** — shows conversion progress as a percentage with an estimated time remaining
 - **Cancel at any time** — cancelling mid-conversion kills the FFmpeg process and deletes the incomplete output file
@@ -32,7 +33,7 @@ A clean Windows desktop application that combines an MP3 audio file with a stati
 
 1. Select or drag in an **MP3 file**
 2. Select or drag in an **image file** (JPG, PNG, BMP, GIF, WebP) — or use the embedded artwork from the MP3
-3. Confirm the **output MP4 path** (auto-filled, but can be changed)
+3. Confirm the **output MP4 or MKV path** (auto-filled, but can be changed)
 4. Click **Convert**
 
 ### Command-line

@@ -15,6 +15,8 @@ namespace MP3toMP4
         {
             components = new System.ComponentModel.Container();
             toolTip = new ToolTip(components);
+            grpOutputFormat = new GroupBox();
+            cboDefaultOutputFormat = new ComboBox();
             grpAudio = new GroupBox();
             cboOptimizeAudioFor = new ComboBox();
             lblOptimizeAudioFor = new Label();
@@ -37,6 +39,7 @@ namespace MP3toMP4
             btnCancel = new Button();
             grpUpdate.SuspendLayout();
             grpOutputFolder.SuspendLayout();
+            grpOutputFormat.SuspendLayout();
             grpAudio.SuspendLayout();
             grpActionWhenFinished.SuspendLayout();
             SuspendLayout();
@@ -104,14 +107,42 @@ namespace MP3toMP4
             btnBrowseDefaultOutputFolder.UseVisualStyleBackColor = true;
             btnBrowseDefaultOutputFolder.Click += btnBrowseDefaultOutputFolder_Click;
             //
+            // grpOutputFormat
+            //
+            grpOutputFormat.Controls.Add(cboDefaultOutputFormat);
+            grpOutputFormat.Location = new Point(12, 176);
+            grpOutputFormat.Name = "grpOutputFormat";
+            grpOutputFormat.Size = new Size(360, 62);
+            grpOutputFormat.TabIndex = 2;
+            grpOutputFormat.TabStop = false;
+            grpOutputFormat.Text = "Default Output Format";
+            //
+            // cboDefaultOutputFormat
+            //
+            cboDefaultOutputFormat.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboDefaultOutputFormat.FormattingEnabled = true;
+            cboDefaultOutputFormat.Items.AddRange(new object[] { "MP4 (Recommended)", "MKV", "MKV When Converting from a Lossless Format" });
+            cboDefaultOutputFormat.Location = new Point(10, 24);
+            cboDefaultOutputFormat.Name = "cboDefaultOutputFormat";
+            cboDefaultOutputFormat.Size = new Size(340, 23);
+            cboDefaultOutputFormat.TabIndex = 0;
+            toolTip.SetToolTip(cboDefaultOutputFormat,
+                "The format of the suggested output file when you pick an audio file. For a single file you\n" +
+                "can still choose the other format in the Save dialog, or type .mp4 or .mkv yourself.\n" +
+                "MP4: plays everywhere. MP3 and AAC audio is copied unchanged, other formats are converted to AAC.\n" +
+                "MKV: keeps 100% of the audio quality. The audio is copied unchanged, or converted to lossless\n" +
+                "FLAC when it is trimmed or faded. The files are bigger, and some TVs, phones and video editors\n" +
+                "can't play MKV.\n" +
+                "MKV When Converting from a Lossless Format: MKV for WAV, FLAC and AIFF files, MP4 for all others.");
+            //
             // grpAudio
             //
             grpAudio.Controls.Add(cboOptimizeAudioFor);
             grpAudio.Controls.Add(lblOptimizeAudioFor);
-            grpAudio.Location = new Point(12, 176);
+            grpAudio.Location = new Point(12, 244);
             grpAudio.Name = "grpAudio";
             grpAudio.Size = new Size(360, 90);
-            grpAudio.TabIndex = 2;
+            grpAudio.TabIndex = 3;
             grpAudio.TabStop = false;
             grpAudio.Text = "Audio";
             //
@@ -133,8 +164,9 @@ namespace MP3toMP4
             cboOptimizeAudioFor.Size = new Size(218, 23);
             cboOptimizeAudioFor.TabIndex = 1;
             toolTip.SetToolTip(cboOptimizeAudioFor,
-                "Used whenever the audio has to be converted to AAC: for WAV, FLAC, OGG and other formats,\n" +
-                "and for MP3 or M4A files that are trimmed or faded. Otherwise the audio is copied unchanged.\n" +
+                "Used whenever the audio of an MP4 file has to be converted to AAC: for WAV, FLAC, OGG and other\n" +
+                "formats, and for MP3 or M4A files that are trimmed or faded. Otherwise the audio is copied unchanged.\n" +
+                "Not used for MKV files: they always keep the full audio quality.\n" +
                 "Quality: 384 kbit/s, as recommended by YouTube.\n" +
                 "Smaller File Size: 192 kbit/s, about half the size of the audio.");
             //
@@ -148,10 +180,10 @@ namespace MP3toMP4
             grpActionWhenFinished.Controls.Add(lblFinishedSound);
             grpActionWhenFinished.Controls.Add(cboActionWhenFinished);
             grpActionWhenFinished.Controls.Add(lblAction);
-            grpActionWhenFinished.Location = new Point(12, 272);
+            grpActionWhenFinished.Location = new Point(12, 340);
             grpActionWhenFinished.Name = "grpActionWhenFinished";
             grpActionWhenFinished.Size = new Size(360, 210);
-            grpActionWhenFinished.TabIndex = 3;
+            grpActionWhenFinished.TabIndex = 4;
             grpActionWhenFinished.TabStop = false;
             grpActionWhenFinished.Text = "When the Conversion Is Finished";
             //
@@ -234,10 +266,10 @@ namespace MP3toMP4
             // btnOK
             //
             btnOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnOK.Location = new Point(216, 494);
+            btnOK.Location = new Point(216, 562);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(75, 27);
-            btnOK.TabIndex = 4;
+            btnOK.TabIndex = 5;
             btnOK.Text = "OK";
             btnOK.UseVisualStyleBackColor = true;
             btnOK.Click += btnOK_Click;
@@ -246,10 +278,10 @@ namespace MP3toMP4
             //
             btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnCancel.DialogResult = DialogResult.Cancel;
-            btnCancel.Location = new Point(297, 494);
+            btnCancel.Location = new Point(297, 562);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(75, 27);
-            btnCancel.TabIndex = 5;
+            btnCancel.TabIndex = 6;
             btnCancel.Text = "Cancel";
             btnCancel.UseVisualStyleBackColor = true;
             btnCancel.Click += btnCancel_Click;
@@ -260,10 +292,11 @@ namespace MP3toMP4
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new Size(384, 533);
+            ClientSize = new Size(384, 601);
             ControlBox = false;
             Controls.Add(grpUpdate);
             Controls.Add(grpOutputFolder);
+            Controls.Add(grpOutputFormat);
             Controls.Add(grpAudio);
             Controls.Add(grpActionWhenFinished);
             Controls.Add(btnOK);
@@ -280,6 +313,7 @@ namespace MP3toMP4
             grpUpdate.PerformLayout();
             grpOutputFolder.ResumeLayout(false);
             grpOutputFolder.PerformLayout();
+            grpOutputFormat.ResumeLayout(false);
             grpAudio.ResumeLayout(false);
             grpAudio.PerformLayout();
             grpActionWhenFinished.ResumeLayout(false);
@@ -294,6 +328,8 @@ namespace MP3toMP4
         private TextBox txtDefaultOutputFolder;
         private Button btnBrowseDefaultOutputFolder;
         private ToolTip toolTip;
+        private GroupBox grpOutputFormat;
+        private ComboBox cboDefaultOutputFormat;
         private GroupBox grpAudio;
         private Label lblOptimizeAudioFor;
         private ComboBox cboOptimizeAudioFor;

@@ -19,6 +19,13 @@ namespace MP3toMP4
         {
             cboNewVersionCheck.SelectedItem = AppSettings.CheckForUpdatesOnStartup;
             txtDefaultOutputFolder.Text = AppSettings.DefaultOutputFolder;
+            // Item 0 = "MP4 (Recommended)", 1 = "MKV", 2 = "MKV When Converting from a Lossless Format"
+            cboDefaultOutputFormat.SelectedIndex = AppSettings.DefaultOutputFormat switch
+            {
+                "MKV" => 1,
+                "MKV for Lossless" => 2,
+                _ => 0
+            };
             // Item 0 = "Quality (Recommended)", item 1 = "Smaller File Size"
             cboOptimizeAudioFor.SelectedIndex = AppSettings.OptimizeAudioFor == "Smaller File Size" ? 1 : 0;
 
@@ -137,6 +144,12 @@ namespace MP3toMP4
 
             AppSettings.CheckForUpdatesOnStartup = cboNewVersionCheck.SelectedItem?.ToString() ?? "Yes";
             AppSettings.DefaultOutputFolder = txtDefaultOutputFolder.Text.Trim();
+            AppSettings.DefaultOutputFormat = cboDefaultOutputFormat.SelectedIndex switch
+            {
+                1 => "MKV",
+                2 => "MKV for Lossless",
+                _ => "MP4"
+            };
             AppSettings.OptimizeAudioFor = cboOptimizeAudioFor.SelectedIndex == 1 ? "Smaller File Size" : "Quality";
             AppSettings.ActionWhenConversionFinished = cboActionWhenFinished.SelectedItem?.ToString() ?? "Play a Sound";
             AppSettings.FinishedConversionSoundFile = GetSelectedSoundIdentifier();

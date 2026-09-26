@@ -30,6 +30,18 @@ namespace MP3toMP4
         private static bool IsVideoFile(string path) =>
             VideoExtensions.Contains(Path.GetExtension(path).ToLowerInvariant());
 
+        // Settings > Default Output Format = "MKV When Converting from a Lossless Format" suggests MKV for these
+        private static readonly string[] LosslessAudioExtensions = [".wav", ".flac", ".aiff", ".aif"];
+
+        // The output file's extension decides the format: .mkv = MKV, otherwise MP4
+        private static bool IsMkv(string outputPath) =>
+            Path.GetExtension(outputPath).Equals(".mkv", StringComparison.OrdinalIgnoreCase);
+
+        // Moves the MP4 index to the front so playback can start before the whole file is loaded.
+        // It's an MP4-only muxer option, so MKV gets nothing.
+        private static string FastStartOption(string outputPath) =>
+            IsMkv(outputPath) ? "" : "-movflags +faststart";
+
         private static readonly string SettingsFile = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "SweWolfSoftware", "MP3toMP4", "settings.json");
@@ -118,7 +130,7 @@ namespace MP3toMP4
                 "Unchecked: use the complete file.\n" +
                 "Checked: shows Start at/End at (and Fade in/out) fields to trim the file to a specific range.");
             toolTip.SetToolTip(chkLyrics,
-                "Copies the lyrics stored in the MP3 file's tags into the MP4 file, so players that " +
+                "Copies the lyrics stored in the MP3 file's tags into the video file, so players that " +
                 "support it can display them.\n" +
                 "The lyrics are not shown in the video itself.\n" +
                 "Available only when the MP3 file contains the lyrics tag.");
@@ -243,11 +255,17 @@ namespace MP3toMP4
         {
             using var dlg = new SaveFileDialog
             {
-                Title = "Save MP4 file as",
-                Filter = "MP4 files (*.mp4)|*.mp4|All files (*.*)|*.*",
+                Title = "Save Video File As",
+                Filter = "MP4 files (*.mp4)|*.mp4|MKV files (*.mkv)|*.mkv|All files (*.*)|*.*",
                 DefaultExt = "mp4",
                 OverwritePrompt = false
             };
+            // Start in the current file's format, so the dialog doesn't switch it to the other one
+            if (IsMkv(txtMP4File.Text.Trim()))
+            {
+                dlg.FilterIndex = 2;
+                dlg.DefaultExt = "mkv";
+            }
 
             if (!string.IsNullOrWhiteSpace(txtMP4File.Text))
                 dlg.FileName = txtMP4File.Text;
@@ -424,16 +442,25 @@ namespace MP3toMP4
         }
 
         /// <summary>
-        /// The suggested output file for an MP3: same name with .mp4, in the default output
-        /// folder from Settings, or next to the MP3 if no default folder is set.
+        /// The suggested output file for an MP3: same name with .mp4 or .mkv (Settings > Default
+        /// Output Format), in the default output folder from Settings, or next to the MP3 if no
+        /// default folder is set.
         /// </summary>
-        private static string DefaultMp4Path(string mp3)
+        private static string DefaultOutputPath(string mp3)
         {
+            bool mkv = AppSettings.DefaultOutputFormat switch
+            {
+                "MKV" => true,
+                "MKV for Lossless" => LosslessAudioExtensions.Contains(Path.GetExtension(mp3).ToLowerInvariant()),
+                _ => false
+            };
+            string extension = mkv ? ".mkv" : ".mp4";
+
             string folder = AppSettings.DefaultOutputFolder;
             if (string.IsNullOrEmpty(folder))
-                return Path.ChangeExtension(mp3, ".mp4");
+                return Path.ChangeExtension(mp3, extension);
 
-            return Path.Combine(folder, Path.GetFileNameWithoutExtension(mp3) + ".mp4");
+            return Path.Combine(folder, Path.GetFileNameWithoutExtension(mp3) + extension);
         }
 
         private void TxtMP3File_TextChanged(object? sender, EventArgs e)
@@ -448,7 +475,7 @@ namespace MP3toMP4
 
             string mp3 = text.Trim();
             if (!string.IsNullOrEmpty(mp3))
-                txtMP4File.Text = DefaultMp4Path(mp3);
+                txtMP4File.Text = DefaultOutputPath(mp3);
 
             if (File.Exists(mp3))
                 PopulateImageCombo(mp3);
@@ -816,19 +843,24 @@ namespace MP3toMP4
             AppSettings.OptimizeAudioFor == "Smaller File Size" ? "-c:a aac -b:a 192k" : "-c:a aac -b:a 384k";
 
         /// <summary>
-        /// MP3 and AAC play everywhere inside an MP4, so they're copied untouched. Anything else
+        /// MP4: MP3 and AAC play everywhere inside an MP4, so they're copied untouched. Anything else
         /// (WAV, FLAC, OGG, WMA, ...) is re-encoded to AAC: FFmpeg either refuses it in MP4 (WMA)
         /// or produces files many players can't handle (PCM, Vorbis), and WAV would be ~10x bigger.
+        /// MKV holds all of these formats, so there the audio is always copied untouched.
         /// </summary>
-        private static string UntrimmedAudioCodec(string audioPath) =>
-            Path.GetExtension(audioPath).ToLowerInvariant() is ".mp3" or ".m4a" or ".aac"
+        private static string UntrimmedAudioCodec(string audioPath, bool mkv) =>
+            mkv || Path.GetExtension(audioPath).ToLowerInvariant() is ".mp3" or ".m4a" or ".aac"
                 ? "-c:a copy"
                 : AacCodec;
 
-        private (string InputPrefix, string Codec, string Filter) GetAudioOptions(string mp3Path)
+        // Trimmed or faded audio has to be re-encoded. MKV is chosen for full quality, so it gets
+        // lossless FLAC instead of AAC.
+        private static string ReencodedAudioCodec(bool mkv) => mkv ? "-c:a flac" : AacCodec;
+
+        private (string InputPrefix, string Codec, string Filter) GetAudioOptions(string mp3Path, bool mkv)
         {
             if (!chkTrimToRange.Checked)
-                return ("", UntrimmedAudioCodec(mp3Path), "");
+                return ("", UntrimmedAudioCodec(mp3Path, mkv), "");
 
             TimeSpan totalDuration = GetMp3Duration(mp3Path);
             bool hasStart = TryParseRangeValue(txtInputStart.Text, totalDuration, out var start);
@@ -840,7 +872,7 @@ namespace MP3toMP4
             bool hasFade = fadeIn > 0 || fadeOut > 0;
 
             if (!hasTrim && !hasFade)
-                return ("", UntrimmedAudioCodec(mp3Path), "");
+                return ("", UntrimmedAudioCodec(mp3Path, mkv), "");
 
             // Build the audio filter chain entirely in -af so FFmpeg controls the
             // endpoint precisely.  (Input-side -ss/-to combined with -af and AAC
@@ -873,7 +905,7 @@ namespace MP3toMP4
             }
 
             string filterArg = $"-af \"{string.Join(",", filters)}\"";
-            return ("", AacCodec, filterArg);
+            return ("", ReencodedAudioCodec(mkv), filterArg);
         }
 
         private static bool TryParseFade(string? input, out double seconds)
@@ -903,12 +935,13 @@ namespace MP3toMP4
             }
             if (string.IsNullOrEmpty(mp4))
             {
-                MessageBox.Show("Please specify an output MP4 file.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please specify an output file.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            if (!mp4.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
+            if (!mp4.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) && !IsMkv(mp4))
             {
-                MessageBox.Show("The output file must have the .mp4 extension.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("The output file must have the .mp4 or .mkv extension.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtMP4File.Focus();
                 return;
             }
             if (GetInvalidPathCharError(mp4) is string pathError)
@@ -918,7 +951,7 @@ namespace MP3toMP4
                 return;
             }
 
-            var (audioInputPrefix, audioCodec, audioFilter) = GetAudioOptions(mp3);
+            var (audioInputPrefix, audioCodec, audioFilter) = GetAudioOptions(mp3, IsMkv(mp4));
 
             // --- Mode-specific validation and arg building ---
             string ffmpegArgs, logInfo;
@@ -1194,7 +1227,7 @@ namespace MP3toMP4
                 audioCodec,
             };
             if (!string.IsNullOrEmpty(audioFilter)) parts.Add(audioFilter);
-            parts.AddRange(["-shortest", "-movflags +faststart", $"\"{FfmpegPath(mp4)}\""]);
+            parts.AddRange(["-shortest", FastStartOption(mp4), $"\"{FfmpegPath(mp4)}\""]);
             return string.Join(" ", parts);
         }
 
@@ -1224,7 +1257,7 @@ namespace MP3toMP4
                 audioCodec,
             ]);
             if (!string.IsNullOrEmpty(audioFilter)) parts.Add(audioFilter);
-            parts.AddRange(["-shortest", "-movflags +faststart", $"\"{FfmpegPath(Path.GetFullPath(mp4))}\""]);
+            parts.AddRange(["-shortest", FastStartOption(mp4), $"\"{FfmpegPath(Path.GetFullPath(mp4))}\""]);
             return string.Join(" ", parts);
         }
 
@@ -1243,7 +1276,7 @@ namespace MP3toMP4
                 audioCodec,
             };
             if (!string.IsNullOrEmpty(audioFilter)) parts.Add(audioFilter);
-            parts.AddRange(["-shortest", "-movflags +faststart", $"\"{FfmpegPath(mp4)}\""]);
+            parts.AddRange(["-shortest", FastStartOption(mp4), $"\"{FfmpegPath(mp4)}\""]);
             return string.Join(" ", parts);
         }
 
@@ -1349,7 +1382,7 @@ namespace MP3toMP4
             sb.Append($"-map \"[v]\" -map \"{segments.Count}:a\" ");
             sb.Append($"-c:v libx264 -tune stillimage -r 30 -pix_fmt yuv420p {audioCodec} ");
             if (!string.IsNullOrEmpty(audioFilter)) sb.Append($"{audioFilter} ");
-            sb.Append("-shortest -movflags +faststart ");
+            sb.Append($"-shortest {FastStartOption(mp4)} ");
             sb.Append($"\"{mp4}\"");
 
             return sb.ToString();

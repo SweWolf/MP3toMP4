@@ -91,6 +91,50 @@ namespace MP3toMP4
         }
 
         // -------------------------------------------------------------------------
+        // Default output format, i.e. the extension of the suggested output file:
+        // "MP4" (default) | "MKV" | "MKV for Lossless" (MKV only for WAV/FLAC/AIFF sources)
+        // -------------------------------------------------------------------------
+
+        private static readonly string DefaultOutputFormatFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", "MP3toMP4", "default-output-format.txt");
+
+        private static string? _cachedDefaultOutputFormat;
+
+        public static string DefaultOutputFormat
+        {
+            get
+            {
+                if (_cachedDefaultOutputFormat != null) return _cachedDefaultOutputFormat;
+                try
+                {
+                    if (File.Exists(DefaultOutputFormatFile))
+                    {
+                        string v = File.ReadAllText(DefaultOutputFormatFile, System.Text.Encoding.UTF8).Trim();
+                        if (v == "MP4" || v == "MKV" || v == "MKV for Lossless")
+                        {
+                            _cachedDefaultOutputFormat = v;
+                            return v;
+                        }
+                    }
+                }
+                catch { }
+                _cachedDefaultOutputFormat = "MP4";
+                return _cachedDefaultOutputFormat;
+            }
+            set
+            {
+                _cachedDefaultOutputFormat = value;
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(DefaultOutputFormatFile)!);
+                    File.WriteAllText(DefaultOutputFormatFile, value, System.Text.Encoding.UTF8);
+                }
+                catch { /* never crash the host app */ }
+            }
+        }
+
+        // -------------------------------------------------------------------------
         // What re-encoded audio is optimized for: "Quality" (default, AAC 384k) |
         // "Smaller File Size" (AAC 192k)
         // -------------------------------------------------------------------------

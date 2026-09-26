@@ -182,7 +182,7 @@
             cmdBrowseForMP4File.Size = new Size(37, 29);
             cmdBrowseForMP4File.TabIndex = 1;
             cmdBrowseForMP4File.Text = "...";
-            toolTip.SetToolTip(cmdBrowseForMP4File, "Choose where to save the MP4 file");
+            toolTip.SetToolTip(cmdBrowseForMP4File, "Choose where to save the MP4 or MKV file");
             cmdBrowseForMP4File.UseVisualStyleBackColor = true;
             // 
             // btnConvert
@@ -194,7 +194,7 @@
             btnConvert.Size = new Size(127, 37);
             btnConvert.TabIndex = 2;
             btnConvert.Text = "Convert";
-            toolTip.SetToolTip(btnConvert, "Start converting the audio file (MP3 or other type) to an MP4 file");
+            toolTip.SetToolTip(btnConvert, "Start converting the audio file (MP3 or other type) to an MP4 or MKV file");
             btnConvert.UseVisualStyleBackColor = true;
             // 
             // lblLength
@@ -485,7 +485,7 @@
             // 
             colStart.HeaderText = "Start Time";
             colStart.Name = "colStart";
-            colStart.ToolTipText = "When this image or video appears in the finished MP4. The first one always starts at 0:00.";
+            colStart.ToolTipText = "When this image or video appears in the finished video. The first one always starts at 0:00.";
             colStart.Width = 120;
             // 
             // colDuration
@@ -535,9 +535,9 @@
             label3.Font = new Font("Segoe UI", 12F);
             label3.Location = new Point(22, 28);
             label3.Name = "label3";
-            label3.Size = new Size(70, 21);
+            label3.Size = new Size(124, 21);
             label3.TabIndex = 1;
-            label3.Text = "MP4 File";
+            label3.Text = "MP4 or MKV File";
             // 
             // lblEstimatedRemaining
             // 
