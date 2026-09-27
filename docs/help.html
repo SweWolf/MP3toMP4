@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>MP3 to MP4 Help</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">
+:root {
+--text: #1f2328;
+--muted: #59636e;
+--bg: #ffffff;
+--line: #d1d9e0;
+--code-bg: #f3f4f6;
+--link: #0969da;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #e6edf3;
+--muted: #9198a1;
+--bg: #0d1117;
+--line: #3d444d;
+--code-bg: #1f242c;
+--link: #4493f8;
+}
+}
+html { background: var(--bg); }
+body {
+max-width: 50rem;
+margin: 0 auto;
+padding: 1.5rem 1rem 4rem;
+font-family: "Segoe UI", system-ui, sans-serif;
+font-size: 16px;
+line-height: 1.6;
+color: var(--text);
+background: var(--bg);
+}
+h1, h2, h3, h4 { line-height: 1.25; margin: 2rem 0 0.75rem; }
+h1 { font-size: 2rem; margin-top: 0.5rem; }
+h2 { font-size: 1.5rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--line); }
+h3 { font-size: 1.2rem; }
+h4 { font-size: 1rem; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre {
+font-family: Consolas, "Cascadia Mono", monospace;
+font-size: 0.9em;
+background: var(--code-bg);
+border-radius: 4px;
+}
+code { padding: 0.1em 0.35em; }
+pre { padding: 0.75rem 1rem; overflow-x: auto; }
+pre code { padding: 0; }
+table { border-collapse: collapse; margin: 1rem 0; }
+th, td { border: 1px solid var(--line); padding: 0.35rem 0.75rem; text-align: left; }
+th { background: var(--code-bg); }
+</style>
+</head>
+<body>
+<h1 id="mp3-to-mp4-help">MP3 to MP4 Help</h1>
+<p>MP3 to MP4 turns an audio file into a video file. The video shows a
+picture, a video clip, several pictures one after another, a black
+screen or a few lines of text, while your audio plays. This is useful
+for uploading music to YouTube and other video sites, which only accept
+video files.</p>
+<h2 id="contents">Contents</h2>
+<ul>
+<li><a href="#getting-started">Getting Started</a></li>
+<li><a href="#the-main-window">The Main Window</a>
+<ul>
+<li><a href="#mp3-file">MP3 File</a></li>
+<li><a href="#trim-to-a-range">Trim to a Range</a></li>
+<li><a href="#single-imagevideo">Single Image/Video</a></li>
+<li><a href="#multiple-imagesvideos">Multiple Images/Videos</a></li>
+<li><a href="#include-lyrics-tag">Include Lyrics Tag</a></li>
+<li><a href="#output">Output</a></li>
+<li><a href="#converting">Converting</a></li>
+</ul></li>
+<li><a href="#mp4-or-mkv">MP4 or MKV?</a></li>
+<li><a href="#settings">Settings</a></li>
+<li><a href="#create-shortcut">Create Shortcut</a></li>
+<li><a href="#drag-and-drop-and-paste">Drag and Drop, and Paste</a></li>
+<li><a href="#keyboard-shortcuts">Keyboard Shortcuts</a></li>
+<li><a href="#log-files">Log Files</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="what-you-need">What You Need</h3>
+<ul>
+<li>Windows 10 or Windows 11.</li>
+<li><strong>FFmpeg</strong>, the free program that does the actual
+conversion. Download it from <a href="https://ffmpeg.org/download.html">ffmpeg.org</a> and either put
+<code>ffmpeg.exe</code> in the same folder as MP3 to MP4, or install it
+so that it is on the system PATH. MP3 to MP4 also looks in
+<code>C:\Program Files\FFmpeg\bin</code>.</li>
+</ul>
+<p>You can see which FFmpeg version is found under <strong>Help &gt;
+About</strong>.</p>
+<h3 id="your-first-video">Your First Video</h3>
+<ol type="1">
+<li>Click the <strong>…</strong> button next to <strong>MP3
+File</strong> and choose your audio file.</li>
+<li>If there is a picture with the same name as the audio file in the
+same folder (for example <code>My Song.jpg</code> next to
+<code>My Song.mp3</code>), it is selected automatically. Otherwise,
+click the <strong>…</strong> button next to <strong>Image or Video
+File</strong> and choose a picture.</li>
+<li>Check the file name under <strong>MP4 or MKV File</strong>. It is
+filled in for you.</li>
+<li>Click <strong>Convert</strong>.</li>
+</ol>
+<p>When the conversion is finished, click <strong>Open File</strong> to
+watch the video.</p>
+<h2 id="the-main-window">The Main Window</h2>
+<p>The window has an <strong>Input</strong> area at the top, where you
+choose what goes into the video, and an <strong>Output</strong> area
+below it, where you choose where the video is saved. The buttons at the
+bottom start and control the conversion.</p>
+<h3 id="mp3-file">MP3 File</h3>
+<p>The audio file to use. Click <strong>…</strong> to browse for it,
+drag it onto the field from File Explorer, or type or paste its
+path.</p>
+<p>Despite the name, you can use most audio formats: MP3, WAV, FLAC,
+M4A, AAC, OGG, Opus, WMA and AIFF. In the Open dialog, choose
+<strong>Audio files</strong> to see all of them.</p>
+<p>The length of the audio is shown to the right of the field.</p>
+<p>When you choose an audio file, MP3 to MP4 also:</p>
+<ul>
+<li>looks for a picture with the same name in the same folder,</li>
+<li>checks whether the file contains a picture (album art) and
+lyrics,</li>
+<li>fills in the output file name.</li>
+</ul>
+<h3 id="trim-to-a-range">Trim to a Range</h3>
+<p>Check <strong>Trim to a Range</strong> to use only part of the audio.
+Four more fields appear:</p>
+<ul>
+<li><strong>Start at</strong>: where the video starts. Leave it empty to
+start at the beginning.</li>
+<li><strong>End at</strong>: where the video ends. Leave it empty to
+continue to the end.</li>
+<li><strong>Fade in (s)</strong>: the number of seconds over which the
+sound fades in at the start. 0 means no fade.</li>
+<li><strong>Fade out (s)</strong>: the number of seconds over which the
+sound fades out at the end. 0 means no fade.</li>
+</ul>
+<p>You can write the times in several ways:</p>
+<table>
+<thead>
+<tr>
+<th>You Write</th>
+<th>It Means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>90</code></td>
+<td>90 seconds</td>
+</tr>
+<tr>
+<td><code>7.5</code> or <code>7,5</code></td>
+<td>7.5 seconds</td>
+</tr>
+<tr>
+<td><code>2:07</code></td>
+<td>2 minutes and 7 seconds</td>
+</tr>
+<tr>
+<td><code>1:23:45</code></td>
+<td>1 hour, 23 minutes and 45 seconds</td>
+</tr>
+<tr>
+<td><code>45%</code></td>
+<td>45% of the audio’s length</td>
+</tr>
+</tbody>
+</table>
+<p>A percentage is useful when you convert several files of different
+lengths with the same settings: it is worked out again for each
+file.</p>
+<p>You can also fade in and out without trimming: check <strong>Trim to
+a Range</strong>, leave <strong>Start at</strong> and <strong>End
+at</strong> empty, and enter the fade lengths.</p>
+<p>When the box is unchecked, the whole audio file is used and the fade
+fields are ignored.</p>
+<h3 id="single-imagevideo">Single Image/Video</h3>
+<p>Use this tab to show one thing during the whole video. Choose one of
+the three options on the left side of the tab. The preview on the right
+shows what the video will look like.</p>
+<h4 id="image-or-video-file">Image or Video File</h4>
+<p>Shows a picture or a video clip.</p>
+<ul>
+<li>Pictures: JPG, PNG, BMP, GIF and WebP.</li>
+<li>Videos: MP4, MOV, AVI, MKV, WebM and M4V. A clip that is shorter
+than the audio starts again from the beginning until the audio ends. The
+clip’s own sound is not used.</li>
+</ul>
+<p>Click <strong>…</strong> to browse, choose one of the pictures in the
+drop-down list, or drag a file onto the field or the preview. See also
+<a href="#drag-and-drop-and-paste">Drag and Drop, and Paste</a>.</p>
+<p><strong>Use Image from the MP3 File</strong> uses the picture (album
+art) stored inside the audio file. It is only available when the audio
+file contains a picture. While it is checked, you can’t choose another
+picture.</p>
+<h4 id="black-screen">Black Screen</h4>
+<p>The video is just black, 1280 × 720 pixels. Useful when only the
+sound matters.</p>
+<h4 id="text">Text</h4>
+<p>White text, centred on a black screen. Type the text in the box next
+to <strong>Text</strong>. Each line in the box becomes one line in the
+video. The text size is chosen automatically, so that all lines fit.</p>
+<p>The box is filled in for you with the artist and, on the next line,
+the song title in quotes, taken from the audio file’s tags. If the file
+has no title, the file name is used. You can change the text as you
+like. Once you have changed it, it is kept even if you choose another
+audio file.</p>
+<h3 id="multiple-imagesvideos">Multiple Images/Videos</h3>
+<p>Use this tab to show several pictures or clips one after another, for
+example one picture per song in a long mix.</p>
+<p>Add files with <strong>Add…</strong> (you can select several at
+once), or drag them from File Explorer onto the list. If you have
+already chosen a picture on the <strong>Single Image/Video</strong> tab,
+it is added as the first row when you open this tab.</p>
+<p>The list has three columns:</p>
+<ul>
+<li><strong>File</strong>: the picture or video. Files in the same
+folder as the audio file, or in a subfolder of it, are shown with a
+short name (for example <code>Images\cover.jpg</code>). You can also
+type a file name here: it is looked for in the audio file’s folder.</li>
+<li><strong>Start Time</strong>: when this file appears in the video.
+The first row always starts at 0:00. Each file is shown until the next
+row’s Start Time, and the last one until the end of the video. Times are
+written in the same way as in <a href="#trim-to-a-range">Trim to a
+Range</a> (but not as a percentage), and they count from the start of
+the video, so after any trimming.</li>
+<li><strong>Duration</strong>: how long the file is shown. This is
+worked out for you from the Start Times and can’t be edited.</li>
+</ul>
+<p>When you change a Start Time, the rows are sorted by time again
+automatically.</p>
+<p>The buttons next to the list:</p>
+<ul>
+<li><strong>▲</strong> and <strong>▼</strong>: move the selected file up
+or down. Only the file moves: the Start Times stay where they are. This
+way you can change which picture is shown when, without retyping the
+times.</li>
+<li><strong>Delete</strong>: removes the selected row.</li>
+</ul>
+<p>The preview on the right shows the selected file.</p>
+<p>The video gets the size of the first picture or clip in the list.
+Other files that have a different shape get black bars at the sides or
+at the top and bottom.</p>
+<h3 id="include-lyrics-tag">Include Lyrics Tag</h3>
+<p>If the audio file contains lyrics, check <strong>Include Lyrics
+Tag</strong> to copy them into the video file. Music players that
+support lyrics (for example iTunes, MusicBee and foobar2000) can then
+show them.</p>
+<p>The lyrics are <strong>not</strong> shown in the picture of the
+video. The option is only available when the audio file contains lyrics.
+MP3 to MP4 remembers your choice for next time.</p>
+<h3 id="output">Output</h3>
+<p><strong>MP4 or MKV File</strong> is where the video is saved. It is
+filled in automatically when you choose an audio file: the same name as
+the audio file, in the same folder, or in the <strong>Default Output
+Folder</strong> if you have set one in <a href="#settings">Settings</a>.</p>
+<p>The file extension decides the format: <code>.mp4</code> or
+<code>.mkv</code>. To change it, type the other extension, or click
+<strong>…</strong> and choose the format under <strong>Save as
+type</strong>. See <a href="#mp4-or-mkv">MP4 or MKV?</a>.</p>
+<p>If the folder does not exist, MP3 to MP4 offers to create it. If the
+file already exists, you are asked whether to overwrite it.</p>
+<h3 id="converting">Converting</h3>
+<ul>
+<li><strong>Convert</strong> starts the conversion. The progress bar and
+<strong>Estimated remaining time</strong> show how far it has come.</li>
+<li><strong>Cancel</strong> stops the conversion. The unfinished video
+file is deleted.</li>
+<li><strong>Clear</strong> empties all the fields, so you can start
+over.</li>
+</ul>
+<p>When the conversion is finished, MP3 to MP4 plays a sound (you can
+change this in <a href="#settings">Settings</a>) and three buttons
+become available:</p>
+<ul>
+<li><strong>Open File</strong>: plays the video in your default video
+player.</li>
+<li><strong>Open Folder</strong>: opens File Explorer with the video
+selected.</li>
+<li><strong>Open Log File</strong>: shows FFmpeg’s report of the
+conversion. Useful when something went wrong.</li>
+</ul>
+<p>If you close MP3 to MP4 during a conversion, you are asked first, and
+the unfinished video file is deleted.</p>
+<h2 id="mp4-or-mkv">MP4 or MKV?</h2>
+<p><strong>MP4</strong> plays almost everywhere: phones, TVs, browsers,
+video editors and all video sites. Choose MP4 if you are unsure.</p>
+<ul>
+<li>MP3, M4A and AAC audio is copied into the video unchanged, so there
+is no loss of quality.</li>
+<li>Other formats (WAV, FLAC, OGG and so on) are converted to AAC, a
+high-quality compressed format.</li>
+<li>Trimmed or faded audio is always converted to AAC.</li>
+</ul>
+<p><strong>MKV</strong> keeps 100% of the audio quality, even for WAV
+and FLAC files.</p>
+<ul>
+<li>The audio is always copied unchanged.</li>
+<li>Trimmed or faded audio is converted to FLAC, which is lossless: no
+quality is lost.</li>
+<li>The files can be much bigger, and some TVs, phones and video editors
+can’t play MKV. YouTube accepts MKV files.</li>
+</ul>
+<p>Choose which one is suggested in <strong>Tools &gt; Settings &gt;
+Default Output Format</strong>.</p>
+<h2 id="settings">Settings</h2>
+<p>Open the settings with <strong>Tools &gt; Settings</strong>. Click
+<strong>OK</strong> to save your changes, or <strong>Cancel</strong> to
+close the window without saving.</p>
+<h3 id="updates">Updates</h3>
+<p><strong>Check for New Version at Startup</strong>: when
+<strong>Yes</strong>, MP3 to MP4 checks on GitHub whether a new version
+is available each time it starts, and offers to open the download
+page.</p>
+<h3 id="default-output-folder">Default Output Folder</h3>
+<p>The folder where new videos are saved. Leave it empty to save each
+video in the same folder as its audio file. Click <strong>…</strong> to
+browse for a folder.</p>
+<h3 id="default-output-format">Default Output Format</h3>
+<p>The format of the suggested output file:</p>
+<ul>
+<li><strong>MP4 (Recommended)</strong>: always MP4.</li>
+<li><strong>MKV</strong>: always MKV.</li>
+<li><strong>MKV When Converting from a Lossless Format</strong>: MKV for
+WAV, FLAC and AIFF files, MP4 for all others.</li>
+</ul>
+<p>This only decides what is suggested. You can still change the
+extension of each file under <strong>MP4 or MKV File</strong>. See <a href="#mp4-or-mkv">MP4 or MKV?</a>.</p>
+<h3 id="audio">Audio</h3>
+<p><strong>Optimize Audio For</strong> is used whenever the audio of an
+MP4 file has to be converted to AAC (see <a href="#mp4-or-mkv">MP4 or
+MKV?</a>):</p>
+<ul>
+<li><strong>Quality (Recommended)</strong>: 384 kbit/s, the quality
+YouTube recommends for uploads.</li>
+<li><strong>Smaller File Size</strong>: 192 kbit/s, about half the size
+of the audio.</li>
+</ul>
+<p>It is not used for MKV files, which always keep the full quality.</p>
+<h3 id="when-the-conversion-is-finished">When the Conversion Is
+Finished</h3>
+<p><strong>Action</strong> decides what happens when a conversion is
+finished:</p>
+<ul>
+<li><strong>Play a Sound</strong>: plays the sound chosen under
+<strong>Sound</strong>. Click <strong>▶</strong> to listen to it. Choose
+<strong>Custom Sound File…</strong> at the end of the list to use your
+own WAV file, and select it under <strong>Custom Sound File
+(WAV)</strong>.</li>
+<li><strong>Message Box</strong>: shows a message with the name of the
+new video file.</li>
+<li><strong>None</strong>: does nothing.</li>
+</ul>
+<h2 id="create-shortcut">Create Shortcut</h2>
+<p><strong>Tools &gt; Create Shortcut…</strong> creates shortcuts to MP3
+to MP4. Check where you want them:</p>
+<ul>
+<li><strong>Desktop</strong></li>
+<li><strong>Start Menu (Programs)</strong></li>
+<li><strong>Send To menu</strong>: lets you right-click an audio file in
+File Explorer and choose <strong>Send to &gt; MP3toMP4</strong>. The
+program then opens with that file already chosen, and the picture and
+output fields filled in.</li>
+</ul>
+<p>Choose whether the shortcuts are for the <strong>Current user
+only</strong> or for <strong>All users</strong>. All users may require
+administrator rights. The Send To shortcut is always for the current
+user only.</p>
+<p>You can also start the program from the command line with an audio
+file:</p>
+<pre><code>MP3toMP4.exe &quot;C:\Music\My Song.mp3&quot;</code></pre>
+<h2 id="drag-and-drop-and-paste">Drag and Drop, and Paste</h2>
+<p>You can drag files from File Explorer onto:</p>
+<ul>
+<li>the <strong>MP3 File</strong> field,</li>
+<li>the <strong>Image or Video File</strong> field or its preview,</li>
+<li>the <strong>MP4 or MKV File</strong> field,</li>
+<li>the list on the <strong>Multiple Images/Videos</strong> tab (several
+files at once).</li>
+</ul>
+<p>For pictures there are two more ways:</p>
+<ul>
+<li><strong>From a web browser</strong>: drag a picture from a web page
+(for example in Chrome) onto the <strong>Image or Video File</strong>
+field. It is downloaded and used.</li>
+<li><strong>From the clipboard</strong>: copy a picture in any program,
+click in the <strong>Image or Video File</strong> field and press
+<strong>Ctrl+V</strong>, or right-click the field and choose
+<strong>Paste</strong>.</li>
+</ul>
+<p>Paths copied with <strong>Copy as path</strong> in File Explorer can
+be pasted into all the fields. The quotes around them are removed
+automatically.</p>
+<h2 id="keyboard-shortcuts">Keyboard Shortcuts</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ctrl+E</strong></td>
+<td>Convert</td>
+</tr>
+<tr>
+<td><strong>Ctrl+O</strong></td>
+<td>Open File (the finished video)</td>
+</tr>
+<tr>
+<td><strong>Ctrl+Shift+O</strong></td>
+<td>Open Folder</td>
+</tr>
+<tr>
+<td><strong>Alt+B</strong></td>
+<td>Browse for an MP3 file</td>
+</tr>
+<tr>
+<td><strong>F6</strong></td>
+<td>Go to the <strong>MP3 File</strong> field</td>
+</tr>
+</tbody>
+</table>
+<h2 id="log-files">Log Files</h2>
+<p>MP3 to MP4 writes a log file for every conversion. They are kept in
+<code>%AppData%\SweWolfSoftware\MP3toMP4\Logs</code>. Logs older than 30
+days are deleted automatically.</p>
+<p>The <strong>Help</strong> menu has two commands for them:</p>
+<ul>
+<li><strong>Open FFmpeg Call Log</strong>: a list of every FFmpeg
+command MP3 to MP4 has run. It is kept short automatically.</li>
+<li><strong>Open Log Folder</strong>: opens the folder with all the log
+files in File Explorer.</li>
+</ul>
+<p>The log of the latest conversion can also be opened with the
+<strong>Open Log File</strong> button.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p><strong>“FFmpeg not found.”</strong> MP3 to MP4 can’t find
+<code>ffmpeg.exe</code>. Put it in the same folder as MP3 to MP4, or
+install FFmpeg so that it is on the system PATH. See <a href="#what-you-need">What You Need</a>.</p>
+<p><strong>“Conversion failed: FFmpeg exited with code …”</strong>
+Something went wrong inside FFmpeg. Click <strong>Open Log File</strong>
+and look near the end of the log for lines with “Error” in them. They
+usually say what the problem is, for example a damaged input file.</p>
+<p><strong>“… contains the character …, which is not allowed in file and
+folder names.”</strong> The output file or folder name contains a
+character Windows doesn’t allow, such as <code>?</code>, <code>*</code>,
+<code>:</code> or <code>|</code>. Remove it and try again.</p>
+<p><strong>The output file must have the .mp4 or .mkv
+extension.</strong> End the output file name with <code>.mp4</code> or
+<code>.mkv</code>.</p>
+<p><strong>Use Image from the MP3 File or Include Lyrics Tag can’t be
+checked.</strong> The audio file doesn’t contain a picture or lyrics.
+Hover over <strong>Include Lyrics Tag</strong> to see why it is not
+available.</p>
+<p><strong>The picture I dragged from a web page doesn’t work.</strong>
+Some web sites don’t allow their pictures to be downloaded this way.
+Save the picture to your computer first (right-click it and choose
+<strong>Save image as</strong>), and then use that file.</p>
+</body>
+</html>
