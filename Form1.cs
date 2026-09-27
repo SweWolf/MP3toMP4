@@ -953,6 +953,15 @@ namespace MP3toMP4
 
             var (audioInputPrefix, audioCodec, audioFilter) = GetAudioOptions(mp3, IsMkv(mp4));
 
+            // Re-encoded audio: -shortest lets the video run ~2 s past the end of the audio
+            // (encoder buffering), so end the output at the audio's length. Copied audio is exact.
+            if (audioCodec != "-c:a copy")
+            {
+                TimeSpan outputLength = GetEffectiveAudioLength(GetMp3Duration(mp3));
+                if (outputLength > TimeSpan.Zero)
+                    audioFilter = $"{audioFilter} -t {outputLength.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)}".Trim();
+            }
+
             // --- Mode-specific validation and arg building ---
             string ffmpegArgs, logInfo;
             string[]? videoTextLines = null;   // Text mode: written to temp files just before FFmpeg runs
