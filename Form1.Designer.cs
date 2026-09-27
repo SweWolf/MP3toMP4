@@ -85,6 +85,8 @@
             menuOpenFFmpegCallLog = new ToolStripMenuItem();
             menuOpenLogFolder = new ToolStripMenuItem();
             menuHelpSeparator = new ToolStripSeparator();
+            menuViewHelp = new ToolStripMenuItem();
+            menuViewHelpSeparator = new ToolStripSeparator();
             btnOpenLogFile = new Button();
             btnOpenFolder = new Button();
             btnOpenFile = new Button();
@@ -616,10 +618,23 @@
             // 
             // helpToolStripMenuItem
             // 
-            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { menuOpenFFmpegCallLog, menuOpenLogFolder, menuHelpSeparator, aboutToolStripMenuItem });
+            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { menuViewHelp, menuViewHelpSeparator, menuOpenFFmpegCallLog, menuOpenLogFolder, menuHelpSeparator, aboutToolStripMenuItem });
             helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             helpToolStripMenuItem.Size = new Size(44, 20);
             helpToolStripMenuItem.Text = "Help";
+            //
+            // menuViewHelp
+            //
+            menuViewHelp.Name = "menuViewHelp";
+            menuViewHelp.ShortcutKeys = Keys.F1;
+            menuViewHelp.Size = new Size(200, 22);
+            menuViewHelp.Text = "MP3 to MP4 Help";
+            menuViewHelp.Click += menuViewHelp_Click;
+            //
+            // menuViewHelpSeparator
+            //
+            menuViewHelpSeparator.Name = "menuViewHelpSeparator";
+            menuViewHelpSeparator.Size = new Size(197, 6);
             //
             // menuOpenFFmpegCallLog
             //
@@ -751,6 +766,8 @@
         private ToolStripMenuItem menuOpenFFmpegCallLog;
         private ToolStripMenuItem menuOpenLogFolder;
         private ToolStripSeparator menuHelpSeparator;
+        private ToolStripMenuItem menuViewHelp;
+        private ToolStripSeparator menuViewHelpSeparator;
         private CheckBox chkUseImageFileFromMp3File;
         private CheckBox chkLyrics;
         private Button btnOpenLogFile;

@@ -312,6 +312,7 @@ around them are removed automatically.
 
 | Key | Action |
 |-----|--------|
+| **F1** | Open this help |
 | **Ctrl+E** | Convert |
 | **Ctrl+O** | Open File (the finished video) |
 | **Ctrl+Shift+O** | Open Folder |

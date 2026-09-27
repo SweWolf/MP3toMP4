@@ -19,6 +19,10 @@
     <Content Include="Resources\*.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- Help > MP3 to MP4 Help (F1). Rebuild it from help.md with docs\build-help.cmd -->
+    <Content Include="docs\help.html" Link="Help\help.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

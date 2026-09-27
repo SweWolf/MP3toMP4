@@ -2102,6 +2102,8 @@ namespace MP3toMP4
             Process.Start(new ProcessStartInfo(_lastLogFile) { UseShellExecute = true });
         }
 
+        private void menuViewHelp_Click(object? sender, EventArgs e) => HelpFiles.OpenHelp(AppTitle);
+
         private void menuOpenFFmpegCallLog_Click(object? sender, EventArgs e)
         {
             if (!File.Exists(LogFiles.FFmpegCallsLogFile))
