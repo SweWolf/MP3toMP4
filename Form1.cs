@@ -1263,11 +1263,11 @@ namespace MP3toMP4
             var parts = new List<string>
             {
                 "-y",
-                $"-i \"{FfmpegPath(video)}\"",
+                // -stream_loop re-reads the clip from the file. (The loop filter kept every frame
+                // in RAM, e.g. 2.6 GB for a 60 s 720p clip, and cut clips over 32767 frames.)
+                $"-stream_loop -1 -i \"{FfmpegPath(video)}\"",
                 $"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\"",
-                // loop=-1 loops indefinitely; size=32767 is the frame buffer (~36 min at 30 fps)
-                "-filter_complex \"[0:v]loop=loop=-1:size=32767[v]\"",
-                "-map \"[v]\"", "-map 1:a",
+                "-map 0:v", "-map 1:a",
                 "-c:v libx264", "-r 30", "-pix_fmt yuv420p",
                 audioCodec,
             };
@@ -1348,29 +1348,17 @@ namespace MP3toMP4
 
             foreach (var seg in segments)
             {
-                if (IsVideoFile(seg.FilePath))
-                    // Video: just open it — the loop filter in filter_complex handles looping + trim
-                    sb.Append($"-i \"{FfmpegPath(seg.FilePath)}\" ");
-                else
-                    sb.Append($"-loop 1 -t {seg.Duration.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)} -i \"{FfmpegPath(seg.FilePath)}\" ");
+                // A video repeats (-stream_loop, re-read from the file) and a picture is repeated
+                // (-loop 1), both until the segment's duration (-t)
+                string loop = IsVideoFile(seg.FilePath) ? "-stream_loop -1" : "-loop 1";
+                sb.Append($"{loop} -t {seg.Duration.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)} -i \"{FfmpegPath(seg.FilePath)}\" ");
             }
 
             sb.Append($"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\" ");
 
             sb.Append("-filter_complex \"");
             for (int i = 0; i < segments.Count; i++)
-            {
-                if (IsVideoFile(segments[i].FilePath))
-                {
-                    string dur = segments[i].Duration.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
-                    // loop=-1 loops indefinitely; trim cuts at the segment duration; setpts resets timestamps
-                    sb.Append($"[{i}:v]loop=loop=-1:size=32767,trim=0:{dur},setpts=PTS-STARTPTS,{sf}[v{i}];");
-                }
-                else
-                {
-                    sb.Append($"[{i}:v]{sf}[v{i}];");
-                }
-            }
+                sb.Append($"[{i}:v]{sf}[v{i}];");
             for (int i = 0; i < segments.Count; i++)
                 sb.Append($"[v{i}]");
             sb.Append($"concat=n={segments.Count}:v=1:a=0[v]\" ");
