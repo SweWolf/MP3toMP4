@@ -82,6 +82,9 @@
             menuSettings = new ToolStripMenuItem();
             helpToolStripMenuItem = new ToolStripMenuItem();
             aboutToolStripMenuItem = new ToolStripMenuItem();
+            menuOpenFFmpegCallLog = new ToolStripMenuItem();
+            menuOpenLogFolder = new ToolStripMenuItem();
+            menuHelpSeparator = new ToolStripSeparator();
             btnOpenLogFile = new Button();
             btnOpenFolder = new Button();
             btnOpenFile = new Button();
@@ -613,11 +616,30 @@
             // 
             // helpToolStripMenuItem
             // 
-            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { aboutToolStripMenuItem });
+            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { menuOpenFFmpegCallLog, menuOpenLogFolder, menuHelpSeparator, aboutToolStripMenuItem });
             helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             helpToolStripMenuItem.Size = new Size(44, 20);
             helpToolStripMenuItem.Text = "Help";
-            // 
+            //
+            // menuOpenFFmpegCallLog
+            //
+            menuOpenFFmpegCallLog.Name = "menuOpenFFmpegCallLog";
+            menuOpenFFmpegCallLog.Size = new Size(200, 22);
+            menuOpenFFmpegCallLog.Text = "Open FFmpeg Call Log";
+            menuOpenFFmpegCallLog.Click += menuOpenFFmpegCallLog_Click;
+            //
+            // menuOpenLogFolder
+            //
+            menuOpenLogFolder.Name = "menuOpenLogFolder";
+            menuOpenLogFolder.Size = new Size(200, 22);
+            menuOpenLogFolder.Text = "Open Log Folder";
+            menuOpenLogFolder.Click += menuOpenLogFolder_Click;
+            //
+            // menuHelpSeparator
+            //
+            menuHelpSeparator.Name = "menuHelpSeparator";
+            menuHelpSeparator.Size = new Size(197, 6);
+            //
             // aboutToolStripMenuItem
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
@@ -726,6 +748,9 @@
         private ToolStripMenuItem menuSettings;
         private ToolStripMenuItem helpToolStripMenuItem;
         private ToolStripMenuItem aboutToolStripMenuItem;
+        private ToolStripMenuItem menuOpenFFmpegCallLog;
+        private ToolStripMenuItem menuOpenLogFolder;
+        private ToolStripSeparator menuHelpSeparator;
         private CheckBox chkUseImageFileFromMp3File;
         private CheckBox chkLyrics;
         private Button btnOpenLogFile;

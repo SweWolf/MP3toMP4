@@ -1533,6 +1533,9 @@ namespace MP3toMP4
             // DPI/font scaling, so it holds at any display scale.
             MinimumSize = Size;
 
+            // Deletes old conversion logs in the background
+            LogFiles.DeleteOldLogsOncePerDay();
+
             // Check for updates in the background, does not block startup
             if (AppSettings.CheckForUpdatesOnStartup == "Yes")
                 _ = CheckForUpdatesAsync();
@@ -2097,6 +2100,24 @@ namespace MP3toMP4
                 return;
             }
             Process.Start(new ProcessStartInfo(_lastLogFile) { UseShellExecute = true });
+        }
+
+        private void menuOpenFFmpegCallLog_Click(object? sender, EventArgs e)
+        {
+            if (!File.Exists(LogFiles.FFmpegCallsLogFile))
+            {
+                MessageBox.Show("No FFmpeg calls have been logged yet. The log is created at the first conversion.",
+                    AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            Process.Start(new ProcessStartInfo(LogFiles.FFmpegCallsLogFile) { UseShellExecute = true });
+        }
+
+        private void menuOpenLogFolder_Click(object? sender, EventArgs e)
+        {
+            // Created if missing, so Explorer always opens the right folder (empty before the first conversion)
+            Directory.CreateDirectory(LogFiles.LogFolder);
+            Process.Start("explorer.exe", $"\"{LogFiles.LogFolder}\"");
         }
 
         [System.Runtime.InteropServices.DllImport("kernel32.dll",
