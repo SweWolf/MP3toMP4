@@ -1059,11 +1059,7 @@ namespace MP3toMP4
             progressBar.Value = 0;
             lblEstimatedRemaining.Text = "Estimated remaining time: —";
 
-            string logDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "SweWolfSoftware", "MP3toMP4", "Logs");
-            Directory.CreateDirectory(logDir);
-            _lastLogFile = Path.Combine(logDir, $"convert_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+            _lastLogFile = LogFiles.NewConversionLogFile();
             btnOpenLogFile.Enabled = true;
 
             TimeSpan totalDuration = GetMp3Duration(mp3);
@@ -1477,6 +1473,7 @@ namespace MP3toMP4
 
                 var startTime = DateTime.UtcNow;
 
+                LogFiles.AppendFFmpegCall(ffmpeg, ffmpegArgs);
                 process.Start();
 
                 using var log = new StreamWriter(logFile, append: false, System.Text.Encoding.UTF8);
