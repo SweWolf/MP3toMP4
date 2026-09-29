@@ -243,12 +243,32 @@ namespace MP3toMP4
             using var dlg = new OpenFileDialog
             {
                 Title = "Select image or video file",
-                Filter = ImageVideoFilter
+                Filter = ImageVideoFilter,
+                InitialDirectory = GetBrowseFolder(cboImageFile.Text) ?? GetBrowseFolder(txtMP3File.Text) ?? ""
             };
 
             if (dlg.ShowDialog() != DialogResult.OK) return;
 
             cboImageFile.Text = dlg.FileName;
+        }
+
+        /// <summary>
+        /// The folder of a typed or selected file, if that folder exists; otherwise null.
+        /// Used to start a browse dialog where the user's files are.
+        /// </summary>
+        private static string? GetBrowseFolder(string path)
+        {
+            try
+            {
+                path = path.Trim();
+                if (!Path.IsPathFullyQualified(path)) return null;
+                string? dir = Path.GetDirectoryName(path);
+                return !string.IsNullOrEmpty(dir) && Directory.Exists(dir) ? dir : null;
+            }
+            catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+            {
+                return null;
+            }
         }
 
         private void CmdBrowseForMP4File_Click(object? sender, EventArgs e)
@@ -1672,6 +1692,9 @@ namespace MP3toMP4
         private List<DataGridViewRow> GetGridDataRows() =>
             grdFiles.Rows.Cast<DataGridViewRow>().Where(r => !r.IsNewRow).ToList();
 
+        private string LastGridFile() =>
+            GetGridDataRows().LastOrDefault()?.Cells[0].Value?.ToString() ?? "";
+
         private void GrdFiles_CellValidating(object? sender, DataGridViewCellValidatingEventArgs e)
         {
             if (e.ColumnIndex != colStart.Index) return;
@@ -2005,6 +2028,7 @@ namespace MP3toMP4
                 Title = "Add Image or Video Files",
                 Filter = ImageVideoFilter,
                 Multiselect = true,
+                InitialDirectory = GetBrowseFolder(LastGridFile()) ?? GetBrowseFolder(txtMP3File.Text) ?? ""
             };
             if (dlg.ShowDialog() != DialogResult.OK) return;
 
