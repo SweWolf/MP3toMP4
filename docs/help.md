@@ -124,7 +124,7 @@ The video is just black, 1280 × 720 pixels. Useful when only the sound matters.
 
 #### Text
 
-White text, centred on a black screen. Type the text in the box next to **Text**. Each line in
+White text, centered on a black screen. Type the text in the box next to **Text**. Each line in
 the box becomes one line in the video. The text size is chosen automatically, so that all lines
 fit.
 
@@ -216,9 +216,12 @@ Choose MP4 if you are unsure.
 
 **MKV** keeps 100% of the audio quality, even for WAV and FLAC files.
 
-- The audio is always copied unchanged.
-- Trimmed or faded audio is converted to FLAC, which is lossless: no quality is lost.
-- The files can be much bigger, and some TVs, phones and video editors can't play MKV.
+- WAV and AIFF audio is stored as FLAC. FLAC is lossless compression, like a ZIP file for audio:
+  the sound is exactly the same, but it takes about half the space. (32-bit WAV files are copied
+  unchanged, because FLAC can't store them exactly.)
+- All other audio is copied unchanged.
+- Trimmed or faded audio is converted to FLAC, so no quality is lost there either.
+- The files are bigger than MP4 files, and some TVs, phones and video editors can't play MKV.
   YouTube accepts MKV files.
 
 Choose which one is suggested in **Tools > Settings > Default Output Format**.

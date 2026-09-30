@@ -130,9 +130,9 @@ namespace MP3toMP4
                 "The format of the suggested output file when you pick an audio file. For a single file you\n" +
                 "can still choose the other format in the Save dialog, or type .mp4 or .mkv yourself.\n" +
                 "MP4: plays everywhere. MP3 and AAC audio is copied unchanged, other formats are converted to AAC.\n" +
-                "MKV: keeps 100% of the audio quality. The audio is copied unchanged, or converted to lossless\n" +
-                "FLAC when it is trimmed or faded. The files are bigger, and some TVs, phones and video editors\n" +
-                "can't play MKV.\n" +
+                "MKV: keeps 100% of the audio quality. WAV and AIFF audio is stored as lossless FLAC (about half\n" +
+                "the size), other audio is copied unchanged, and trimmed or faded audio also becomes FLAC.\n" +
+                "The files are bigger, and some TVs, phones and video editors can't play MKV.\n" +
                 "MKV When Converting from a Lossless Format: MKV for WAV, FLAC and AIFF files, MP4 for all others.");
             //
             // grpAudio

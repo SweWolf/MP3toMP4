@@ -866,21 +866,52 @@ namespace MP3toMP4
         /// MP4: MP3 and AAC play everywhere inside an MP4, so they're copied untouched. Anything else
         /// (WAV, FLAC, OGG, WMA, ...) is re-encoded to AAC: FFmpeg either refuses it in MP4 (WMA)
         /// or produces files many players can't handle (PCM, Vorbis), and WAV would be ~10x bigger.
-        /// MKV holds all of these formats, so there the audio is always copied untouched.
+        /// MKV holds all of these formats, so there the audio is copied untouched, except that
+        /// 16- and 24-bit WAV/AIFF becomes FLAC: the same samples in about half the size.
         /// </summary>
-        private static string UntrimmedAudioCodec(string audioPath, bool mkv) =>
-            mkv || Path.GetExtension(audioPath).ToLowerInvariant() is ".mp3" or ".m4a" or ".aac"
+        private static string UntrimmedAudioCodec(string audioPath, string? pcmCodec, bool mkv)
+        {
+            if (mkv)
+                return IsFlacSafePcm(pcmCodec) ? "-c:a flac" : "-c:a copy";
+
+            return Path.GetExtension(audioPath).ToLowerInvariant() is ".mp3" or ".m4a" or ".aac"
                 ? "-c:a copy"
                 : AacCodec;
+        }
 
         // Trimmed or faded audio has to be re-encoded. MKV is chosen for full quality, so it gets
-        // lossless FLAC instead of AAC.
-        private static string ReencodedAudioCodec(bool mkv) => mkv ? "-c:a flac" : AacCodec;
+        // lossless FLAC instead of AAC. PCM that FLAC can't store exactly (32-bit float or integer)
+        // stays in its own PCM format.
+        private static string ReencodedAudioCodec(string? pcmCodec, bool mkv)
+        {
+            if (!mkv) return AacCodec;
+            return pcmCodec != null && !IsFlacSafePcm(pcmCodec) ? $"-c:a {pcmCodec}" : "-c:a flac";
+        }
+
+        // FLAC stores 16- and 24-bit integer samples bit for bit, but not 32-bit float or integer
+        private static bool IsFlacSafePcm(string? pcmCodec) =>
+            pcmCodec is "pcm_s16le" or "pcm_s16be" or "pcm_s24le" or "pcm_s24be";
+
+        /// <summary>
+        /// The FFmpeg codec of an uncompressed WAV/AIFF file (e.g. "pcm_s16le", "pcm_f32le"),
+        /// or null for any other file, or if FFprobe can't tell.
+        /// </summary>
+        private static string? GetPcmCodec(string audioPath)
+        {
+            if (!LosslessAudioExtensions.Contains(Path.GetExtension(audioPath).ToLowerInvariant()))
+                return null;
+
+            string codec = RunFfprobe($"-v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 \"{FfmpegPath(audioPath)}\"");
+            return codec.StartsWith("pcm_", StringComparison.Ordinal) ? codec : null;
+        }
 
         private (string InputPrefix, string Codec, string Filter) GetAudioOptions(string mp3Path, bool mkv)
         {
+            // Only MKV needs to know the PCM format, so MP4 skips the FFprobe run
+            string? pcmCodec = mkv ? GetPcmCodec(mp3Path) : null;
+
             if (!chkTrimToRange.Checked)
-                return ("", UntrimmedAudioCodec(mp3Path, mkv), "");
+                return ("", UntrimmedAudioCodec(mp3Path, pcmCodec, mkv), "");
 
             TimeSpan totalDuration = GetMp3Duration(mp3Path);
             bool hasStart = TryParseRangeValue(txtInputStart.Text, totalDuration, out var start);
@@ -892,7 +923,7 @@ namespace MP3toMP4
             bool hasFade = fadeIn > 0 || fadeOut > 0;
 
             if (!hasTrim && !hasFade)
-                return ("", UntrimmedAudioCodec(mp3Path, mkv), "");
+                return ("", UntrimmedAudioCodec(mp3Path, pcmCodec, mkv), "");
 
             // Build the audio filter chain entirely in -af so FFmpeg controls the
             // endpoint precisely.  (Input-side -ss/-to combined with -af and AAC
@@ -925,7 +956,7 @@ namespace MP3toMP4
             }
 
             string filterArg = $"-af \"{string.Join(",", filters)}\"";
-            return ("", ReencodedAudioCodec(mkv), filterArg);
+            return ("", ReencodedAudioCodec(pcmCodec, mkv), filterArg);
         }
 
         private static bool TryParseFade(string? input, out double seconds)
@@ -1305,41 +1336,47 @@ namespace MP3toMP4
             return string.Join(" ", parts);
         }
 
+        /// <summary>
+        /// Runs FFprobe and returns the first line it prints, or "" if it fails.
+        /// </summary>
+        private static string RunFfprobe(string arguments)
+        {
+            try
+            {
+                // Derive ffprobe path from same folder as ffmpeg, else rely on PATH
+                string ffprobe = "ffprobe";
+                string? ffmpeg = FindFFmpeg();
+                if (ffmpeg != null)
+                {
+                    string candidate = Path.Combine(Path.GetDirectoryName(ffmpeg)!, "ffprobe.exe");
+                    if (File.Exists(candidate)) ffprobe = candidate;
+                }
+
+                var psi = new System.Diagnostics.ProcessStartInfo(ffprobe, arguments)
+                {
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                };
+                using var proc = System.Diagnostics.Process.Start(psi);
+                if (proc == null) return "";
+                string line = proc.StandardOutput.ReadLine() ?? "";
+                proc.WaitForExit();
+                return line.Trim();
+            }
+            catch { return ""; }
+        }
+
         private static (int W, int H) GetImagePixelSize(string path)
         {
             if (IsVideoFile(path))
             {
-                try
-                {
-                    // Derive ffprobe path from same folder as ffmpeg, else rely on PATH
-                    string ffprobe = "ffprobe";
-                    string? ffmpeg = FindFFmpeg();
-                    if (ffmpeg != null)
-                    {
-                        string candidate = Path.Combine(Path.GetDirectoryName(ffmpeg)!, "ffprobe.exe");
-                        if (File.Exists(candidate)) ffprobe = candidate;
-                    }
-
-                    var psi = new System.Diagnostics.ProcessStartInfo(ffprobe,
-                        $"-v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 \"{FfmpegPath(path)}\"")
-                    {
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                    };
-                    using var proc = System.Diagnostics.Process.Start(psi);
-                    if (proc != null)
-                    {
-                        string line = proc.StandardOutput.ReadLine() ?? "";
-                        proc.WaitForExit();
-                        var parts = line.Split('x');
-                        if (parts.Length == 2 &&
-                            int.TryParse(parts[0], out int w) &&
-                            int.TryParse(parts[1], out int h))
-                            return (w, h);
-                    }
-                }
-                catch { }
+                string line = RunFfprobe($"-v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 \"{FfmpegPath(path)}\"");
+                var parts = line.Split('x');
+                if (parts.Length == 2 &&
+                    int.TryParse(parts[0], out int w) &&
+                    int.TryParse(parts[1], out int h))
+                    return (w, h);
                 return (1280, 720);
             }
 
