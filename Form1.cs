@@ -1496,6 +1496,19 @@ namespace MP3toMP4
                 return false;
             }
 
+            // No Start Times typed: the files share the audio's length equally
+            List<TimeSpan>? autoStarts = null;
+            if (AreStartsAuto(dataRows))
+            {
+                autoStarts = AutoStarts(dataRows.Count, audioLength);
+                if (autoStarts == null)
+                {
+                    error = $"There are too many files ({dataRows.Count}) for the length of the audio ({FormatTime(audioLength)}): " +
+                            "each one needs at least one second.";
+                    return false;
+                }
+            }
+
             var starts = new List<TimeSpan>();
             for (int i = 0; i < dataRows.Count; i++)
             {
@@ -1508,7 +1521,9 @@ namespace MP3toMP4
 
                 // The first image always starts at the very beginning
                 TimeSpan start = TimeSpan.Zero;
-                if (i > 0)
+                if (autoStarts != null)
+                    start = autoStarts[i];
+                else if (i > 0)
                 {
                     if (!TryParseTime(dataRows[i].Cells[colStart.Index].Value?.ToString(), out start))
                     {
@@ -1772,9 +1787,15 @@ namespace MP3toMP4
 
         private void GrdFiles_CellValidating(object? sender, DataGridViewCellValidatingEventArgs e)
         {
-            if (e.ColumnIndex != colStart.Index) return;
+            if (e.ColumnIndex != colStart.Index && e.ColumnIndex != colDuration.Index) return;
             string? val = e.FormattedValue?.ToString();
             if (string.IsNullOrWhiteSpace(val)) return;
+            if (e.ColumnIndex == colDuration.Index && TryParseTime(val, out var typedDuration) && typedDuration <= TimeSpan.Zero)
+            {
+                e.Cancel = true;
+                MessageBox.Show("The duration must be longer than zero.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             if (!TryParseTime(val, out _))
             {
                 e.Cancel = true;
@@ -1815,15 +1836,26 @@ namespace MP3toMP4
             _gridUpdating = true;
             try
             {
+                // No Start Times typed at all: the files share the audio's length equally
+                List<TimeSpan>? auto = audioLength > TimeSpan.Zero && AreStartsAuto(dataRows)
+                    ? AutoStarts(dataRows.Count, audioLength) : null;
+
                 for (int i = 0; i < dataRows.Count; i++)
                 {
                     var startCell = dataRows[i].Cells[colStart.Index];
                     startCell.ReadOnly = i == 0;
                     if (i == 0 && startCell.Value?.ToString() != "0:00")
                         startCell.Value = "0:00";
+                    // The last row lasts until the end of the audio, so its duration can't be typed
+                    dataRows[i].Cells[colDuration.Index].ReadOnly = i == dataRows.Count - 1;
 
                     string duration = "";
-                    if (TryParseTime(startCell.Value?.ToString(), out var start))
+                    if (auto != null)
+                    {
+                        TimeSpan autoEnd = i < auto.Count - 1 ? auto[i + 1] : audioLength;
+                        duration = FormatTime(autoEnd - auto[i]);
+                    }
+                    else if (TryParseTime(startCell.Value?.ToString(), out var start))
                     {
                         if (i < dataRows.Count - 1)
                         {
@@ -1920,9 +1952,81 @@ namespace MP3toMP4
                 : $"{t.Minutes}:{t.Seconds:D2}{frac}";
         }
 
+        /// <summary>
+        /// True when the first row is the only one with a Start Time (the others are blank): the
+        /// files then share the audio's length equally, see <see cref="AutoStarts"/>.
+        /// </summary>
+        private bool AreStartsAuto(List<DataGridViewRow> dataRows) =>
+            dataRows.Count >= 2 && dataRows.Skip(1).All(r => string.IsNullOrWhiteSpace(r.Cells[colStart.Index].Value?.ToString()));
+
+        /// <summary>
+        /// Equal share of <paramref name="audioLength"/> for <paramref name="count"/> files, in whole
+        /// seconds. The last file gets what is left over, so it may last a little longer.
+        /// Null if that would be less than one second per file.
+        /// </summary>
+        private static List<TimeSpan>? AutoStarts(int count, TimeSpan audioLength)
+        {
+            double each = Math.Floor(audioLength.TotalSeconds / count);
+            if (each < 1) return null;
+            return Enumerable.Range(0, count).Select(i => TimeSpan.FromSeconds(i * each)).ToList();
+        }
+
+        /// <summary>
+        /// A typed Duration moves the Start Time of the next row (and of all rows after it by the
+        /// same amount). Start Time stays the stored value; Duration is rebuilt from it afterwards.
+        /// </summary>
+        private void ApplyDurationEdit(int rowIndex)
+        {
+            var dataRows = GetGridDataRows();
+            int i = dataRows.FindIndex(r => r.Index == rowIndex);
+            if (i < 0 || i >= dataRows.Count - 1) return;
+            if (!TryParseTime(dataRows[i].Cells[colDuration.Index].Value?.ToString(), out var duration)
+                || duration <= TimeSpan.Zero) return;
+
+            _gridUpdating = true;
+            try
+            {
+                // Blank Start Times: write the equal shares into the grid first, then change one
+                if (AreStartsAuto(dataRows))
+                {
+                    var auto = AutoStarts(dataRows.Count, GetEffectiveAudioLength(_mp3Length));
+                    if (auto == null)
+                    {
+                        MessageBox.Show("Choose the audio file first, so that the times can be calculated.",
+                            AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return;
+                    }
+                    for (int j = 1; j < dataRows.Count; j++)
+                        dataRows[j].Cells[colStart.Index].Value = FormatTime(auto[j]);
+                }
+
+                TimeSpan start = TimeSpan.Zero;
+                if (i > 0 && !TryParseTime(dataRows[i].Cells[colStart.Index].Value?.ToString(), out start)) return;
+
+                TimeSpan newNext = start + duration;
+                TimeSpan delta = TryParseTime(dataRows[i + 1].Cells[colStart.Index].Value?.ToString(), out var oldNext)
+                    ? newNext - oldNext : TimeSpan.Zero;
+
+                dataRows[i + 1].Cells[colStart.Index].Value = FormatTime(newNext);
+                for (int j = i + 2; j < dataRows.Count; j++)
+                    if (TryParseTime(dataRows[j].Cells[colStart.Index].Value?.ToString(), out var t))
+                        dataRows[j].Cells[colStart.Index].Value = FormatTime(t + delta);
+            }
+            finally
+            {
+                _gridUpdating = false;
+            }
+            ScheduleRecalculateDurations();
+        }
+
         private void GrdFiles_CellEndEdit(object? sender, DataGridViewCellEventArgs e)
         {
             ScheduleRecalculateDurations();
+            if (e.ColumnIndex == colDuration.Index && e.RowIndex >= 0)
+            {
+                ApplyDurationEdit(e.RowIndex);
+                return;
+            }
             if (e.ColumnIndex != colStart.Index || e.RowIndex < 0) return;
 
             var dataRows = GetGridDataRows();

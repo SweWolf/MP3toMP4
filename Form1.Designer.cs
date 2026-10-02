@@ -490,15 +490,14 @@
             // 
             colStart.HeaderText = "Start Time";
             colStart.Name = "colStart";
-            colStart.ToolTipText = "When this image or video appears in the finished video. The first one always starts at 0:00.";
+            colStart.ToolTipText = "When this image or video appears in the finished video. The first one always starts at 0:00. Leave all the other Start Times blank to share the audio equally.";
             colStart.Width = 120;
             // 
             // colDuration
             // 
             colDuration.HeaderText = "Duration";
             colDuration.Name = "colDuration";
-            colDuration.ReadOnly = true;
-            colDuration.ToolTipText = "Calculated from the Start Times. The last image or video lasts until the end of the audio.";
+            colDuration.ToolTipText = "How long this image or video is shown. Type a new duration to move the Start Times of the rows below. The last one lasts until the end of the audio.";
             // 
             // chkLyrics
             // 

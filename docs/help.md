@@ -150,10 +150,16 @@ The list has three columns:
   Each file is shown until the next row's Start Time, and the last one until the end of the video.
   Times are written in the same way as in [Trim to a Range](#trim-to-a-range) (but not as a
   percentage), and they count from the start of the video, so after any trimming.
-- **Duration**: how long the file is shown. This is worked out for you from the Start Times and
-  can't be edited.
+- **Duration**: how long the file is shown. It is worked out from the Start Times, but you can also
+  type a new Duration. The next row then starts that long after this one, and all rows below it
+  move by the same amount. The last row can't be changed: it lasts until the end of the video.
 
 When you change a Start Time, the rows are sorted by time again automatically.
+
+**Equal time for every file:** if you leave all the Start Times blank (except the first one), the
+files share the length of the video equally, in whole seconds. The last file gets what is left
+over, so it may be shown a little longer. The Duration column shows the result. If you then change
+a Duration, the calculated Start Times are filled in for you.
 
 While the video is being made, the list and the tabs are locked and the current row follows the
 progress. When the conversion is finished, the first row is selected again.
