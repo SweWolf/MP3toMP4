@@ -155,6 +155,9 @@ The list has three columns:
 
 When you change a Start Time, the rows are sorted by time again automatically.
 
+While the video is being made, the list and the tabs are locked and the current row follows the
+progress. When the conversion is finished, the first row is selected again.
+
 The buttons next to the list:
 
 - **▲** and **▼**: move the selected file up or down. Only the file moves: the Start Times stay
@@ -183,6 +186,9 @@ audio file: the same name as the audio file, in the same folder, or in the
 
 The file extension decides the format: `.mp4` or `.mkv`. To change it, type the other extension,
 or click **...** and choose the format under **Save as type**. See [MP4 or MKV?](#mp4-or-mkv).
+
+If you type only a file name, without a folder, the file is saved in the same folder as the
+audio file.
 
 If the folder does not exist, MP3 to MP4 offers to create it. If the file already exists, you are
 asked whether to overwrite it.

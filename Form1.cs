@@ -970,6 +970,17 @@ namespace MP3toMP4
             return true;
         }
 
+        // End time (seconds) of each grid row while a Multiple Images/Videos conversion runs
+        private List<double>? _segmentEnds;
+
+        private void SelectGridRow(int index)
+        {
+            if (index < 0 || index >= grdFiles.Rows.Count || grdFiles.Rows[index].IsNewRow) return;
+            grdFiles.CurrentCell = grdFiles.Rows[index].Cells[colStart.Index];
+            // SelectionChanged fires while CurrentRow is still the old row, so refresh the preview now
+            RefreshMultipleState();
+        }
+
         private async void BtnConvert_Click(object? sender, EventArgs e)
         {
             SaveSettings();
@@ -1002,6 +1013,17 @@ namespace MP3toMP4
                 return;
             }
 
+            // A bare file name (no folder) goes next to the audio file, like the grid's file names
+            if (!Path.IsPathFullyQualified(mp4) && Path.GetFileName(mp4) == mp4)
+            {
+                string? mp3Folder = Path.GetDirectoryName(Path.GetFullPath(mp3));
+                if (!string.IsNullOrEmpty(mp3Folder))
+                {
+                    mp4 = Path.Combine(mp3Folder, mp4);
+                    txtMP4File.Text = mp4;
+                }
+            }
+
             var (audioInputPrefix, audioCodec, audioFilter) = GetAudioOptions(mp3, IsMkv(mp4));
 
             // Re-encoded audio: -shortest lets the video run ~2 s past the end of the audio
@@ -1015,6 +1037,7 @@ namespace MP3toMP4
 
             // --- Mode-specific validation and arg building ---
             string ffmpegArgs, logInfo;
+            List<double>? segmentEnds = null;  // Multiple mode: end time (s) of each grid row, for the progress highlight
             string[]? videoTextLines = null;   // Text mode: written to temp files just before FFmpeg runs
 
             if (!multiMode)
@@ -1069,6 +1092,8 @@ namespace MP3toMP4
                     return;
                 }
                 ffmpegArgs = BuildMultiImageArgs(mp3, mp4, segments, audioInputPrefix, audioCodec, audioFilter);
+                double endSeconds = 0;
+                segmentEnds = segments.Select(sg => endSeconds += sg.Duration.TotalSeconds).ToList();
                 var sb = new System.Text.StringBuilder();
                 sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}");
                 for (int i = 0; i < segments.Count; i++)
@@ -1116,6 +1141,8 @@ namespace MP3toMP4
             btnOpenFolder.Enabled = false;
             btnOpenLogFile.Enabled = false;
             _cancelRequested = false;
+            _segmentEnds = segmentEnds;
+            if (segmentEnds != null) tabImage.Enabled = false;   // the grid follows the progress, so lock it
             progressBar.Value = 0;
             lblEstimatedRemaining.Text = "Estimated remaining time: —";
 
@@ -1154,6 +1181,12 @@ namespace MP3toMP4
             }
             finally
             {
+                if (_segmentEnds != null)
+                {
+                    _segmentEnds = null;
+                    tabImage.Enabled = true;
+                    SelectGridRow(0);
+                }
                 btnConvert.Enabled = true;
                 btnClear.Enabled = true;
                 btnCancel.Enabled = false;
@@ -1562,6 +1595,11 @@ namespace MP3toMP4
                         Invoke(() =>
                         {
                             progressBar.Value = progressValue;
+                            if (_segmentEnds != null)
+                            {
+                                int row = _segmentEnds.FindIndex(end => current < end);
+                                SelectGridRow(row < 0 ? _segmentEnds.Count - 1 : row);
+                            }
                             lblEstimatedRemaining.Text = $"Estimated remaining time: {remaining}";
                         });
                     }
