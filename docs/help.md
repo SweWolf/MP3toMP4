@@ -156,10 +156,13 @@ The list has three columns:
 
 When you change a Start Time, the rows are sorted by time again automatically.
 
-**Equal time for every file:** if you leave all the Start Times blank (except the first one), the
-files share the length of the video equally, in whole seconds. The last file gets what is left
-over, so it may be shown a little longer. The Duration column shows the result. If you then change
-a Duration, the calculated Start Times are filled in for you.
+**Equal time for the files:** you don't have to fill in every Start Time. A blank Start Time is
+filled in when you click **Convert**. The blank rows, and the row with a time just before them,
+share the time up to the next Start Time you typed (or the end of the video) equally, in whole
+seconds. The last of them gets what is left over, so it may be shown a little longer. For example,
+if you type only 1:30 as the Start Time of the second row, the first file is shown for 1:30 and
+the other files share the rest equally. If you leave all the Start Times blank, all files share
+the whole video equally. The Duration column already shows the result.
 
 While the video is being made, the list and the tabs are locked and the current row follows the
 progress. When the conversion is finished, the first row is selected again.

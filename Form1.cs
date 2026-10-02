@@ -1496,20 +1496,6 @@ namespace MP3toMP4
                 return false;
             }
 
-            // No Start Times typed: the files share the audio's length equally
-            List<TimeSpan>? autoStarts = null;
-            if (AreStartsAuto(dataRows))
-            {
-                autoStarts = AutoStarts(dataRows.Count, audioLength);
-                if (autoStarts == null)
-                {
-                    error = $"There are too many files ({dataRows.Count}) for the length of the audio ({FormatTime(audioLength)}): " +
-                            "each one needs at least one second.";
-                    return false;
-                }
-            }
-
-            var starts = new List<TimeSpan>();
             for (int i = 0; i < dataRows.Count; i++)
             {
                 string? file = dataRows[i].Cells[colFile.Index].Value?.ToString()?.Trim();
@@ -1518,31 +1504,11 @@ namespace MP3toMP4
                     error = $"Row {i + 1}: file not found:\n{file}";
                     return false;
                 }
-
-                // The first image always starts at the very beginning
-                TimeSpan start = TimeSpan.Zero;
-                if (autoStarts != null)
-                    start = autoStarts[i];
-                else if (i > 0)
-                {
-                    if (!TryParseTime(dataRows[i].Cells[colStart.Index].Value?.ToString(), out start))
-                    {
-                        error = $"Row {i + 1}: invalid or missing Start Time.";
-                        return false;
-                    }
-                    if (start <= starts[i - 1])
-                    {
-                        error = $"Row {i + 1}: the Start Time must be later than the Start Time of row {i}.";
-                        return false;
-                    }
-                }
-                if (start >= audioLength)
-                {
-                    error = $"Row {i + 1}: the Start Time is at or after the end of the audio ({FormatTime(audioLength)}).";
-                    return false;
-                }
-                starts.Add(start);
             }
+
+            // Blank Start Times are filled in here
+            if (!TryResolveStarts(dataRows, audioLength, out var starts, out error))
+                return false;
 
             for (int i = 0; i < dataRows.Count; i++)
             {
@@ -1836,9 +1802,9 @@ namespace MP3toMP4
             _gridUpdating = true;
             try
             {
-                // No Start Times typed at all: the files share the audio's length equally
-                List<TimeSpan>? auto = audioLength > TimeSpan.Zero && AreStartsAuto(dataRows)
-                    ? AutoStarts(dataRows.Count, audioLength) : null;
+                // Blank Start Times are shown as the Duration they will get when converting
+                List<TimeSpan>? resolved = audioLength > TimeSpan.Zero
+                    && TryResolveStarts(dataRows, audioLength, out var rs, out _) ? rs : null;
 
                 for (int i = 0; i < dataRows.Count; i++)
                 {
@@ -1850,10 +1816,10 @@ namespace MP3toMP4
                     dataRows[i].Cells[colDuration.Index].ReadOnly = i == dataRows.Count - 1;
 
                     string duration = "";
-                    if (auto != null)
+                    if (resolved != null)
                     {
-                        TimeSpan autoEnd = i < auto.Count - 1 ? auto[i + 1] : audioLength;
-                        duration = FormatTime(autoEnd - auto[i]);
+                        TimeSpan resolvedEnd = i < resolved.Count - 1 ? resolved[i + 1] : audioLength;
+                        duration = FormatTime(resolvedEnd - resolved[i]);
                     }
                     else if (TryParseTime(startCell.Value?.ToString(), out var start))
                     {
@@ -1953,22 +1919,71 @@ namespace MP3toMP4
         }
 
         /// <summary>
-        /// True when the first row is the only one with a Start Time (the others are blank): the
-        /// files then share the audio's length equally, see <see cref="AutoStarts"/>.
+        /// Works out the start of every row. A blank Start Time (except the first row, which is
+        /// always 0:00) is filled in when converting: the blank rows and the filled row before them
+        /// share the time up to the next typed Start Time (or the end of the audio) equally, in
+        /// whole seconds. The last of them gets what is left over, so it may last a little longer.
         /// </summary>
-        private bool AreStartsAuto(List<DataGridViewRow> dataRows) =>
-            dataRows.Count >= 2 && dataRows.Skip(1).All(r => string.IsNullOrWhiteSpace(r.Cells[colStart.Index].Value?.ToString()));
-
-        /// <summary>
-        /// Equal share of <paramref name="audioLength"/> for <paramref name="count"/> files, in whole
-        /// seconds. The last file gets what is left over, so it may last a little longer.
-        /// Null if that would be less than one second per file.
-        /// </summary>
-        private static List<TimeSpan>? AutoStarts(int count, TimeSpan audioLength)
+        private bool TryResolveStarts(List<DataGridViewRow> rows, TimeSpan audioLength,
+                                      out List<TimeSpan> starts, out string error)
         {
-            double each = Math.Floor(audioLength.TotalSeconds / count);
-            if (each < 1) return null;
-            return Enumerable.Range(0, count).Select(i => TimeSpan.FromSeconds(i * each)).ToList();
+            starts = [];
+            error = "";
+            int n = rows.Count;
+
+            var typed = new TimeSpan?[n];
+            typed[0] = TimeSpan.Zero;
+            int prevTyped = 0;
+            for (int i = 1; i < n; i++)
+            {
+                string? text = rows[i].Cells[colStart.Index].Value?.ToString();
+                if (string.IsNullOrWhiteSpace(text)) continue;
+                if (!TryParseTime(text, out var t))
+                {
+                    error = $"Row {i + 1}: invalid Start Time.";
+                    return false;
+                }
+                if (t <= typed[prevTyped])
+                {
+                    error = $"Row {i + 1}: the Start Time must be later than the Start Time of row {prevTyped + 1}.";
+                    return false;
+                }
+                if (t >= audioLength)
+                {
+                    error = $"Row {i + 1}: the Start Time is at or after the end of the audio ({FormatTime(audioLength)}).";
+                    return false;
+                }
+                typed[i] = t;
+                prevTyped = i;
+            }
+
+            var result = new TimeSpan[n];
+            int anchor = 0;
+            while (true)
+            {
+                int next = anchor + 1;
+                while (next < n && typed[next] == null) next++;
+                int blanks = next - anchor - 1;
+                TimeSpan end = next < n ? typed[next]!.Value : audioLength;
+                if (blanks > 0)
+                {
+                    double each = Math.Floor((end - result[anchor]).TotalSeconds / (blanks + 1));
+                    if (each < 1)
+                    {
+                        error = $"Rows {anchor + 1} to {next}: there are too many files for the time between " +
+                                $"{FormatTime(result[anchor])} and {FormatTime(end)}. Each one needs at least one second.";
+                        return false;
+                    }
+                    for (int j = 1; j <= blanks; j++)
+                        result[anchor + j] = result[anchor] + TimeSpan.FromSeconds(each * j);
+                }
+                if (next >= n) break;
+                result[next] = typed[next]!.Value;
+                anchor = next;
+            }
+
+            starts = [.. result];
+            return true;
         }
 
         /// <summary>
@@ -1983,25 +1998,20 @@ namespace MP3toMP4
             if (!TryParseTime(dataRows[i].Cells[colDuration.Index].Value?.ToString(), out var duration)
                 || duration <= TimeSpan.Zero) return;
 
+            // This row's own start: if it is blank, it is fixed at the value it would get now,
+            // so that it doesn't move when the rows around it change
+            if (!TryResolveStarts(dataRows, GetEffectiveAudioLength(_mp3Length), out var starts, out _))
+            {
+                MessageBox.Show("The Start Times can't be calculated yet. Choose the audio file and check the Start Times first.",
+                    AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            TimeSpan start = starts[i];
+
             _gridUpdating = true;
             try
             {
-                // Blank Start Times: write the equal shares into the grid first, then change one
-                if (AreStartsAuto(dataRows))
-                {
-                    var auto = AutoStarts(dataRows.Count, GetEffectiveAudioLength(_mp3Length));
-                    if (auto == null)
-                    {
-                        MessageBox.Show("Choose the audio file first, so that the times can be calculated.",
-                            AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        return;
-                    }
-                    for (int j = 1; j < dataRows.Count; j++)
-                        dataRows[j].Cells[colStart.Index].Value = FormatTime(auto[j]);
-                }
-
-                TimeSpan start = TimeSpan.Zero;
-                if (i > 0 && !TryParseTime(dataRows[i].Cells[colStart.Index].Value?.ToString(), out start)) return;
+                if (i > 0) dataRows[i].Cells[colStart.Index].Value = FormatTime(start);
 
                 TimeSpan newNext = start + duration;
                 TimeSpan delta = TryParseTime(dataRows[i + 1].Cells[colStart.Index].Value?.ToString(), out var oldNext)

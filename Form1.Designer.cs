@@ -490,7 +490,7 @@
             // 
             colStart.HeaderText = "Start Time";
             colStart.Name = "colStart";
-            colStart.ToolTipText = "When this image or video appears in the finished video. The first one always starts at 0:00. Leave all the other Start Times blank to share the audio equally.";
+            colStart.ToolTipText = "When this image or video appears in the finished video. The first one always starts at 0:00. Leave it blank to share the time equally with the other blank rows.";
             colStart.Width = 120;
             // 
             // colDuration
