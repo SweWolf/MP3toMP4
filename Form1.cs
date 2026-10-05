@@ -1754,6 +1754,8 @@ namespace MP3toMP4
         private void GrdFiles_CellValidating(object? sender, DataGridViewCellValidatingEventArgs e)
         {
             if (e.ColumnIndex != colStart.Index && e.ColumnIndex != colDuration.Index) return;
+            // Read-only cells show calculated text (e.g. "(to the end)"), not user input
+            if (grdFiles.Rows[e.RowIndex].Cells[e.ColumnIndex].ReadOnly) return;
             string? val = e.FormattedValue?.ToString();
             if (string.IsNullOrWhiteSpace(val)) return;
             if (e.ColumnIndex == colDuration.Index && TryParseTime(val, out var typedDuration) && typedDuration <= TimeSpan.Zero)
