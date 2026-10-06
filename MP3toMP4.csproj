@@ -18,12 +18,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Resources\MP3_to_MP4_Converter.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\*.wav">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <!-- Embedded rather than copied next to the EXE, because the standalone release ships only
+         the EXE. SoundLibrary.cs and AboutForm.cs read them with GetManifestResourceStream. -->
+    <EmbeddedResource Include="Resources\MP3_to_MP4_Converter.ico">
+      <LogicalName>MP3_to_MP4_Converter.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\*.wav">
+      <LogicalName>Sounds/%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
     <!-- Help > MP3 to MP4 Help (F1). Rebuild it from help.md with docs\build-help.cmd -->
     <Content Include="docs\help.html" Link="Help\help.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

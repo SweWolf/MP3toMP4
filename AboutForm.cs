@@ -14,12 +14,11 @@ namespace MP3toMP4
 
             try
             {
-                string iconPath = Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory,
-                    "Resources", "MP3_to_MP4_Converter.ico");
-                if (File.Exists(iconPath))
+                // Embedded in the EXE (see MP3toMP4.csproj), so it also works in the standalone release
+                using Stream? stream = typeof(AboutForm).Assembly.GetManifestResourceStream("MP3_to_MP4_Converter.ico");
+                if (stream != null)
                 {
-                    using var ico = new Icon(iconPath, 48, 48);
+                    using var ico = new Icon(stream, 48, 48);
                     picIcon.Image = ico.ToBitmap();
                 }
             }

@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Media;
+using System.Reflection;
 
 namespace MP3toMP4
 {
@@ -21,7 +22,10 @@ namespace MP3toMP4
     }
 
     /// <summary>
-    /// Discovers and plays the .wav files shipped in the Resources folder next to the executable.
+    /// Discovers and plays the .wav files embedded in the executable (Resources\*.wav in the project,
+    /// embedded as "Sounds/&lt;file name&gt;"). They are embedded rather than copied next to the exe,
+    /// because the single-file release ships only the exe. A bundled sound is identified by its file
+    /// name; a custom sound by its full path.
     /// </summary>
     internal static class SoundLibrary
     {
@@ -30,10 +34,16 @@ namespace MP3toMP4
         /// </summary>
         public const string DefaultSoundFileName = "universfield-simple-notification-152054.wav";
 
-        private static string ResourcesDirectory => Path.Combine(AppContext.BaseDirectory, "Resources");
+        private const string ResourcePrefix = "Sounds/"; // matches the LogicalName in MP3toMP4.csproj
+
+        private static readonly Assembly ThisAssembly = typeof(SoundLibrary).Assembly;
+
+        // SoundPlayer plays asynchronously from memory: keep the player referenced until the next sound,
+        // so it isn't garbage collected (and cut off) while playing.
+        private static SoundPlayer? _currentPlayer;
 
         /// <summary>
-        /// Lists every .wav file in Resources, with a human-friendly display name derived
+        /// Lists every embedded .wav file, with a human-friendly display name derived
         /// from the file name (dashes → spaces, proper case, trailing id number dropped).
         /// </summary>
         public static List<SoundOption> GetAvailableSounds()
@@ -41,13 +51,13 @@ namespace MP3toMP4
             var options = new List<SoundOption>();
             try
             {
-                if (Directory.Exists(ResourcesDirectory))
+                foreach (string resourceName in ThisAssembly.GetManifestResourceNames())
                 {
-                    foreach (string file in Directory.GetFiles(ResourcesDirectory, "*.wav"))
-                    {
-                        string fileName = Path.GetFileName(file);
-                        options.Add(new SoundOption(FormatDisplayName(fileName), fileName));
-                    }
+                    if (!resourceName.StartsWith(ResourcePrefix, StringComparison.Ordinal) ||
+                        !resourceName.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    string fileName = resourceName[ResourcePrefix.Length..];
+                    options.Add(new SoundOption(FormatDisplayName(fileName), fileName));
                 }
             }
             catch { /* never crash the host app */ }
@@ -68,35 +78,49 @@ namespace MP3toMP4
         }
 
         /// <summary>
-        /// Plays a sound given either a bundled Resources file name or a full path to a
-        /// custom .wav file elsewhere. Falls back to <see cref="DefaultSoundFileName"/> (or the
-        /// first available bundled sound, if that one is missing) when unresolvable.
+        /// Plays a sound given either a bundled sound's file name or a full path to a custom
+        /// .wav file elsewhere. So that something is always heard, it falls back to
+        /// <see cref="DefaultSoundFileName"/>, then to any other bundled sound, and last to the
+        /// Windows system sound, when a sound is missing or can't be played (e.g. a custom file that
+        /// was deleted, or isn't a valid .wav).
         /// </summary>
         public static void Play(string fileNameOrPath)
         {
-            try
-            {
-                string? path = ResolvePath(fileNameOrPath) ?? ResolvePath(DefaultSoundFileName);
-                if (path == null)
-                {
-                    var sounds = GetAvailableSounds();
-                    if (sounds.Count == 0) return;
-                    path = Path.Combine(ResourcesDirectory, sounds[0].FileName);
-                }
-
-                var player = new SoundPlayer(path);
-                player.Play(); // asynchronous — do not dispose immediately or playback gets cut off
-            }
-            catch { /* never crash the host app */ }
+            if (TryPlay(fileNameOrPath) || TryPlay(DefaultSoundFileName)) return;
+            foreach (var sound in GetAvailableSounds())
+                if (TryPlay(sound.FileName)) return;
+            try { SystemSounds.Asterisk.Play(); } catch { /* never crash the host app */ }
         }
 
-        private static string? ResolvePath(string fileNameOrPath)
+        private static bool TryPlay(string fileNameOrPath)
+        {
+            SoundPlayer? player = null;
+            try
+            {
+                player = CreatePlayer(fileNameOrPath);
+                if (player == null) return false;
+                player.Load(); // reads the sound now, so a missing or unreadable file fails here
+                player.Play(); // asynchronous; throws if the file isn't a valid .wav
+                _currentPlayer?.Dispose();
+                _currentPlayer = player;
+                return true;
+            }
+            catch
+            {
+                player?.Dispose();
+                return false;
+            }
+        }
+
+        private static SoundPlayer? CreatePlayer(string fileNameOrPath)
         {
             if (string.IsNullOrEmpty(fileNameOrPath)) return null;
-            string path = Path.IsPathRooted(fileNameOrPath)
-                ? fileNameOrPath
-                : Path.Combine(ResourcesDirectory, fileNameOrPath);
-            return File.Exists(path) ? path : null;
+
+            if (Path.IsPathRooted(fileNameOrPath))
+                return File.Exists(fileNameOrPath) ? new SoundPlayer(fileNameOrPath) : null;
+
+            Stream? stream = ThisAssembly.GetManifestResourceStream(ResourcePrefix + fileNameOrPath);
+            return stream == null ? null : new SoundPlayer(stream);
         }
     }
 }
