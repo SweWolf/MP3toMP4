@@ -11,7 +11,7 @@ A Windows desktop application that turns an audio file into a video file. The vi
   - **Image or Video File**: one picture (JPG, PNG, BMP, GIF, WebP) or a video clip (MP4, MOV, AVI, MKV, WebM, M4V). A clip that is shorter than the audio starts again from the beginning until the audio ends
   - **Black Screen**: just a black video, when only the sound matters
   - **Text**: white text centered on a black screen, filled in with the artist and song title from the audio file's tags
-  - **Multiple Images/Videos**: several pictures or clips one after another, each with its own start time (for example one picture per song in a long mix)
+  - **Multiple Images/Videos**: several pictures or clips one after another, each with its own start time or duration (for example one picture per song in a long mix). Leave the times blank, and the pictures share the video equally
 - **Trim to a Range**: use only part of the audio, with optional fade in and fade out. Times can be written as seconds, `m:ss`, `h:mm:ss` or a percentage of the audio's length
 - **MP4 or MKV output**: MP4 plays everywhere; MKV keeps 100% of the original audio quality (WAV and AIFF are stored as lossless FLAC at about half the size, other formats are copied unchanged, and trimmed or faded audio also becomes FLAC)
 - **Auto-fill**: choosing an audio file selects a picture with the same name from the same folder and fills in the output file name
@@ -42,7 +42,7 @@ A Windows desktop application that turns an audio file into a video file. The vi
 ## Usage
 
 1. Choose or drag in an **audio file** (the **MP3 File** field)
-2. Choose what the video shows: a picture or video clip (or the album art from the audio file), a black screen, a text, or several files on the **Multiple Images/Videos** tab
+2. Choose what the video shows: a picture or video clip (or the album art from the audio file), a black screen, some text, or several files on the **Multiple Images/Videos** tab
 3. Check the **MP4 or MKV File** path (filled in automatically, but you can change it)
 4. Click **Convert**
 
@@ -71,7 +71,7 @@ The application opens with the audio file already chosen and the picture and out
 
 ## License
 
-To be decided at first public release.
+[MIT License](LICENSE)
 
 ---
 

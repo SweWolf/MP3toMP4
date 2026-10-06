@@ -7,9 +7,14 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Resources\MP3_to_MP4_Converter.ico</ApplicationIcon>
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
+    <Version>1.0.0</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <AssemblyTitle>MP3 to MP4</AssemblyTitle>
+    <Description>Turns an audio file into a video file with a picture, video clips, a black screen or text.</Description>
+    <Company>SweWolf Software</Company>
+    <Product>MP3 to MP4</Product>
+    <Copyright>SweWolf Software</Copyright>
+    <Authors>SweWolf</Authors>
   </PropertyGroup>
 
   <ItemGroup>

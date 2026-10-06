@@ -59,7 +59,7 @@ namespace MP3toMP4
             });
         }
 
-        private void lnkFfmpeg_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void lnkFfmpeg_LinkClicked(object? sender, LinkLabelLinkClickedEventArgs e)
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
