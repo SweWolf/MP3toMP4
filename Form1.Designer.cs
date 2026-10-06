@@ -497,7 +497,7 @@
             // 
             colDuration.HeaderText = "Duration";
             colDuration.Name = "colDuration";
-            colDuration.ToolTipText = "How long this image or video is shown. Type a new duration to move the Start Times of the rows below. The last one lasts until the end of the audio.";
+            colDuration.ToolTipText = "How long this image or video is shown. A video is shown in full unless you type a shorter time. A row without a Start Time starts when the row above it ends. Pictures need a Duration, except for the ones at the end of the list. The last row lasts until the end of the audio.";
             // 
             // chkLyrics
             // 
@@ -621,39 +621,39 @@
             helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             helpToolStripMenuItem.Size = new Size(44, 20);
             helpToolStripMenuItem.Text = "Help";
-            //
+            // 
             // menuViewHelp
-            //
+            // 
             menuViewHelp.Name = "menuViewHelp";
             menuViewHelp.ShortcutKeys = Keys.F1;
             menuViewHelp.Size = new Size(200, 22);
             menuViewHelp.Text = "MP3 to MP4 Help";
             menuViewHelp.Click += menuViewHelp_Click;
-            //
+            // 
             // menuViewHelpSeparator
-            //
+            // 
             menuViewHelpSeparator.Name = "menuViewHelpSeparator";
             menuViewHelpSeparator.Size = new Size(197, 6);
-            //
+            // 
             // menuOpenFFmpegCallLog
-            //
+            // 
             menuOpenFFmpegCallLog.Name = "menuOpenFFmpegCallLog";
             menuOpenFFmpegCallLog.Size = new Size(200, 22);
             menuOpenFFmpegCallLog.Text = "Open FFmpeg Call Log";
             menuOpenFFmpegCallLog.Click += menuOpenFFmpegCallLog_Click;
-            //
+            // 
             // menuOpenLogFolder
-            //
+            // 
             menuOpenLogFolder.Name = "menuOpenLogFolder";
             menuOpenLogFolder.Size = new Size(200, 22);
             menuOpenLogFolder.Text = "Open Log Folder";
             menuOpenLogFolder.Click += menuOpenLogFolder_Click;
-            //
+            // 
             // menuHelpSeparator
-            //
+            // 
             menuHelpSeparator.Name = "menuHelpSeparator";
             menuHelpSeparator.Size = new Size(197, 6);
-            //
+            // 
             // aboutToolStripMenuItem
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";

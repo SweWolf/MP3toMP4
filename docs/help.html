@@ -198,29 +198,36 @@ folder as the audio file, or in a subfolder of it, are shown with a
 short name (for example <code>Images\cover.jpg</code>). You can also
 type a file name here: it is looked for in the audio file’s folder.</li>
 <li><strong>Start Time</strong>: when this file appears in the video.
-The first row always starts at 0:00. Each file is shown until the next
-row’s Start Time, and the last one until the end of the video. Times are
-written in the same way as in <a href="#trim-to-a-range">Trim to a
-Range</a> (but not as a percentage), and they count from the start of
-the video, so after any trimming.</li>
-<li><strong>Duration</strong>: how long the file is shown. It is worked
-out from the Start Times, but you can also type a new Duration. The next
-row then starts that long after this one, and all rows below it move by
-the same amount. The last row can’t be changed: it lasts until the end
-of the video.</li>
+The first row always starts at 0:00. Times are written in the same way
+as in <a href="#trim-to-a-range">Trim to a Range</a> (but not as a
+percentage), and they count from the start of the video, so after any
+trimming. If you leave it blank, the row starts when the row above it
+ends (see below).</li>
+<li><strong>Duration</strong>: how long the file is shown. A video shows
+its own full length in gray. Type a shorter time to show only the first
+part of it. The last row can’t be changed: it lasts until the end of the
+video.</li>
 </ul>
 <p>When you change a Start Time, the rows are sorted by time again
-automatically.</p>
-<p><strong>Equal time for the files:</strong> you don’t have to fill in
-every Start Time. A blank Start Time is filled in when you click
-<strong>Convert</strong>. The blank rows, and the row with a time just
-before them, share the time up to the next Start Time you typed (or the
-end of the video) equally, in whole seconds. The last of them gets what
-is left over, so it may be shown a little longer. For example, if you
-type only 1:30 as the Start Time of the second row, the first file is
-shown for 1:30 and the other files share the rest equally. If you leave
-all the Start Times blank, all files share the whole video equally. The
-Duration column already shows the result.</p>
+automatically. A row with a blank Start Time stays below the row above
+it and moves along with it.</p>
+<p><strong>Blank Start Times:</strong> you don’t have to fill in every
+Start Time. Nothing is calculated until you click
+<strong>Convert</strong>. A row with a blank Start Time starts when the
+row above it ends, that is after the Duration you typed, or after the
+full length of a video. Because a picture has no length of its own, you
+must type a Duration for it, unless it is followed by a row with a Start
+Time, or it is one of the pictures at the end of the list. Those
+pictures share the time that is left (up to the next Start Time you
+typed, or the end of the video) equally, in whole seconds. The last of
+them gets what is left over, so it may be shown a little longer. For
+example, if you add only pictures and leave all the Start Times blank,
+they share the whole video equally.</p>
+<p>When a Start Time you typed is earlier than the end of the video
+above it, that video is cut off. When it is later, the video is repeated
+until the next row starts. The last row is also repeated until the end
+of the audio, and files that would start after the end of the audio are
+left out.</p>
 <p>While the video is being made, the list and the tabs are locked and
 the current row follows the progress. When the conversion is finished,
 the first row is selected again.</p>
@@ -359,7 +366,7 @@ to MP4. Check where you want them:</p>
 <li><strong>Desktop</strong></li>
 <li><strong>Start Menu (Programs)</strong></li>
 <li><strong>Send To menu</strong>: lets you right-click an audio file in
-File Explorer and choose <strong>Send to &gt; MP3toMP4</strong>. The
+File Explorer and choose <strong>Send to &gt; MP3 to MP4</strong>. The
 program then opens with that file already chosen, and the picture and
 output fields filled in.</li>
 </ul>

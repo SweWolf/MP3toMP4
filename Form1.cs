@@ -1445,19 +1445,37 @@ namespace MP3toMP4
 
             var sb = new System.Text.StringBuilder("-y ");
 
+            string Secs(ImageSegment s) => s.Duration.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
+
             foreach (var seg in segments)
             {
-                // A video repeats (-stream_loop, re-read from the file) and a picture is repeated
-                // (-loop 1), both until the segment's duration (-t)
-                string loop = IsVideoFile(seg.FilePath) ? "-stream_loop -1" : "-loop 1";
-                sb.Append($"{loop} -t {seg.Duration.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture)} -i \"{FfmpegPath(seg.FilePath)}\" ");
+                // A video repeats (-stream_loop, re-read from the file) until the segment's
+                // duration (-t). A picture is read once and repeated in the filter graph below:
+                // an endless "-loop 1" picture input made FFmpeg 9 hang (no frames, no output)
+                // when it was mixed with other segments in the concat filter.
+                // The input is cut 20 ms short of the segment: a video whose length equals the
+                // slot (rounded up to 1 ms) would otherwise let the first frame of the next
+                // loop through for one frame. The filter graph below holds the last frame for
+                // those 20 ms instead.
+                if (IsVideoFile(seg.FilePath))
+                {
+                    double inputSecs = Math.Max(0.001, seg.Duration.TotalSeconds - 0.02);
+                    sb.Append($"-stream_loop -1 -t {inputSecs.ToString("F3", CultureInfo.InvariantCulture)} -i \"{FfmpegPath(seg.FilePath)}\" ");
+                }
+                else
+                    sb.Append($"-i \"{FfmpegPath(seg.FilePath)}\" ");
             }
 
             sb.Append($"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\" ");
 
             sb.Append("-filter_complex \"");
             for (int i = 0; i < segments.Count; i++)
-                sb.Append($"[{i}:v]{sf}[v{i}];");
+            {
+                string hold = IsVideoFile(segments[i].FilePath)
+                    ? $",tpad=stop_mode=clone:stop_duration=1,trim=duration={Secs(segments[i])},setpts=PTS-STARTPTS"
+                    : $",loop=loop=-1:size=1,trim=duration={Secs(segments[i])},setpts=PTS-STARTPTS";
+                sb.Append($"[{i}:v]{sf}{hold}[v{i}];");
+            }
             for (int i = 0; i < segments.Count; i++)
                 sb.Append($"[v{i}]");
             sb.Append($"concat=n={segments.Count}:v=1:a=0[v]\" ");
@@ -1472,10 +1490,9 @@ namespace MP3toMP4
         }
 
         /// <summary>
-        /// Start Time is the single source of truth: each image lasts until the next row's Start
-        /// Time, and the last one until the end of the audio. The Duration column is display-only.
-        /// The images together therefore always cover exactly <paramref name="audioLength"/>, so
-        /// -shortest never cuts the audio.
+        /// Each file lasts until the next row's start (see <see cref="TryResolveStarts"/>), and the
+        /// last one until the end of the audio. The files together therefore always cover exactly
+        /// <paramref name="audioLength"/>, so -shortest never cuts the audio.
         /// </summary>
         private bool TryBuildSegments(TimeSpan audioLength, out List<ImageSegment> segments, out string error)
         {
@@ -1507,12 +1524,15 @@ namespace MP3toMP4
             }
 
             // Blank Start Times are filled in here
-            if (!TryResolveStarts(dataRows, audioLength, out var starts, out error))
+            if (!TryReadRows(dataRows, out var rows, out error)
+                || !TryResolveStarts(rows, audioLength, out var starts, out error))
                 return false;
 
             for (int i = 0; i < dataRows.Count; i++)
             {
-                TimeSpan end = i < dataRows.Count - 1 ? starts[i + 1] : audioLength;
+                // Rows that would start after the end of the audio are left out
+                if (starts[i] >= audioLength) break;
+                TimeSpan end = i < dataRows.Count - 1 && starts[i + 1] < audioLength ? starts[i + 1] : audioLength;
                 string file = dataRows[i].Cells[colFile.Index].Value!.ToString()!.Trim();
                 segments.Add(new ImageSegment(file, end - starts[i]));
             }
@@ -1790,8 +1810,10 @@ namespace MP3toMP4
         }
 
         /// <summary>
-        /// Refreshes the display-only Duration column from the Start Times, and locks the first
-        /// row's Start Time at 0:00. Uses the same rules as <see cref="TryBuildSegments"/>.
+        /// Refreshes the Duration column and locks the first row's Start Time at 0:00. A typed
+        /// Duration is left alone. Otherwise a video shows its own full length (gray) and a
+        /// picture shows the time up to the next typed Start Time, if there is one. Nothing is
+        /// shared out here: blank Start Times are only filled in when converting.
         /// </summary>
         private void RecalculateDurations()
         {
@@ -1799,43 +1821,42 @@ namespace MP3toMP4
             if (_gridUpdating || grdFiles.IsCurrentCellInEditMode) return;
 
             var dataRows = GetGridDataRows();
-            TimeSpan audioLength = GetEffectiveAudioLength(_mp3Length);
 
             _gridUpdating = true;
             try
             {
-                // Blank Start Times are shown as the Duration they will get when converting
-                List<TimeSpan>? resolved = audioLength > TimeSpan.Zero
-                    && TryResolveStarts(dataRows, audioLength, out var rs, out _) ? rs : null;
-
                 for (int i = 0; i < dataRows.Count; i++)
                 {
                     var startCell = dataRows[i].Cells[colStart.Index];
                     startCell.ReadOnly = i == 0;
                     if (i == 0 && startCell.Value?.ToString() != "0:00")
                         startCell.Value = "0:00";
+
                     // The last row lasts until the end of the audio, so its duration can't be typed
-                    dataRows[i].Cells[colDuration.Index].ReadOnly = i == dataRows.Count - 1;
+                    var durCell = dataRows[i].Cells[colDuration.Index];
+                    bool last = i == dataRows.Count - 1;
+                    durCell.ReadOnly = last;
+                    if (last) durCell.Tag = null;
+
+                    bool typed = IsTypedDuration(durCell);
+                    durCell.Style.ForeColor = typed ? SystemColors.ControlText : Color.Empty;
+                    if (typed) continue;
 
                     string duration = "";
-                    if (resolved != null)
+                    string file = dataRows[i].Cells[colFile.Index].Value?.ToString()?.Trim() ?? "";
+                    if (last)
+                        duration = "(to the end)";
+                    else if (IsVideoFile(file))
                     {
-                        TimeSpan resolvedEnd = i < resolved.Count - 1 ? resolved[i + 1] : audioLength;
-                        duration = FormatTime(resolvedEnd - resolved[i]);
+                        if (File.Exists(file) && GetVideoLength(file) is { } length)
+                            duration = FormatTime(length);
                     }
-                    else if (TryParseTime(startCell.Value?.ToString(), out var start))
-                    {
-                        if (i < dataRows.Count - 1)
-                        {
-                            if (TryParseTime(dataRows[i + 1].Cells[colStart.Index].Value?.ToString(), out var next) && next > start)
-                                duration = FormatTime(next - start);
-                        }
-                        else if (audioLength <= TimeSpan.Zero)
-                            duration = "(to the end)";
-                        else if (audioLength > start)
-                            duration = FormatTime(audioLength - start);
-                    }
-                    dataRows[i].Cells[colDuration.Index].Value = duration;
+                    else if (TryParseTime(startCell.Value?.ToString(), out var start)
+                        && TryParseTime(dataRows[i + 1].Cells[colStart.Index].Value?.ToString(), out var next)
+                        && next > start)
+                        duration = FormatTime(next - start);
+
+                    durCell.Value = duration;
                 }
             }
             finally
@@ -1920,125 +1941,185 @@ namespace MP3toMP4
                 : $"{t.Minutes}:{t.Seconds:D2}{frac}";
         }
 
+        /// <summary>One list row as typed: blank Start Time / Duration are null.</summary>
+        private record RowTimes(bool IsVideo, TimeSpan? Start, TimeSpan? Duration, TimeSpan? VideoLength);
+
+        private readonly Dictionary<string, (DateTime Stamp, TimeSpan Length)> _videoLengths = [];
+
+        /// <summary>The length of a video file (cached; null if it can't be read).</summary>
+        private TimeSpan? GetVideoLength(string path)
+        {
+            try
+            {
+                var stamp = File.GetLastWriteTimeUtc(path);
+                if (_videoLengths.TryGetValue(path, out var cached) && cached.Stamp == stamp)
+                    return cached.Length;
+                string text = RunFfprobe($"-v error -show_entries format=duration -of csv=p=0 \"{FfmpegPath(path)}\"");
+                if (!double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double sec) || sec <= 0)
+                    return null;
+                var length = TimeSpan.FromSeconds(sec);
+                _videoLengths[path] = (stamp, length);
+                return length;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>A Duration the user typed (as opposed to one shown by the program).</summary>
+        private static bool IsTypedDuration(DataGridViewCell cell) => cell.Tag is "typed";
+
+        private bool TryReadRows(List<DataGridViewRow> dataRows, out List<RowTimes> rows, out string error)
+        {
+            rows = [];
+            error = "";
+            for (int i = 0; i < dataRows.Count; i++)
+            {
+                string file = dataRows[i].Cells[colFile.Index].Value?.ToString()?.Trim() ?? "";
+                bool isVideo = IsVideoFile(file);
+
+                TimeSpan? start = null;
+                string? startText = dataRows[i].Cells[colStart.Index].Value?.ToString();
+                if (i == 0)
+                    start = TimeSpan.Zero;
+                else if (!string.IsNullOrWhiteSpace(startText))
+                {
+                    if (!TryParseTime(startText, out var t))
+                    {
+                        error = $"Row {i + 1}: invalid Start Time.";
+                        return false;
+                    }
+                    start = t;
+                }
+
+                TimeSpan? duration = null;
+                var durCell = dataRows[i].Cells[colDuration.Index];
+                if (IsTypedDuration(durCell))
+                {
+                    if (!TryParseTime(durCell.Value?.ToString(), out var d) || d <= TimeSpan.Zero)
+                    {
+                        error = $"Row {i + 1}: invalid Duration.";
+                        return false;
+                    }
+                    duration = d;
+                }
+
+                rows.Add(new RowTimes(isVideo, start, duration,
+                    isVideo && File.Exists(file) ? GetVideoLength(file) : null));
+            }
+            return true;
+        }
+
         /// <summary>
-        /// Works out the start of every row. A blank Start Time (except the first row, which is
-        /// always 0:00) is filled in when converting: the blank rows and the filled row before them
-        /// share the time up to the next typed Start Time (or the end of the audio) equally, in
-        /// whole seconds. The last of them gets what is left over, so it may last a little longer.
+        /// Works out the start of every row when converting.
+        /// A typed Start Time is used as it is. Without one, a row starts when the row before it
+        /// ends: after its typed Duration, or after the full length of a video. A picture has no
+        /// length of its own, so it needs a typed Duration (or a typed Start Time on the next row),
+        /// except for the pictures at the very end of the list: they share the time that is left
+        /// equally, in whole seconds (the last one gets what is left over). The last row always
+        /// lasts until the end of the audio. A video that is shorter than its time slot is
+        /// repeated, a longer one is cut.
         /// </summary>
-        private bool TryResolveStarts(List<DataGridViewRow> rows, TimeSpan audioLength,
-                                      out List<TimeSpan> starts, out string error)
+        private static bool TryResolveStarts(List<RowTimes> rows, TimeSpan audioLength,
+                                             out List<TimeSpan> starts, out string error)
         {
             starts = [];
             error = "";
             int n = rows.Count;
+            if (n == 0) return true;
 
-            var typed = new TimeSpan?[n];
-            typed[0] = TimeSpan.Zero;
-            int prevTyped = 0;
+            // First row of the pictures at the end of the list that have no typed Duration
+            int tail = n;
+            while (tail > 0 && !rows[tail - 1].IsVideo && rows[tail - 1].Duration == null) tail--;
+
+            var result = new TimeSpan[n];
+            for (int i = 1; i <= Math.Min(tail, n - 1); i++)
+            {
+                if (rows[i].Start != null)
+                {
+                    result[i] = rows[i].Start!.Value;
+                    continue;
+                }
+                var prev = rows[i - 1];
+                TimeSpan? length = prev.Duration ?? prev.VideoLength;
+                if (length == null)
+                {
+                    error = prev.IsVideo
+                        ? $"Row {i}: the length of the video could not be read. Type a Duration for it."
+                        : $"Row {i}: type a Duration for this picture, or a Start Time for row {i + 1}.";
+                    return false;
+                }
+                result[i] = result[i - 1] + length.Value;
+            }
+
+            // The pictures at the end share the time up to the next typed Start Time or the end
+            if (tail < n)
+            {
+                if (result[tail] >= audioLength)
+                {
+                    for (int i = tail + 1; i < n; i++) result[i] = audioLength;
+                }
+                else
+                {
+                    int anchor = tail;
+                    while (true)
+                    {
+                        int next = anchor + 1;
+                        while (next < n && rows[next].Start == null) next++;
+                        int blanks = next - anchor - 1;
+                        TimeSpan end = next < n ? rows[next].Start!.Value : audioLength;
+                        if (next < n && end <= result[anchor])
+                        {
+                            error = $"Row {next + 1}: the Start Time must be later than the Start Time of row {anchor + 1}.";
+                            return false;
+                        }
+                        if (blanks > 0)
+                        {
+                            double each = Math.Floor((end - result[anchor]).TotalSeconds / (blanks + 1));
+                            if (each < 1)
+                            {
+                                error = $"Rows {anchor + 1} to {next}: there are too many pictures for the time between " +
+                                        $"{FormatTime(result[anchor])} and {FormatTime(end)}. Each one needs at least one second.";
+                                return false;
+                            }
+                            for (int j = 1; j <= blanks; j++)
+                                result[anchor + j] = result[anchor] + TimeSpan.FromSeconds(each * j);
+                        }
+                        if (next >= n) break;
+                        result[next] = rows[next].Start!.Value;
+                        anchor = next;
+                    }
+                }
+            }
+
+            // Rows that would start after the end of the audio are not used, but a Start Time
+            // typed there is a mistake
             for (int i = 1; i < n; i++)
             {
-                string? text = rows[i].Cells[colStart.Index].Value?.ToString();
-                if (string.IsNullOrWhiteSpace(text)) continue;
-                if (!TryParseTime(text, out var t))
-                {
-                    error = $"Row {i + 1}: invalid Start Time.";
-                    return false;
-                }
-                if (t <= typed[prevTyped])
-                {
-                    error = $"Row {i + 1}: the Start Time must be later than the Start Time of row {prevTyped + 1}.";
-                    return false;
-                }
-                if (t >= audioLength)
+                if (rows[i].Start != null && rows[i].Start >= audioLength)
                 {
                     error = $"Row {i + 1}: the Start Time is at or after the end of the audio ({FormatTime(audioLength)}).";
                     return false;
                 }
-                typed[i] = t;
-                prevTyped = i;
-            }
-
-            var result = new TimeSpan[n];
-            int anchor = 0;
-            while (true)
-            {
-                int next = anchor + 1;
-                while (next < n && typed[next] == null) next++;
-                int blanks = next - anchor - 1;
-                TimeSpan end = next < n ? typed[next]!.Value : audioLength;
-                if (blanks > 0)
+                if (result[i] < audioLength && result[i] <= result[i - 1])
                 {
-                    double each = Math.Floor((end - result[anchor]).TotalSeconds / (blanks + 1));
-                    if (each < 1)
-                    {
-                        error = $"Rows {anchor + 1} to {next}: there are too many files for the time between " +
-                                $"{FormatTime(result[anchor])} and {FormatTime(end)}. Each one needs at least one second.";
-                        return false;
-                    }
-                    for (int j = 1; j <= blanks; j++)
-                        result[anchor + j] = result[anchor] + TimeSpan.FromSeconds(each * j);
+                    error = $"Row {i + 1}: the Start Time must be later than the Start Time of row {i}.";
+                    return false;
                 }
-                if (next >= n) break;
-                result[next] = typed[next]!.Value;
-                anchor = next;
             }
 
             starts = [.. result];
             return true;
         }
 
-        /// <summary>
-        /// A typed Duration moves the Start Time of the next row (and of all rows after it by the
-        /// same amount). Start Time stays the stored value; Duration is rebuilt from it afterwards.
-        /// </summary>
-        private void ApplyDurationEdit(int rowIndex)
-        {
-            var dataRows = GetGridDataRows();
-            int i = dataRows.FindIndex(r => r.Index == rowIndex);
-            if (i < 0 || i >= dataRows.Count - 1) return;
-            if (!TryParseTime(dataRows[i].Cells[colDuration.Index].Value?.ToString(), out var duration)
-                || duration <= TimeSpan.Zero) return;
-
-            // This row's own start: if it is blank, it is fixed at the value it would get now,
-            // so that it doesn't move when the rows around it change
-            if (!TryResolveStarts(dataRows, GetEffectiveAudioLength(_mp3Length), out var starts, out _))
-            {
-                MessageBox.Show("The Start Times can't be calculated yet. Choose the audio file and check the Start Times first.",
-                    AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-            TimeSpan start = starts[i];
-
-            _gridUpdating = true;
-            try
-            {
-                if (i > 0) dataRows[i].Cells[colStart.Index].Value = FormatTime(start);
-
-                TimeSpan newNext = start + duration;
-                TimeSpan delta = TryParseTime(dataRows[i + 1].Cells[colStart.Index].Value?.ToString(), out var oldNext)
-                    ? newNext - oldNext : TimeSpan.Zero;
-
-                dataRows[i + 1].Cells[colStart.Index].Value = FormatTime(newNext);
-                for (int j = i + 2; j < dataRows.Count; j++)
-                    if (TryParseTime(dataRows[j].Cells[colStart.Index].Value?.ToString(), out var t))
-                        dataRows[j].Cells[colStart.Index].Value = FormatTime(t + delta);
-            }
-            finally
-            {
-                _gridUpdating = false;
-            }
-            ScheduleRecalculateDurations();
-        }
-
         private void GrdFiles_CellEndEdit(object? sender, DataGridViewCellEventArgs e)
         {
-            ScheduleRecalculateDurations();
             if (e.ColumnIndex == colDuration.Index && e.RowIndex >= 0)
             {
-                ApplyDurationEdit(e.RowIndex);
-                return;
+                // A typed Duration is kept; clearing the cell gives the program's own value back
+                var cell = grdFiles.Rows[e.RowIndex].Cells[colDuration.Index];
+                cell.Tag = string.IsNullOrWhiteSpace(cell.Value?.ToString()) ? null : "typed";
             }
+            ScheduleRecalculateDurations();
+            if (e.ColumnIndex == colDuration.Index) return;
             if (e.ColumnIndex != colStart.Index || e.RowIndex < 0) return;
 
             var dataRows = GetGridDataRows();
@@ -2048,12 +2129,18 @@ namespace MP3toMP4
             if (editedListIdx < 0) return;
 
             // Keep rows in Start Time order: the edited image moves together with its new time.
-            // Durations aren't carried along - RecalculateDurations rebuilds them afterwards.
-            var snapshot = dataRows.Select(r => (
-                File: r.Cells[colFile.Index].Value?.ToString() ?? "",
-                Start: r.Cells[colStart.Index].Value?.ToString() ?? "",
-                T: TryParseTime(r.Cells[colStart.Index].Value?.ToString(), out var t) ? t : TimeSpan.MaxValue
-            )).ToList();
+            // A row with a blank Start Time follows the row above it, so it moves along with it.
+            // A typed Duration belongs to its file and moves too.
+            var snapshot = new List<(string File, string Start, string Duration, object? Tag, TimeSpan T)>();
+            var lastT = TimeSpan.Zero;
+            foreach (var r in dataRows)
+            {
+                string startText = r.Cells[colStart.Index].Value?.ToString() ?? "";
+                if (TryParseTime(startText, out var t)) lastT = t;
+                var durCell = r.Cells[colDuration.Index];
+                snapshot.Add((r.Cells[colFile.Index].Value?.ToString() ?? "", startText,
+                    durCell.Value?.ToString() ?? "", durCell.Tag, lastT));
+            }
 
             var sortedOrder = Enumerable.Range(0, snapshot.Count).OrderBy(i => snapshot[i].T).ToList();
 
@@ -2069,6 +2156,8 @@ namespace MP3toMP4
                 {
                     dataRows[i].Cells[colFile.Index].Value = sorted[i].File;
                     dataRows[i].Cells[colStart.Index].Value = sorted[i].Start;
+                    dataRows[i].Cells[colDuration.Index].Value = sorted[i].Duration;
+                    dataRows[i].Cells[colDuration.Index].Tag = sorted[i].Tag;
                 }
 
                 // Follow the edited row to its new position
@@ -2266,6 +2355,7 @@ namespace MP3toMP4
              grdFiles.Rows[b].Cells[colFile.Index].Value) =
             (grdFiles.Rows[b].Cells[colFile.Index].Value,
              grdFiles.Rows[a].Cells[colFile.Index].Value);
+            ScheduleRecalculateDurations(); // a video shows its own length
         }
 
         private void CmdDelete_Click(object? sender, EventArgs e)

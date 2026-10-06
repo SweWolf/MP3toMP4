@@ -147,22 +147,29 @@ The list has three columns:
   of it, are shown with a short name (for example `Images\cover.jpg`). You can also type a
   file name here: it is looked for in the audio file's folder.
 - **Start Time**: when this file appears in the video. The first row always starts at 0:00.
-  Each file is shown until the next row's Start Time, and the last one until the end of the video.
   Times are written in the same way as in [Trim to a Range](#trim-to-a-range) (but not as a
-  percentage), and they count from the start of the video, so after any trimming.
-- **Duration**: how long the file is shown. It is worked out from the Start Times, but you can also
-  type a new Duration. The next row then starts that long after this one, and all rows below it
-  move by the same amount. The last row can't be changed: it lasts until the end of the video.
+  percentage), and they count from the start of the video, so after any trimming. If you leave
+  it blank, the row starts when the row above it ends (see below).
+- **Duration**: how long the file is shown. A video shows its own full length in gray. Type a
+  shorter time to show only the first part of it. The last row can't be changed: it lasts until
+  the end of the video.
 
-When you change a Start Time, the rows are sorted by time again automatically.
+When you change a Start Time, the rows are sorted by time again automatically. A row with a
+blank Start Time stays below the row above it and moves along with it.
 
-**Equal time for the files:** you don't have to fill in every Start Time. A blank Start Time is
-filled in when you click **Convert**. The blank rows, and the row with a time just before them,
-share the time up to the next Start Time you typed (or the end of the video) equally, in whole
-seconds. The last of them gets what is left over, so it may be shown a little longer. For example,
-if you type only 1:30 as the Start Time of the second row, the first file is shown for 1:30 and
-the other files share the rest equally. If you leave all the Start Times blank, all files share
-the whole video equally. The Duration column already shows the result.
+**Blank Start Times:** you don't have to fill in every Start Time. Nothing is calculated until you
+click **Convert**. A row with a blank Start Time starts when the row above it ends, that is after
+the Duration you typed, or after the full length of a video. Because a picture has no length of
+its own, you must type a Duration for it, unless it is followed by a row with a Start Time, or it
+is one of the pictures at the end of the list. Those pictures share the time that is left (up to
+the next Start Time you typed, or the end of the video) equally, in whole seconds. The last of
+them gets what is left over, so it may be shown a little longer. For example, if you add only
+pictures and leave all the Start Times blank, they share the whole video equally.
+
+When a Start Time you typed is earlier than the end of the video above it, that video is cut
+off. When it is later, the video is repeated until the next row starts. The last row is also
+repeated until the end of the audio, and files that would start after the end of the audio are
+left out.
 
 While the video is being made, the list and the tabs are locked and the current row follows the
 progress. When the conversion is finished, the first row is selected again.
@@ -295,7 +302,7 @@ It is not used for MKV files, which always keep the full quality.
 - **Desktop**
 - **Start Menu (Programs)**
 - **Send To menu**: lets you right-click an audio file in File Explorer and choose
-  **Send to > MP3toMP4**. The program then opens with that file already chosen, and the
+  **Send to > MP3 to MP4**. The program then opens with that file already chosen, and the
   picture and output fields filled in.
 
 Choose whether the shortcuts are for the **Current user only** or for **All users**. All users may
