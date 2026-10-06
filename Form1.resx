@@ -126,6 +126,9 @@
   <metadata name="colStart.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
+  <data name="colDuration.ToolTipText" xml:space="preserve">
+    <value>How long this image or video is shown. A video is shown in full unless you type a shorter time. A row without a Start Time starts when the row above it ends. Pictures need a Duration, except for the ones at the end of the list. The last row lasts until the end of the audio.</value>
+  </data>
   <metadata name="menuStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>109, 17</value>
   </metadata>

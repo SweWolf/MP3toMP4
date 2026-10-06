@@ -81,12 +81,12 @@
             menuCreateShortcut = new ToolStripMenuItem();
             menuSettings = new ToolStripMenuItem();
             helpToolStripMenuItem = new ToolStripMenuItem();
-            aboutToolStripMenuItem = new ToolStripMenuItem();
+            menuViewHelp = new ToolStripMenuItem();
+            menuViewHelpSeparator = new ToolStripSeparator();
             menuOpenFFmpegCallLog = new ToolStripMenuItem();
             menuOpenLogFolder = new ToolStripMenuItem();
             menuHelpSeparator = new ToolStripSeparator();
-            menuViewHelp = new ToolStripMenuItem();
-            menuViewHelpSeparator = new ToolStripSeparator();
+            aboutToolStripMenuItem = new ToolStripMenuItem();
             btnOpenLogFile = new Button();
             btnOpenFolder = new Button();
             btnOpenFile = new Button();
@@ -497,7 +497,7 @@
             // 
             colDuration.HeaderText = "Duration";
             colDuration.Name = "colDuration";
-            colDuration.ToolTipText = "How long this image or video is shown. A video is shown in full unless you type a shorter time. A row without a Start Time starts when the row above it ends. Pictures need a Duration, except for the ones at the end of the list. The last row lasts until the end of the audio.";
+            colDuration.ToolTipText = resources.GetString("colDuration.ToolTipText");
             // 
             // chkLyrics
             // 
@@ -539,7 +539,7 @@
             label3.Font = new Font("Segoe UI", 12F);
             label3.Location = new Point(22, 28);
             label3.Name = "label3";
-            label3.Size = new Size(124, 21);
+            label3.Size = new Size(126, 21);
             label3.TabIndex = 1;
             label3.Text = "MP4 or MKV File";
             // 
@@ -556,7 +556,7 @@
             // 
             // progressBar
             // 
-            progressBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            progressBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             progressBar.Location = new Point(12, 720);
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(1042, 23);
@@ -626,38 +626,38 @@
             // 
             menuViewHelp.Name = "menuViewHelp";
             menuViewHelp.ShortcutKeys = Keys.F1;
-            menuViewHelp.Size = new Size(200, 22);
+            menuViewHelp.Size = new Size(195, 22);
             menuViewHelp.Text = "MP3 to MP4 Help";
             menuViewHelp.Click += menuViewHelp_Click;
             // 
             // menuViewHelpSeparator
             // 
             menuViewHelpSeparator.Name = "menuViewHelpSeparator";
-            menuViewHelpSeparator.Size = new Size(197, 6);
+            menuViewHelpSeparator.Size = new Size(192, 6);
             // 
             // menuOpenFFmpegCallLog
             // 
             menuOpenFFmpegCallLog.Name = "menuOpenFFmpegCallLog";
-            menuOpenFFmpegCallLog.Size = new Size(200, 22);
+            menuOpenFFmpegCallLog.Size = new Size(195, 22);
             menuOpenFFmpegCallLog.Text = "Open FFmpeg Call Log";
             menuOpenFFmpegCallLog.Click += menuOpenFFmpegCallLog_Click;
             // 
             // menuOpenLogFolder
             // 
             menuOpenLogFolder.Name = "menuOpenLogFolder";
-            menuOpenLogFolder.Size = new Size(200, 22);
+            menuOpenLogFolder.Size = new Size(195, 22);
             menuOpenLogFolder.Text = "Open Log Folder";
             menuOpenLogFolder.Click += menuOpenLogFolder_Click;
             // 
             // menuHelpSeparator
             // 
             menuHelpSeparator.Name = "menuHelpSeparator";
-            menuHelpSeparator.Size = new Size(197, 6);
+            menuHelpSeparator.Size = new Size(192, 6);
             // 
             // aboutToolStripMenuItem
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            aboutToolStripMenuItem.Size = new Size(107, 22);
+            aboutToolStripMenuItem.Size = new Size(195, 22);
             aboutToolStripMenuItem.Text = "About";
             aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
             // 
