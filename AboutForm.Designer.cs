@@ -17,6 +17,7 @@ namespace MP3toMP4
             picIcon = new PictureBox();
             lblAppName = new Label();
             lblVersion = new Label();
+            lblUpdateStatus = new Label();
             pnlContent = new Panel();
             grpFfmpeg = new GroupBox();
             lblFfmpegVer = new Label();
@@ -41,6 +42,7 @@ namespace MP3toMP4
             pnlHeader.Controls.Add(picIcon);
             pnlHeader.Controls.Add(lblAppName);
             pnlHeader.Controls.Add(lblVersion);
+            pnlHeader.Controls.Add(lblUpdateStatus);
             pnlHeader.Dock = DockStyle.Top;
             pnlHeader.Location = new Point(0, 0);
             pnlHeader.Name = "pnlHeader";
@@ -77,6 +79,15 @@ namespace MP3toMP4
             lblVersion.Size = new Size(72, 15);
             lblVersion.TabIndex = 2;
             lblVersion.Text = "Version 1.0.0";
+            //
+            // lblUpdateStatus
+            //
+            lblUpdateStatus.AutoSize = true;
+            lblUpdateStatus.Font = new Font("Segoe UI", 8.5F);
+            lblUpdateStatus.ForeColor = Color.FromArgb(160, 195, 225);
+            lblUpdateStatus.Location = new Point(86, 70);
+            lblUpdateStatus.Name = "lblUpdateStatus";
+            lblUpdateStatus.TabIndex = 3;
             // 
             // pnlContent
             // 
@@ -241,6 +252,7 @@ namespace MP3toMP4
         private PictureBox picIcon;
         private Label lblAppName;
         private Label lblVersion;
+        private Label lblUpdateStatus;
         private Panel pnlContent;
         private GroupBox grpFfmpeg;
         private Label lblFfmpegVerHeader;

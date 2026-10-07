@@ -2,15 +2,19 @@ namespace MP3toMP4
 {
     public partial class AboutForm : Form
     {
+        private readonly Version _currentVersion;
+
         public AboutForm()
         {
             InitializeComponent();
 
             var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
+            _currentVersion = new Version(fvi.FileMajorPart, fvi.FileMinorPart, fvi.FileBuildPart);
             lblVersion.Text = $"Version {fvi.FileMajorPart}.{fvi.FileMinorPart}.{fvi.FileBuildPart}";
 
             lblFfmpegVer.Text = GetFfmpegVersion();
             lnkFfmpeg.LinkClicked += lnkFfmpeg_LinkClicked;
+            Shown += AboutForm_Shown;
 
             try
             {
@@ -23,6 +27,24 @@ namespace MP3toMP4
                 }
             }
             catch { }
+        }
+
+        private async void AboutForm_Shown(object? sender, EventArgs e)
+        {
+            var result = await GitHubUpdateChecker.CheckAsync("SweWolf", "MP3toMP4", _currentVersion);
+
+            if (result == null || IsDisposed) return; // network error or form already closed
+
+            if (result.IsUpdateAvailable)
+            {
+                lblUpdateStatus.Text = $"↑ Version {result.LatestVersion} available";
+                lblUpdateStatus.ForeColor = Color.FromArgb(255, 210, 80); // warm yellow
+            }
+            else
+            {
+                lblUpdateStatus.Text = "✓ This is the latest version";
+                lblUpdateStatus.ForeColor = Color.FromArgb(120, 210, 120); // light green
+            }
         }
 
         private static string GetFfmpegVersion()
