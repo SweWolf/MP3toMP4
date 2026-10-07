@@ -56,10 +56,10 @@ namespace MP3toMP4
                 if (Version.TryParse(versionStr, out var latestVersion)
                     && latestVersion > currentVersion)
                 {
-                    return new UpdateCheckResult(true, tagName, releaseUrl);
+                    return new UpdateCheckResult(true, versionStr, releaseUrl);
                 }
 
-                return new UpdateCheckResult(false, tagName, releaseUrl);
+                return new UpdateCheckResult(false, versionStr, releaseUrl);
             }
             catch
             {
