@@ -131,7 +131,7 @@
             btnBrowsForImageFile.Location = new Point(676, 37);
             btnBrowsForImageFile.Name = "btnBrowsForImageFile";
             btnBrowsForImageFile.Size = new Size(37, 29);
-            btnBrowsForImageFile.TabIndex = 3;
+            btnBrowsForImageFile.TabIndex = 4;
             btnBrowsForImageFile.Text = "...";
             toolTip.SetToolTip(btnBrowsForImageFile, "Browse for an image or video file");
             btnBrowsForImageFile.UseVisualStyleBackColor = true;
@@ -239,7 +239,7 @@
             cboImageFile.Location = new Point(31, 38);
             cboImageFile.Name = "cboImageFile";
             cboImageFile.Size = new Size(624, 29);
-            cboImageFile.TabIndex = 2;
+            cboImageFile.TabIndex = 3;
             // 
             // grpInput
             // 
@@ -389,7 +389,7 @@
             txtVideoText.Multiline = true;
             txtVideoText.Name = "txtVideoText";
             txtVideoText.Size = new Size(561, 60);
-            txtVideoText.TabIndex = 9;
+            txtVideoText.TabIndex = 6;
             txtVideoText.Visible = false;
             // 
             // radText
@@ -398,7 +398,7 @@
             radText.Location = new Point(7, 156);
             radText.Name = "radText";
             radText.Size = new Size(62, 25);
-            radText.TabIndex = 8;
+            radText.TabIndex = 2;
             radText.TabStop = true;
             radText.Text = "  Text";
             radText.UseVisualStyleBackColor = true;
@@ -409,7 +409,7 @@
             radBlack.Location = new Point(7, 116);
             radBlack.Name = "radBlack";
             radBlack.Size = new Size(123, 25);
-            radBlack.TabIndex = 7;
+            radBlack.TabIndex = 1;
             radBlack.Text = "  Black Screen";
             radBlack.UseVisualStyleBackColor = true;
             // 
@@ -442,7 +442,7 @@
             picImage.Location = new Point(733, 6);
             picImage.Name = "picImage";
             picImage.Size = new Size(280, 214);
-            picImage.TabIndex = 4;
+            picImage.TabIndex = 7;
             picImage.TabStop = false;
             // 
             // tabMultiple
