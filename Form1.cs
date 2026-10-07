@@ -54,6 +54,7 @@ namespace MP3toMP4
         private Process? _ffmpegProcess;
         private bool _cancelRequested;
         private string? _lastLogFile;
+        private string? _updateReleasePageUrl;
         private TimeSpan _mp3Length;
         private bool _mp3HasArtwork;
         // The Artist/"Title" text last filled in automatically; while the text box still holds
@@ -1664,15 +1665,15 @@ namespace MP3toMP4
 
             if (result is { IsUpdateAvailable: true } && !IsDisposed)
             {
-                var answer = MessageBox.Show(this,
-                    $"A new version is available: {result.LatestVersion}\n\n" +
-                    $"You are running version {currentVersion.Major}.{currentVersion.Minor}.{currentVersion.Build}.\n\n" +
-                    $"Do you want to go to the download page?",
-                    AppTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Information);
-
-                if (answer == DialogResult.Yes)
-                    Process.Start(new ProcessStartInfo(result.ReleasePageUrl) { UseShellExecute = true });
+                _updateReleasePageUrl = result.ReleasePageUrl;
+                menuNewVersion.Visible = true;
             }
+        }
+
+        private void menuNewVersion_Click(object? sender, EventArgs e)
+        {
+            if (_updateReleasePageUrl != null)
+                Process.Start(new ProcessStartInfo(_updateReleasePageUrl) { UseShellExecute = true });
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)

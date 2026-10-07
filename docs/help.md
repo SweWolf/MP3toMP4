@@ -256,7 +256,8 @@ close the window without saving.
 ### Updates
 
 **Check for New Version at Startup**: when **Yes**, MP3 to MP4 checks on GitHub whether a new
-version is available each time it starts, and offers to open the download page.
+version is available each time it starts. If there is one, **New Version Available** appears in green
+at the right end of the menu bar. Click it to open the download page.
 
 ### Default Output Folder
 

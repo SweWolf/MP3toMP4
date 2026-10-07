@@ -87,6 +87,7 @@
             menuOpenLogFolder = new ToolStripMenuItem();
             menuHelpSeparator = new ToolStripSeparator();
             aboutToolStripMenuItem = new ToolStripMenuItem();
+            menuNewVersion = new ToolStripMenuItem();
             btnOpenLogFile = new Button();
             btnOpenFolder = new Button();
             btnOpenFile = new Button();
@@ -588,7 +589,7 @@
             // 
             // menuStrip
             // 
-            menuStrip.Items.AddRange(new ToolStripItem[] { menuTools, helpToolStripMenuItem });
+            menuStrip.Items.AddRange(new ToolStripItem[] { menuTools, helpToolStripMenuItem, menuNewVersion });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
             menuStrip.Size = new Size(1066, 24);
@@ -660,6 +661,17 @@
             aboutToolStripMenuItem.Size = new Size(195, 22);
             aboutToolStripMenuItem.Text = "About";
             aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
+            //
+            // menuNewVersion
+            //
+            menuNewVersion.Alignment = ToolStripItemAlignment.Right;
+            menuNewVersion.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            menuNewVersion.ForeColor = Color.Green;
+            menuNewVersion.Name = "menuNewVersion";
+            menuNewVersion.Size = new Size(142, 20);
+            menuNewVersion.Text = "New Version Available";
+            menuNewVersion.Visible = false;
+            menuNewVersion.Click += menuNewVersion_Click;
             // 
             // btnOpenLogFile
             // 
@@ -762,6 +774,7 @@
         private ToolStripMenuItem menuSettings;
         private ToolStripMenuItem helpToolStripMenuItem;
         private ToolStripMenuItem aboutToolStripMenuItem;
+        private ToolStripMenuItem menuNewVersion;
         private ToolStripMenuItem menuOpenFFmpegCallLog;
         private ToolStripMenuItem menuOpenLogFolder;
         private ToolStripSeparator menuHelpSeparator;
