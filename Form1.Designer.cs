@@ -142,7 +142,7 @@
             btnAdd.Location = new Point(624, 17);
             btnAdd.Name = "btnAdd";
             btnAdd.Size = new Size(72, 34);
-            btnAdd.TabIndex = 0;
+            btnAdd.TabIndex = 1;
             btnAdd.Text = "Add...";
             toolTip.SetToolTip(btnAdd, "Add image or video files");
             btnAdd.UseVisualStyleBackColor = true;
@@ -153,7 +153,7 @@
             btnDelete.Location = new Point(624, 164);
             btnDelete.Name = "btnDelete";
             btnDelete.Size = new Size(72, 34);
-            btnDelete.TabIndex = 3;
+            btnDelete.TabIndex = 4;
             btnDelete.Text = "Delete";
             toolTip.SetToolTip(btnDelete, "Delete the selected row");
             btnDelete.UseVisualStyleBackColor = true;
@@ -164,7 +164,7 @@
             btnMoveDown.Location = new Point(624, 115);
             btnMoveDown.Name = "btnMoveDown";
             btnMoveDown.Size = new Size(72, 34);
-            btnMoveDown.TabIndex = 2;
+            btnMoveDown.TabIndex = 3;
             btnMoveDown.Text = "▼";
             toolTip.SetToolTip(btnMoveDown, "Move the selected row down");
             btnMoveDown.UseVisualStyleBackColor = true;
@@ -175,7 +175,7 @@
             btnMoveUp.Location = new Point(624, 66);
             btnMoveUp.Name = "btnMoveUp";
             btnMoveUp.Size = new Size(72, 34);
-            btnMoveUp.TabIndex = 1;
+            btnMoveUp.TabIndex = 2;
             btnMoveUp.Text = "▲";
             toolTip.SetToolTip(btnMoveUp, "Move the selected row up");
             btnMoveUp.UseVisualStyleBackColor = true;
@@ -197,7 +197,7 @@
             btnConvert.Location = new Point(14, 635);
             btnConvert.Name = "btnConvert";
             btnConvert.Size = new Size(127, 37);
-            btnConvert.TabIndex = 2;
+            btnConvert.TabIndex = 10;
             btnConvert.Text = "Convert";
             toolTip.SetToolTip(btnConvert, "Start converting the audio file (MP3 or other type) to an MP4 or MKV file");
             btnConvert.UseVisualStyleBackColor = true;
@@ -263,7 +263,7 @@
             grpInput.Location = new Point(12, 27);
             grpInput.Name = "grpInput";
             grpInput.Size = new Size(1042, 466);
-            grpInput.TabIndex = 5;
+            grpInput.TabIndex = 0;
             grpInput.TabStop = false;
             grpInput.Text = "Input";
             // 
@@ -360,7 +360,7 @@
             tabImage.Name = "tabImage";
             tabImage.SelectedIndex = 0;
             tabImage.Size = new Size(1030, 260);
-            tabImage.TabIndex = 22;
+            tabImage.TabIndex = 7;
             // 
             // tabSingle
             // 
@@ -420,7 +420,7 @@
             radFile.Location = new Point(7, 18);
             radFile.Name = "radFile";
             radFile.Size = new Size(14, 13);
-            radFile.TabIndex = 6;
+            radFile.TabIndex = 0;
             radFile.TabStop = true;
             radFile.UseVisualStyleBackColor = true;
             // 
@@ -508,7 +508,7 @@
             chkLyrics.Location = new Point(17, 425);
             chkLyrics.Name = "chkLyrics";
             chkLyrics.Size = new Size(149, 25);
-            chkLyrics.TabIndex = 6;
+            chkLyrics.TabIndex = 8;
             chkLyrics.Text = "Include Lyrics Tag";
             chkLyrics.UseVisualStyleBackColor = true;
             // 
@@ -521,7 +521,7 @@
             groupBox2.Location = new Point(12, 509);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(767, 103);
-            groupBox2.TabIndex = 6;
+            groupBox2.TabIndex = 9;
             groupBox2.TabStop = false;
             groupBox2.Text = "Output";
             // 
@@ -570,7 +570,7 @@
             btnCancel.Location = new Point(160, 635);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(127, 37);
-            btnCancel.TabIndex = 17;
+            btnCancel.TabIndex = 11;
             btnCancel.Text = "Cancel";
             btnCancel.UseVisualStyleBackColor = true;
             btnCancel.Click += btnCancel_Click;
@@ -582,7 +582,7 @@
             btnClear.Location = new Point(308, 635);
             btnClear.Name = "btnClear";
             btnClear.Size = new Size(127, 37);
-            btnClear.TabIndex = 18;
+            btnClear.TabIndex = 12;
             btnClear.Text = "Clear";
             btnClear.UseVisualStyleBackColor = true;
             // 
@@ -669,7 +669,7 @@
             btnOpenLogFile.Location = new Point(363, 761);
             btnOpenLogFile.Name = "btnOpenLogFile";
             btnOpenLogFile.Size = new Size(153, 36);
-            btnOpenLogFile.TabIndex = 21;
+            btnOpenLogFile.TabIndex = 15;
             btnOpenLogFile.Text = "Open Log File";
             btnOpenLogFile.UseVisualStyleBackColor = true;
             // 
@@ -681,7 +681,7 @@
             btnOpenFolder.Location = new Point(187, 761);
             btnOpenFolder.Name = "btnOpenFolder";
             btnOpenFolder.Size = new Size(153, 36);
-            btnOpenFolder.TabIndex = 20;
+            btnOpenFolder.TabIndex = 14;
             btnOpenFolder.Text = "Open Folder";
             btnOpenFolder.UseVisualStyleBackColor = true;
             // 
@@ -693,7 +693,7 @@
             btnOpenFile.Location = new Point(12, 761);
             btnOpenFile.Name = "btnOpenFile";
             btnOpenFile.Size = new Size(153, 36);
-            btnOpenFile.TabIndex = 19;
+            btnOpenFile.TabIndex = 13;
             btnOpenFile.Text = "Open File";
             btnOpenFile.UseVisualStyleBackColor = true;
             // 
