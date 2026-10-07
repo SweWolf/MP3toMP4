@@ -217,9 +217,9 @@
             label1.Font = new Font("Segoe UI", 12F);
             label1.Location = new Point(20, 22);
             label1.Name = "label1";
-            label1.Size = new Size(70, 21);
+            label1.Size = new Size(224, 21);
             label1.TabIndex = 1;
-            label1.Text = "MP3 File";
+            label1.Text = "Audio File (MP3, FLAC, WAV, ...)";
             // 
             // label2
             // 
@@ -431,9 +431,9 @@
             chkUseImageFileFromMp3File.Font = new Font("Segoe UI", 12F);
             chkUseImageFileFromMp3File.Location = new Point(31, 73);
             chkUseImageFileFromMp3File.Name = "chkUseImageFileFromMp3File";
-            chkUseImageFileFromMp3File.Size = new Size(230, 25);
+            chkUseImageFileFromMp3File.Size = new Size(239, 25);
             chkUseImageFileFromMp3File.TabIndex = 5;
-            chkUseImageFileFromMp3File.Text = "Use Image from the MP3 File";
+            chkUseImageFileFromMp3File.Text = "Use Image from the Audio File";
             chkUseImageFileFromMp3File.UseVisualStyleBackColor = true;
             // 
             // picImage
@@ -539,9 +539,9 @@
             label3.Font = new Font("Segoe UI", 12F);
             label3.Location = new Point(22, 28);
             label3.Name = "label3";
-            label3.Size = new Size(126, 21);
+            label3.Size = new Size(180, 21);
             label3.TabIndex = 1;
-            label3.Text = "MP4 or MKV File";
+            label3.Text = "Video File (MP4 or MKV)";
             // 
             // lblEstimatedRemaining
             // 
