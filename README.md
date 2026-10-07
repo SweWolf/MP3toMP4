@@ -2,6 +2,8 @@
 
 A Windows desktop application that turns an audio file into a video file. The video shows a picture, a video clip, several pictures one after another, a black screen or a few lines of text while your audio plays. This is perfect for uploading music to YouTube and other video sites, which only accept video files.
 
+![The MP3 to MP4 main window, with an audio file, a picture and the output file chosen](Assets/Screenshot.png)
+
 ---
 
 ## Features
