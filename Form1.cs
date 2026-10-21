@@ -176,6 +176,13 @@ namespace MP3toMP4
             tabImage.SelectedIndexChanged += TabImage_SelectedIndexChanged;
             UpdateMultipleButtons();
 
+            toolTip.SetToolTip(cboVideoQuality,
+                "Standard: 1280 pixels wide (720p for a 16:9 picture), the smallest and fastest.\n" +
+                "High: 2560x1440 (1440p) at a higher encoder quality, which takes longer. YouTube " +
+                "treats uploads of 1440p and up better, so a picture looks sharper there when its " +
+                "quality is set to Auto. A picture that isn't 16:9 is not stretched: black bars are added.");
+            cboVideoQuality.SelectedIndex = 0;
+
             chkLyrics.Enabled = false;
             LoadSettings();
 
@@ -560,6 +567,8 @@ namespace MP3toMP4
                 var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(SettingsFile));
                 if (doc.RootElement.TryGetProperty("includeLyrics", out var v))
                     chkLyrics.Checked = v.GetBoolean();
+                if (doc.RootElement.TryGetProperty("videoQuality", out var q))
+                    cboVideoQuality.SelectedIndex = q.GetString() == "High" ? 1 : 0;
             }
             catch { }
         }
@@ -570,7 +579,11 @@ namespace MP3toMP4
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(SettingsFile)!);
                 File.WriteAllText(SettingsFile,
-                    System.Text.Json.JsonSerializer.Serialize(new { includeLyrics = chkLyrics.Checked }));
+                    System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        includeLyrics = chkLyrics.Checked,
+                        videoQuality = HighQuality ? "High" : "Standard",
+                    }));
             }
             catch { }
         }
@@ -797,17 +810,19 @@ namespace MP3toMP4
         /// which avoids escaping quotes, colons and backslashes in the filter; expansion=none
         /// keeps '%' literal.
         /// </summary>
-        private static string BuildDrawTextFilter(string[] lines)
+        private static string BuildDrawTextFilter(string[] lines, bool high)
         {
+            // The layout is worked out for 1280x720; High (2560x1440) draws everything twice as big
+            int scale = high ? 2 : 1;
             var layout = LayoutVideoText(lines);
             string font = VideoTextFont.File.Replace('\\', '/').Replace(":", "\\:");
             var filters = new List<string>();
             for (int i = 0; i < lines.Length; i++)
             {
                 if (lines[i].Length == 0) continue;
-                int y = (int)Math.Round(VideoTextLineY(i, layout));
+                int y = (int)Math.Round(VideoTextLineY(i, layout) * scale);
                 filters.Add($"drawtext=fontfile='{font}':textfile='line{i}.txt':expansion=none:" +
-                            $"fontcolor=white:fontsize={layout.FontPx}:x=(w-text_w)/2:y={y}");
+                            $"fontcolor=white:fontsize={layout.FontPx * scale}:x=(w-text_w)/2:y={y}");
             }
             return string.Join(",", filters);
         }
@@ -1037,6 +1052,7 @@ namespace MP3toMP4
             }
 
             // --- Mode-specific validation and arg building ---
+            bool high = HighQuality;
             string ffmpegArgs, logInfo;
             List<double>? segmentEnds = null;  // Multiple mode: end time (s) of each grid row, for the progress highlight
             string[]? videoTextLines = null;   // Text mode: written to temp files just before FFmpeg runs
@@ -1046,9 +1062,9 @@ namespace MP3toMP4
                 string image = cboImageFile.Text.Trim();
                 if (radBlack.Checked)
                 {
-                    ffmpegArgs = BuildBlackBackgroundArgs(mp3, mp4, audioInputPrefix, audioCodec, audioFilter);
+                    ffmpegArgs = BuildBlackBackgroundArgs(mp3, mp4, audioInputPrefix, audioCodec, audioFilter, high);
                     logInfo = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}\n" +
-                              $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Image : (black background, {VideoWidth}x{VideoHeight})\n" +
+                              $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Image : (black background, {(high ? $"{HighVideoWidth}x{HighVideoHeight}" : $"{VideoWidth}x{VideoHeight}")})\n" +
                               $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP4   : {mp4}\n";
                 }
                 else if (radText.Checked)
@@ -1061,8 +1077,8 @@ namespace MP3toMP4
                         return;
                     }
                     videoTextLines = lines;
-                    ffmpegArgs = BuildBlackBackgroundArgs(mp3, mp4, audioInputPrefix, audioCodec, audioFilter,
-                                                          BuildDrawTextFilter(lines));
+                    ffmpegArgs = BuildBlackBackgroundArgs(mp3, mp4, audioInputPrefix, audioCodec, audioFilter, high,
+                                                          BuildDrawTextFilter(lines, high));
                     logInfo = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}\n" +
                               $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Text  : {string.Join(" / ", lines)}\n" +
                               $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP4   : {mp4}\n";
@@ -1076,8 +1092,8 @@ namespace MP3toMP4
                     }
                     bool singleIsVideo = IsVideoFile(image);
                     ffmpegArgs = singleIsVideo
-                        ? BuildSingleVideoArgs(image, mp3, mp4, audioInputPrefix, audioCodec, audioFilter)
-                        : BuildSingleImageArgs(image, mp3, mp4, audioInputPrefix, audioCodec, audioFilter);
+                        ? BuildSingleVideoArgs(image, mp3, mp4, audioInputPrefix, audioCodec, audioFilter, high)
+                        : BuildSingleImageArgs(image, mp3, mp4, audioInputPrefix, audioCodec, audioFilter, high);
                     string singleLabel = singleIsVideo ? "Video" : "Image";
                     logInfo = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP3   : {mp3}\n" +
                               $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {singleLabel,-5} : {image}\n" +
@@ -1092,7 +1108,7 @@ namespace MP3toMP4
                     MessageBox.Show(segError, AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                ffmpegArgs = BuildMultiImageArgs(mp3, mp4, segments, audioInputPrefix, audioCodec, audioFilter);
+                ffmpegArgs = BuildMultiImageArgs(mp3, mp4, segments, audioInputPrefix, audioCodec, audioFilter, high);
                 double endSeconds = 0;
                 segmentEnds = segments.Select(sg => endSeconds += sg.Duration.TotalSeconds).ToList();
                 var sb = new System.Text.StringBuilder();
@@ -1304,15 +1320,29 @@ namespace MP3toMP4
             catch { return TimeSpan.Zero; }
         }
 
+        // Video Quality (main window). Standard keeps the video small and fast. High: 1440p and up
+        // gets better treatment from YouTube (as far as is known, VP9 and a higher bitrate for
+        // every quality level, so Auto doesn't fall back to a blurry 360p/480p version of a
+        // 720p upload). A picture that isn't 16:9 gets black bars instead of being stretched.
+        private bool HighQuality => cboVideoQuality.SelectedIndex == 1;
+
+        private const int HighVideoWidth = 2560;
+        private const int HighVideoHeight = 1440;
+        private const string HighEncoderOptions = "-preset slow -crf 18";
+        private const string HighScaleFilter =
+            "scale=2560:1440:force_original_aspect_ratio=decrease:flags=lanczos," +
+            "pad=2560:1440:(ow-iw)/2:(oh-ih)/2,setsar=1";
+
         private static string BuildSingleImageArgs(string image, string mp3, string mp4,
-            string audioInputPrefix, string audioCodec, string audioFilter)
+            string audioInputPrefix, string audioCodec, string audioFilter, bool high)
         {
             var parts = new List<string>
             {
                 "-y", "-loop 1",
                 $"-i \"{FfmpegPath(image)}\"",
                 $"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\"",
-                "-c:v libx264", "-tune stillimage", "-vf \"scale=1280:-2\"",
+                "-c:v libx264", "-tune stillimage",
+                high ? $"{HighEncoderOptions} -vf \"{HighScaleFilter}\"" : "-vf \"scale=1280:-2\"",
                 "-r 30", "-pix_fmt yuv420p",
                 audioCodec,
             };
@@ -1330,12 +1360,14 @@ namespace MP3toMP4
         /// <paramref name="videoFilter"/> draws on top of it (the text).
         /// </summary>
         private static string BuildBlackBackgroundArgs(string mp3, string mp4,
-            string audioInputPrefix, string audioCodec, string audioFilter, string? videoFilter = null)
+            string audioInputPrefix, string audioCodec, string audioFilter, bool high, string? videoFilter = null)
         {
             var parts = new List<string>
             {
                 "-y",
-                $"-f lavfi -i \"color=c=black:s={VideoWidth}x{VideoHeight}:r=30\"",
+                high
+                    ? $"-f lavfi -i \"color=c=black:s={HighVideoWidth}x{HighVideoHeight}:r=30\""
+                    : $"-f lavfi -i \"color=c=black:s={VideoWidth}x{VideoHeight}:r=30\"",
                 // Full paths: in Text mode FFmpeg runs in a temp folder
                 $"{audioInputPrefix}-i \"{FfmpegPath(Path.GetFullPath(mp3))}\"",
             };
@@ -1343,7 +1375,7 @@ namespace MP3toMP4
             parts.AddRange(
             [
                 "-map 0:v", "-map 1:a",
-                "-c:v libx264", "-tune stillimage", "-pix_fmt yuv420p",
+                "-c:v libx264", "-tune stillimage", high ? HighEncoderOptions : "", "-pix_fmt yuv420p",
                 audioCodec,
             ]);
             if (!string.IsNullOrEmpty(audioFilter)) parts.Add(audioFilter);
@@ -1352,7 +1384,7 @@ namespace MP3toMP4
         }
 
         private static string BuildSingleVideoArgs(string video, string mp3, string mp4,
-            string audioInputPrefix, string audioCodec, string audioFilter)
+            string audioInputPrefix, string audioCodec, string audioFilter, bool high)
         {
             var parts = new List<string>
             {
@@ -1362,7 +1394,7 @@ namespace MP3toMP4
                 $"-stream_loop -1 -i \"{FfmpegPath(video)}\"",
                 $"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\"",
                 "-map 0:v", "-map 1:a",
-                "-c:v libx264", "-r 30", "-pix_fmt yuv420p",
+                "-c:v libx264", high ? $"{HighEncoderOptions} -vf \"{HighScaleFilter}\"" : "", "-r 30", "-pix_fmt yuv420p",
                 audioCodec,
             };
             if (!string.IsNullOrEmpty(audioFilter)) parts.Add(audioFilter);
@@ -1435,14 +1467,21 @@ namespace MP3toMP4
         }
 
         private static string BuildMultiImageArgs(string mp3, string mp4, List<ImageSegment> segments,
-            string audioInputPrefix, string audioCodec, string audioFilter)
+            string audioInputPrefix, string audioCodec, string audioFilter, bool high)
         {
-            // Derive target size from the first image; make both dimensions even (libx264 requirement)
-            var (tw, th) = GetImagePixelSize(segments[0].FilePath);
-            tw = (tw / 2) * 2;
-            th = (th / 2) * 2;
-            string sf = $"scale={tw}:{th}:force_original_aspect_ratio=decrease," +
-                        $"pad={tw}:{th}:(ow-iw)/2:(oh-ih)/2,setsar=1";
+            // Standard: target size from the first image, both dimensions even (libx264 requirement).
+            // High: always 2560x1440.
+            string sf;
+            if (high)
+                sf = HighScaleFilter;
+            else
+            {
+                var (tw, th) = GetImagePixelSize(segments[0].FilePath);
+                tw = (tw / 2) * 2;
+                th = (th / 2) * 2;
+                sf = $"scale={tw}:{th}:force_original_aspect_ratio=decrease," +
+                     $"pad={tw}:{th}:(ow-iw)/2:(oh-ih)/2,setsar=1";
+            }
 
             var sb = new System.Text.StringBuilder("-y ");
 
@@ -1482,7 +1521,7 @@ namespace MP3toMP4
             sb.Append($"concat=n={segments.Count}:v=1:a=0[v]\" ");
 
             sb.Append($"-map \"[v]\" -map \"{segments.Count}:a\" ");
-            sb.Append($"-c:v libx264 -tune stillimage -r 30 -pix_fmt yuv420p {audioCodec} ");
+            sb.Append($"-c:v libx264 -tune stillimage {(high ? HighEncoderOptions + " " : "")}-r 30 -pix_fmt yuv420p {audioCodec} ");
             if (!string.IsNullOrEmpty(audioFilter)) sb.Append($"{audioFilter} ");
             sb.Append($"-shortest {FastStartOption(mp4)} ");
             sb.Append($"\"{mp4}\"");

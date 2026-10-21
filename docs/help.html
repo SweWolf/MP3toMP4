@@ -173,7 +173,7 @@ art) stored inside the audio file. It is only available when the audio
 file contains a picture. While it is checked, you can’t choose another
 picture.</p>
 <h4 id="black-screen">Black Screen</h4>
-<p>The video is just black, 1280 × 720 pixels. Useful when only the
+<p>The video is just black, 1280 × 720 pixels (2560 × 1440 if <a href="#output">Video Quality</a> is set to High). Useful when only the
 sound matters.</p>
 <h4 id="text">Text</h4>
 <p>White text, centered on a black screen. Type the text in the box next
@@ -240,7 +240,8 @@ times.</li>
 <li><strong>Delete</strong>: removes the selected row.</li>
 </ul>
 <p>The preview on the right shows the selected file.</p>
-<p>The video gets the size of the first picture or clip in the list.
+<p>The video gets the size of the first picture or clip in the list
+(2560 × 1440 if <a href="#output">Video Quality</a> is set to High).
 Other files that have a different shape get black bars at the sides or
 at the top and bottom.</p>
 <h3 id="include-lyrics-tag">Include Lyrics Tag</h3>
@@ -264,6 +265,21 @@ type</strong>. See <a href="#mp4-or-mkv">MP4 or MKV?</a>.</p>
 the same folder as the audio file.</p>
 <p>If the folder does not exist, MP3 to MP4 offers to create it. If the
 file already exists, you are asked whether to overwrite it.</p>
+<p><strong>Video Quality</strong> sets the size of the video. MP3 to MP4
+remembers your choice for next time.</p>
+<ul>
+<li><strong>Standard (720p)</strong>: the picture is made 1280 pixels
+wide. This gives the smallest file and the fastest conversion.</li>
+<li><strong>High (1440p for YouTube)</strong>: the video is 2560 × 1440
+pixels, and is encoded at a higher quality, which takes longer. A
+picture that is not 16:9 is not stretched: it gets black bars at the
+sides or at the top and bottom.</li>
+</ul>
+<p>Choose <strong>High</strong> if you upload to YouTube and the picture
+looks blurry when the quality is set to <strong>Auto</strong>. YouTube
+makes smaller copies of every video you upload, and it treats videos of
+1440p and larger better than smaller ones. The picture itself does not
+get more detail: a small picture is only enlarged.</p>
 <h3 id="converting">Converting</h3>
 <ul>
 <li><strong>Convert</strong> starts the conversion. The progress bar and

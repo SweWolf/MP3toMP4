@@ -120,7 +120,8 @@ choose another picture.
 
 #### Black Screen
 
-The video is just black, 1280 × 720 pixels. Useful when only the sound matters.
+The video is just black, 1280 × 720 pixels (2560 × 1440 if [Video Quality](#output) is set to
+High). Useful when only the sound matters.
 
 #### Text
 
@@ -182,7 +183,8 @@ The buttons next to the list:
 
 The preview on the right shows the selected file.
 
-The video gets the size of the first picture or clip in the list. Other files that have a different
+The video gets the size of the first picture or clip in the list (2560 × 1440 if
+[Video Quality](#output) is set to High). Other files that have a different
 shape get black bars at the sides or at the top and bottom.
 
 ### Include Lyrics Tag
@@ -208,6 +210,19 @@ audio file.
 
 If the folder does not exist, MP3 to MP4 offers to create it. If the file already exists, you are
 asked whether to overwrite it.
+
+**Video Quality** sets the size of the video. MP3 to MP4 remembers your choice for next time.
+
+- **Standard (720p)**: the picture is made 1280 pixels wide. This gives the smallest file and the
+  fastest conversion.
+- **High (1440p for YouTube)**: the video is 2560 × 1440 pixels, and is encoded at a higher quality,
+  which takes longer. A picture that is not 16:9 is not stretched: it gets black bars at the sides
+  or at the top and bottom.
+
+Choose **High** if you upload to YouTube and the picture looks blurry when the quality is set to
+**Auto**. YouTube makes smaller copies of every video you upload, and it treats videos of 1440p and
+larger better than smaller ones. The picture itself does not get more detail: a small picture is
+only enlarged.
 
 ### Converting
 

@@ -72,6 +72,8 @@
             groupBox2 = new GroupBox();
             txtMP4File = new TextBox();
             label3 = new Label();
+            lblVideoQuality = new Label();
+            cboVideoQuality = new ComboBox();
             lblEstimatedRemaining = new Label();
             progressBar = new TextProgressBar();
             btnCancel = new Button();
@@ -515,13 +517,15 @@
             // 
             // groupBox2
             // 
-            groupBox2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            groupBox2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             groupBox2.Controls.Add(txtMP4File);
             groupBox2.Controls.Add(label3);
             groupBox2.Controls.Add(cmdBrowseForMP4File);
+            groupBox2.Controls.Add(lblVideoQuality);
+            groupBox2.Controls.Add(cboVideoQuality);
             groupBox2.Location = new Point(12, 509);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(767, 103);
+            groupBox2.Size = new Size(1042, 103);
             groupBox2.TabIndex = 9;
             groupBox2.TabStop = false;
             groupBox2.Text = "Output";
@@ -543,7 +547,30 @@
             label3.Size = new Size(180, 21);
             label3.TabIndex = 1;
             label3.Text = "Video File (MP4 or MKV)";
-            // 
+            //
+            // lblVideoQuality
+            //
+            lblVideoQuality.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lblVideoQuality.AutoSize = true;
+            lblVideoQuality.Font = new Font("Segoe UI", 12F);
+            lblVideoQuality.Location = new Point(776, 28);
+            lblVideoQuality.Name = "lblVideoQuality";
+            lblVideoQuality.Size = new Size(104, 21);
+            lblVideoQuality.TabIndex = 3;
+            lblVideoQuality.Text = "Video Quality";
+            //
+            // cboVideoQuality
+            //
+            cboVideoQuality.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            cboVideoQuality.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboVideoQuality.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            cboVideoQuality.FormattingEnabled = true;
+            cboVideoQuality.Items.AddRange(new object[] { "Standard (720p)", "High (1440p for YouTube)" });
+            cboVideoQuality.Location = new Point(776, 52);
+            cboVideoQuality.Name = "cboVideoQuality";
+            cboVideoQuality.Size = new Size(240, 29);
+            cboVideoQuality.TabIndex = 2;
+            //
             // lblEstimatedRemaining
             // 
             lblEstimatedRemaining.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
@@ -761,6 +788,8 @@
         private GroupBox groupBox2;
         private TextBox txtMP4File;
         private Label label3;
+        private Label lblVideoQuality;
+        private ComboBox cboVideoQuality;
         private Button cmdBrowseForMP4File;
         private Button btnConvert;
         private Label lblEstimatedRemaining;
