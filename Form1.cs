@@ -68,6 +68,11 @@ namespace MP3toMP4
             btnBrowseForMp3File.Click += BtnBrowseForMp3File_Click;
             btnBrowsForImageFile.Click += BtnBrowseForImageFile_Click;
             cmdBrowseForMP4File.Click += CmdBrowseForMP4File_Click;
+            // "Video File (MP4 or MKV)": the two format names are links that set the file extension
+            lnkVideoFile.Links.Clear();   // drops the default link that covers the whole text
+            lnkVideoFile.Links.Add(lnkVideoFile.Text.IndexOf("MP4"), 3, ".mp4");
+            lnkVideoFile.Links.Add(lnkVideoFile.Text.IndexOf("MKV"), 3, ".mkv");
+            lnkVideoFile.LinkClicked += LnkVideoFile_LinkClicked;
             btnConvert.Click += BtnConvert_Click;
             btnClear.Click += BtnClear_Click;
             txtMP3File.TextChanged += TxtMP3File_TextChanged;
@@ -233,9 +238,11 @@ namespace MP3toMP4
         {
             using var dlg = new OpenFileDialog
             {
-                Title = "Select MP3 or other audio file",
-                Filter = "MP3 files (*.mp3)|*.mp3|" +
-                         "Audio files (*.mp3;*.wav;*.flac;*.m4a;*.aac;*.ogg;*.opus;*.wma;*.aiff;*.aif)|*.mp3;*.wav;*.flac;*.m4a;*.aac;*.ogg;*.opus;*.wma;*.aiff;*.aif|" +
+                Title = "Select Audio File",
+                Filter = "Audio files (*.mp3;*.wav;*.flac;*.m4a;*.aac;*.ogg;*.opus;*.wma;*.aiff;*.aif)|*.mp3;*.wav;*.flac;*.m4a;*.aac;*.ogg;*.opus;*.wma;*.aiff;*.aif|" +
+                         "MP3 files (*.mp3)|*.mp3|" +
+                         "FLAC files (*.flac)|*.flac|" +
+                         "WAV files (*.wav)|*.wav|" +
                          "All files (*.*)|*.*"
             };
 
@@ -301,6 +308,27 @@ namespace MP3toMP4
             if (dlg.ShowDialog() != DialogResult.OK) return;
 
             txtMP4File.Text = dlg.FileName;
+        }
+
+        /// <summary>
+        /// Clicking MP4 or MKV in the label switches the video file to that extension.
+        /// With an empty field there is nothing to switch.
+        /// </summary>
+        private void LnkVideoFile_LinkClicked(object? sender, LinkLabelLinkClickedEventArgs e)
+        {
+            string extension = (string)e.Link!.LinkData!;
+            string path = txtMP4File.Text.Trim();
+            if (path.Length == 0)
+            {
+                txtMP4File.Focus();
+                return;
+            }
+
+            string current = Path.GetExtension(path);
+            if (current.Equals(".mp4", StringComparison.OrdinalIgnoreCase) ||
+                current.Equals(".mkv", StringComparison.OrdinalIgnoreCase))
+                path = path[..^current.Length];
+            txtMP4File.Text = path + extension;
         }
 
         private static void OnDragEnter(object? sender, DragEventArgs e)

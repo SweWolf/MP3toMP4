@@ -59,7 +59,8 @@ The audio file to use. Click **...** to browse for it, drag it onto the field fr
 or type or paste its path.
 
 Despite the name, you can use most audio formats: MP3, WAV, FLAC, M4A, AAC, OGG, Opus, WMA and
-AIFF. In the Open dialog, choose **Audio files** to see all of them.
+AIFF. The Open dialog shows **Audio files** (all of these formats) first. You can also choose
+**MP3 files**, **FLAC files**, **WAV files** or **All files**.
 
 The length of the audio is shown to the right of the field.
 
@@ -202,8 +203,9 @@ audio file contains lyrics. MP3 to MP4 remembers your choice for next time.
 audio file: the same name as the audio file, in the same folder, or in the
 **Default Output Folder** if you have set one in [Settings](#settings).
 
-The file extension decides the format: `.mp4` or `.mkv`. To change it, type the other extension,
-or click **...** and choose the format under **Save as type**. See [MP4 or MKV?](#mp4-or-mkv).
+The file extension decides the format: `.mp4` or `.mkv`. To change it, click **MP4** or **MKV** in
+the label above the field (new in the next version), type the other extension, or click **...**
+and choose the format under **Save as type**. See [MP4 or MKV?](#mp4-or-mkv).
 
 If you type only a file name, without a folder, the file is saved in the same folder as the
 audio file.
@@ -357,7 +359,7 @@ around them are removed automatically.
 | **Ctrl+E** | Convert |
 | **Ctrl+O** | Open File (the finished video) |
 | **Ctrl+Shift+O** | Open Folder |
-| **Alt+B** | Browse for an MP3 file |
+| **Alt+B** | Browse for an audio file |
 | **F6** | Go to the **MP3 File** field |
 
 ## Log Files

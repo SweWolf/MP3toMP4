@@ -40,6 +40,7 @@
             btnMoveUp = new Button();
             cmdBrowseForMP4File = new Button();
             btnConvert = new Button();
+            lnkVideoFile = new LinkLabel();
             lblLength = new Label();
             label1 = new Label();
             label2 = new Label();
@@ -71,7 +72,6 @@
             chkLyrics = new CheckBox();
             groupBox2 = new GroupBox();
             txtMP4File = new TextBox();
-            label3 = new Label();
             lblVideoQuality = new Label();
             cboVideoQuality = new ComboBox();
             lblEstimatedRemaining = new Label();
@@ -125,7 +125,7 @@
             btnBrowseForMp3File.Size = new Size(37, 29);
             btnBrowseForMp3File.TabIndex = 1;
             btnBrowseForMp3File.Text = "...";
-            toolTip.SetToolTip(btnBrowseForMp3File, "Browse for an MP3 file");
+            toolTip.SetToolTip(btnBrowseForMp3File, "Browse for an audio file");
             btnBrowseForMp3File.UseVisualStyleBackColor = true;
             // 
             // btnBrowsForImageFile
@@ -205,11 +205,24 @@
             toolTip.SetToolTip(btnConvert, "Start converting the audio file (MP3 or other type) to an MP4 or MKV file");
             btnConvert.UseVisualStyleBackColor = true;
             // 
+            // lnkVideoFile
+            // 
+            lnkVideoFile.AutoSize = true;
+            lnkVideoFile.Font = new Font("Segoe UI", 12F);
+            lnkVideoFile.LinkBehavior = LinkBehavior.AlwaysUnderline;
+            lnkVideoFile.Location = new Point(22, 28);
+            lnkVideoFile.Name = "lnkVideoFile";
+            lnkVideoFile.Size = new Size(180, 21);
+            lnkVideoFile.TabIndex = 1;
+            lnkVideoFile.TabStop = true;
+            lnkVideoFile.Text = "Video File (MP4 or MKV)";
+            toolTip.SetToolTip(lnkVideoFile, "Click MP4 or MKV to change the file extension of the video file");
+            // 
             // lblLength
             // 
             lblLength.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblLength.AutoSize = true;
-            lblLength.Location = new Point(750, 53);
+            lblLength.Location = new Point(750, 50);
             lblLength.Name = "lblLength";
             lblLength.Size = new Size(0, 21);
             lblLength.TabIndex = 33;
@@ -519,7 +532,7 @@
             // 
             groupBox2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             groupBox2.Controls.Add(txtMP4File);
-            groupBox2.Controls.Add(label3);
+            groupBox2.Controls.Add(lnkVideoFile);
             groupBox2.Controls.Add(cmdBrowseForMP4File);
             groupBox2.Controls.Add(lblVideoQuality);
             groupBox2.Controls.Add(cboVideoQuality);
@@ -538,18 +551,8 @@
             txtMP4File.Size = new Size(645, 29);
             txtMP4File.TabIndex = 0;
             // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.Font = new Font("Segoe UI", 12F);
-            label3.Location = new Point(22, 28);
-            label3.Name = "label3";
-            label3.Size = new Size(180, 21);
-            label3.TabIndex = 1;
-            label3.Text = "Video File (MP4 or MKV)";
-            //
             // lblVideoQuality
-            //
+            // 
             lblVideoQuality.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblVideoQuality.AutoSize = true;
             lblVideoQuality.Font = new Font("Segoe UI", 12F);
@@ -558,9 +561,9 @@
             lblVideoQuality.Size = new Size(104, 21);
             lblVideoQuality.TabIndex = 3;
             lblVideoQuality.Text = "Video Quality";
-            //
+            // 
             // cboVideoQuality
-            //
+            // 
             cboVideoQuality.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             cboVideoQuality.DropDownStyle = ComboBoxStyle.DropDownList;
             cboVideoQuality.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
@@ -570,7 +573,7 @@
             cboVideoQuality.Name = "cboVideoQuality";
             cboVideoQuality.Size = new Size(240, 29);
             cboVideoQuality.TabIndex = 2;
-            //
+            // 
             // lblEstimatedRemaining
             // 
             lblEstimatedRemaining.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
@@ -688,9 +691,9 @@
             aboutToolStripMenuItem.Size = new Size(195, 22);
             aboutToolStripMenuItem.Text = "About";
             aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
-            //
+            // 
             // menuNewVersion
-            //
+            // 
             menuNewVersion.Alignment = ToolStripItemAlignment.Right;
             menuNewVersion.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             menuNewVersion.ForeColor = Color.Green;
@@ -787,7 +790,7 @@
         private GroupBox grpInput;
         private GroupBox groupBox2;
         private TextBox txtMP4File;
-        private Label label3;
+        private LinkLabel lnkVideoFile;
         private Label lblVideoQuality;
         private ComboBox cboVideoQuality;
         private Button cmdBrowseForMP4File;
