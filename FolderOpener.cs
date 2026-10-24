@@ -16,6 +16,8 @@ namespace MP3toMP4
     /// History:
     ///   2026-10-23  Created: Open Folder goes to SweWolf File Explorer if it is found.
     ///   2026-10-23  Open(folder, fileToSelect): the file's path is sent so the explorer selects it.
+    ///   2026-10-23  OpenFile(file): the file's path goes to SweWolf File Explorer, else the file is
+    ///               opened in the program Windows has for it.
     /// </summary>
     internal static class FolderOpener
     {
@@ -31,6 +33,30 @@ namespace MP3toMP4
                 Path.GetFullPath(Path.Combine(here, "..", AppName, AppName + ".exe")),
             };
             return candidates.FirstOrDefault(File.Exists);
+        }
+
+        /// <summary>
+        /// Opens a file: SweWolf File Explorer gets the file's path as its argument; when the
+        /// explorer is not found, the file opens in the program Windows has for its type.
+        /// </summary>
+        public static void OpenFile(string file)
+        {
+            string? exe = FindExplorer();
+            try
+            {
+                if (exe != null)
+                {
+                    var info = new ProcessStartInfo { FileName = exe, UseShellExecute = false };
+                    info.ArgumentList.Add(file);
+                    Process.Start(info);
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                // could not be started: the program Windows has for the file, below
+            }
+            Process.Start(new ProcessStartInfo { FileName = file, UseShellExecute = true });
         }
 
         /// <summary>

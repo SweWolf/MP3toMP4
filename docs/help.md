@@ -115,6 +115,10 @@ Shows a picture or a video clip.
 Click **...** to browse, choose one of the pictures in the drop-down list, or drag a file onto the
 field or the preview. See also [Drag and Drop, and Paste](#drag-and-drop-and-paste).
 
+When the preview shows a picture, click it to open the picture in SweWolf File Explorer. If that
+program is not found, the picture opens in the program Windows has for that type of file
+(new in the next version).
+
 **Use Image from the MP3 File** uses the picture (album art) stored inside the audio file.
 It is only available when the audio file contains a picture. While it is checked, you can't
 choose another picture.
@@ -182,7 +186,8 @@ The buttons next to the list:
   where they are. This way you can change which picture is shown when, without retyping the times.
 - **Delete**: removes the selected row.
 
-The preview on the right shows the selected file.
+The preview on the right shows the selected file. Click it to open the picture, as on the
+Single Image/Video tab.
 
 The video gets the size of the first picture or clip in the list (2560 × 1440 if
 [Video Quality](#output) is set to High). Other files that have a different

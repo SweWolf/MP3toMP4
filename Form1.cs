@@ -96,6 +96,11 @@ namespace MP3toMP4
 
             picImage.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
+            // A click on a preview that shows a picture file opens that file (see OpenPreviewFile)
+            picImage.MouseMove += (_, _) => UpdatePreviewCursor(picImage, GetSinglePreviewFile());
+            picImage.MouseClick += (_, e) => OpenPreviewFile(e, GetSinglePreviewFile());
+            pictureBox2.MouseMove += (_, _) => UpdatePreviewCursor(pictureBox2, GetMultiplePreviewFile());
+            pictureBox2.MouseClick += (_, e) => OpenPreviewFile(e, GetMultiplePreviewFile());
             cboImageFile.TextChanged += (_, _) =>
             {
                 string t = cboImageFile.Text;
@@ -494,6 +499,43 @@ namespace MP3toMP4
             catch
             {
                 target.Image = null;
+            }
+        }
+
+        /// <summary>The picture file shown in the single-image preview; null when it shows no file (e.g. Text mode).</summary>
+        private string? GetSinglePreviewFile()
+        {
+            if (!radFile.Checked || picImage.Image == null) return null;
+            string path = cboImageFile.Text.Trim();
+            return File.Exists(path) ? path : null;
+        }
+
+        /// <summary>The picture file shown in the preview of the Multiple Images tab, or null.</summary>
+        private string? GetMultiplePreviewFile()
+        {
+            if (pictureBox2.Image == null) return null;
+            string? path = grdFiles.CurrentRow?.Cells[colFile.Index].Value?.ToString()?.Trim();
+            return !string.IsNullOrEmpty(path) && File.Exists(path) ? path : null;
+        }
+
+        /// <summary>Hand cursor and tooltip while the mouse is over a preview that can be clicked.</summary>
+        private void UpdatePreviewCursor(PictureBox preview, string? file)
+        {
+            preview.Cursor = file != null ? Cursors.Hand : Cursors.Default;
+            toolTip.SetToolTip(preview, file != null ? "Click to open the picture" : "");
+        }
+
+        private static void OpenPreviewFile(MouseEventArgs e, string? file)
+        {
+            if (e.Button != MouseButtons.Left || file == null) return;
+            try
+            {
+                FolderOpener.OpenFile(file);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Could not open the file.\n\n{ex.Message}", AppTitle,
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
