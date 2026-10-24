@@ -2424,14 +2424,10 @@ namespace MP3toMP4
         private void BtnOpenFolder_Click(object? sender, EventArgs e)
         {
             string mp4 = txtMP4File.Text.Trim();
-            if (!string.IsNullOrEmpty(mp4) && File.Exists(mp4))
-            {
-                Process.Start("explorer.exe", $"/select,\"{mp4}\"");
-                return;
-            }
+            // SweWolf File Explorer if it is found, else the Windows Explorer; the MP4 is selected in both
             string? folder = Path.GetDirectoryName(mp4);
             if (!string.IsNullOrEmpty(folder) && Directory.Exists(folder))
-                Process.Start("explorer.exe", $"\"{folder}\"");
+                FolderOpener.Open(folder, mp4);
         }
 
         private void BtnOpenLogFile_Click(object? sender, EventArgs e)
