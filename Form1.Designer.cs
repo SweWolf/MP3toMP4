@@ -109,7 +109,7 @@
             txtMP3File.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtMP3File.Location = new Point(20, 46);
             txtMP3File.Name = "txtMP3File";
-            txtMP3File.Size = new Size(645, 29);
+            txtMP3File.Size = new Size(774, 29);
             txtMP3File.TabIndex = 0;
             // 
             // toolTip
@@ -120,7 +120,7 @@
             // 
             // btnBrowseForMp3File
             // 
-            btnBrowseForMp3File.Location = new Point(696, 46);
+            btnBrowseForMp3File.Location = new Point(825, 46);
             btnBrowseForMp3File.Name = "btnBrowseForMp3File";
             btnBrowseForMp3File.Size = new Size(37, 29);
             btnBrowseForMp3File.TabIndex = 1;
@@ -131,7 +131,7 @@
             // btnBrowsForImageFile
             // 
             btnBrowsForImageFile.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnBrowsForImageFile.Location = new Point(676, 37);
+            btnBrowsForImageFile.Location = new Point(805, 37);
             btnBrowsForImageFile.Name = "btnBrowsForImageFile";
             btnBrowsForImageFile.Size = new Size(37, 29);
             btnBrowsForImageFile.TabIndex = 4;
@@ -142,7 +142,7 @@
             // btnAdd
             // 
             btnAdd.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnAdd.Location = new Point(624, 17);
+            btnAdd.Location = new Point(753, 17);
             btnAdd.Name = "btnAdd";
             btnAdd.Size = new Size(72, 34);
             btnAdd.TabIndex = 1;
@@ -153,7 +153,7 @@
             // btnDelete
             // 
             btnDelete.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnDelete.Location = new Point(624, 164);
+            btnDelete.Location = new Point(753, 164);
             btnDelete.Name = "btnDelete";
             btnDelete.Size = new Size(72, 34);
             btnDelete.TabIndex = 4;
@@ -164,7 +164,7 @@
             // btnMoveDown
             // 
             btnMoveDown.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnMoveDown.Location = new Point(624, 115);
+            btnMoveDown.Location = new Point(753, 115);
             btnMoveDown.Name = "btnMoveDown";
             btnMoveDown.Size = new Size(72, 34);
             btnMoveDown.TabIndex = 3;
@@ -175,7 +175,7 @@
             // btnMoveUp
             // 
             btnMoveUp.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnMoveUp.Location = new Point(624, 66);
+            btnMoveUp.Location = new Point(753, 66);
             btnMoveUp.Name = "btnMoveUp";
             btnMoveUp.Size = new Size(72, 34);
             btnMoveUp.TabIndex = 2;
@@ -185,7 +185,7 @@
             // 
             // cmdBrowseForMP4File
             // 
-            cmdBrowseForMP4File.Location = new Point(698, 52);
+            cmdBrowseForMP4File.Location = new Point(827, 52);
             cmdBrowseForMP4File.Name = "cmdBrowseForMP4File";
             cmdBrowseForMP4File.Size = new Size(37, 29);
             cmdBrowseForMP4File.TabIndex = 1;
@@ -222,7 +222,7 @@
             // 
             lblLength.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblLength.AutoSize = true;
-            lblLength.Location = new Point(750, 50);
+            lblLength.Location = new Point(879, 50);
             lblLength.Name = "lblLength";
             lblLength.Size = new Size(0, 21);
             lblLength.TabIndex = 33;
@@ -254,7 +254,7 @@
             cboImageFile.FormattingEnabled = true;
             cboImageFile.Location = new Point(31, 38);
             cboImageFile.Name = "cboImageFile";
-            cboImageFile.Size = new Size(624, 29);
+            cboImageFile.Size = new Size(753, 29);
             cboImageFile.TabIndex = 3;
             // 
             // grpInput
@@ -278,7 +278,7 @@
             grpInput.Font = new Font("Segoe UI", 12F);
             grpInput.Location = new Point(12, 27);
             grpInput.Name = "grpInput";
-            grpInput.Size = new Size(1042, 466);
+            grpInput.Size = new Size(1171, 466);
             grpInput.TabIndex = 0;
             grpInput.TabStop = false;
             grpInput.Text = "Input";
@@ -375,7 +375,7 @@
             tabImage.Location = new Point(6, 132);
             tabImage.Name = "tabImage";
             tabImage.SelectedIndex = 0;
-            tabImage.Size = new Size(1030, 260);
+            tabImage.Size = new Size(1159, 260);
             tabImage.TabIndex = 7;
             // 
             // tabSingle
@@ -392,7 +392,7 @@
             tabSingle.Location = new Point(4, 30);
             tabSingle.Name = "tabSingle";
             tabSingle.Padding = new Padding(3);
-            tabSingle.Size = new Size(1022, 226);
+            tabSingle.Size = new Size(1151, 226);
             tabSingle.TabIndex = 0;
             tabSingle.Text = "Single Image/Video";
             tabSingle.UseVisualStyleBackColor = true;
@@ -404,7 +404,7 @@
             txtVideoText.Location = new Point(94, 150);
             txtVideoText.Multiline = true;
             txtVideoText.Name = "txtVideoText";
-            txtVideoText.Size = new Size(561, 60);
+            txtVideoText.Size = new Size(690, 60);
             txtVideoText.TabIndex = 6;
             txtVideoText.Visible = false;
             // 
@@ -455,7 +455,7 @@
             // picImage
             // 
             picImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            picImage.Location = new Point(733, 6);
+            picImage.Location = new Point(862, 6);
             picImage.Name = "picImage";
             picImage.Size = new Size(280, 214);
             picImage.TabIndex = 7;
@@ -472,7 +472,7 @@
             tabMultiple.Location = new Point(4, 30);
             tabMultiple.Name = "tabMultiple";
             tabMultiple.Padding = new Padding(3);
-            tabMultiple.Size = new Size(1022, 226);
+            tabMultiple.Size = new Size(1151, 226);
             tabMultiple.TabIndex = 1;
             tabMultiple.Text = "Multiple Images/Videos";
             tabMultiple.UseVisualStyleBackColor = true;
@@ -480,7 +480,7 @@
             // pictureBox2
             // 
             pictureBox2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            pictureBox2.Location = new Point(719, 17);
+            pictureBox2.Location = new Point(848, 17);
             pictureBox2.Name = "pictureBox2";
             pictureBox2.Size = new Size(283, 193);
             pictureBox2.TabIndex = 24;
@@ -493,7 +493,7 @@
             grdFiles.Columns.AddRange(new DataGridViewColumn[] { colFile, colStart, colDuration });
             grdFiles.Location = new Point(12, 17);
             grdFiles.Name = "grdFiles";
-            grdFiles.Size = new Size(595, 193);
+            grdFiles.Size = new Size(724, 193);
             grdFiles.TabIndex = 0;
             // 
             // colFile
@@ -538,7 +538,7 @@
             groupBox2.Controls.Add(cboVideoQuality);
             groupBox2.Location = new Point(12, 509);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(1042, 103);
+            groupBox2.Size = new Size(1171, 103);
             groupBox2.TabIndex = 9;
             groupBox2.TabStop = false;
             groupBox2.Text = "Output";
@@ -548,7 +548,7 @@
             txtMP4File.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtMP4File.Location = new Point(22, 52);
             txtMP4File.Name = "txtMP4File";
-            txtMP4File.Size = new Size(645, 29);
+            txtMP4File.Size = new Size(774, 29);
             txtMP4File.TabIndex = 0;
             // 
             // lblVideoQuality
@@ -556,7 +556,7 @@
             lblVideoQuality.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblVideoQuality.AutoSize = true;
             lblVideoQuality.Font = new Font("Segoe UI", 12F);
-            lblVideoQuality.Location = new Point(776, 28);
+            lblVideoQuality.Location = new Point(905, 28);
             lblVideoQuality.Name = "lblVideoQuality";
             lblVideoQuality.Size = new Size(104, 21);
             lblVideoQuality.TabIndex = 3;
@@ -569,7 +569,7 @@
             cboVideoQuality.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cboVideoQuality.FormattingEnabled = true;
             cboVideoQuality.Items.AddRange(new object[] { "Standard (720p)", "High (1440p for YouTube)" });
-            cboVideoQuality.Location = new Point(776, 52);
+            cboVideoQuality.Location = new Point(905, 52);
             cboVideoQuality.Name = "cboVideoQuality";
             cboVideoQuality.Size = new Size(240, 29);
             cboVideoQuality.TabIndex = 2;
@@ -590,7 +590,7 @@
             progressBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             progressBar.Location = new Point(12, 720);
             progressBar.Name = "progressBar";
-            progressBar.Size = new Size(1042, 23);
+            progressBar.Size = new Size(1171, 23);
             progressBar.TabIndex = 16;
             // 
             // btnCancel
@@ -622,7 +622,7 @@
             menuStrip.Items.AddRange(new ToolStripItem[] { menuTools, helpToolStripMenuItem, menuNewVersion });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
-            menuStrip.Size = new Size(1066, 24);
+            menuStrip.Size = new Size(1195, 24);
             menuStrip.TabIndex = 22;
             // 
             // menuTools
@@ -744,7 +744,7 @@
             AcceptButton = btnConvert;
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1066, 809);
+            ClientSize = new Size(1195, 809);
             Controls.Add(btnOpenLogFile);
             Controls.Add(btnOpenFolder);
             Controls.Add(btnOpenFile);
