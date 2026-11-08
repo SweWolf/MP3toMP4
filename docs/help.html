@@ -247,10 +247,35 @@ times.</li>
 </ul>
 <p>The preview on the right shows the selected file. Click it to open
 the picture, as on the Single Image/Video tab.</p>
+<p><strong>Effects</strong> (new in the next version): the
+<strong>Effects</strong> box between the buttons and the preview changes
+how the files follow each other. MP3 to MP4 remembers your choices for
+next time.</p>
+<ul>
+<li><strong>Transition</strong>: what happens where one file is replaced
+by the next. <strong>None</strong> is an immediate cut. <strong>Dip to
+Black</strong> makes the first file fade out to black and the next one
+fade in from black. Nothing is added at the very start or the very end
+of the video.</li>
+<li><strong>Length (seconds)</strong>: the total time of one Dip to
+Black transition, from the start of the fade out to the end of the fade
+in (half of it for each). The default is 0.5 seconds, which is quick but
+clearly visible. The transition does not change the Start Times: the new
+file still begins at its Start Time, but it is dark for the first part
+of the transition. A file that is shorter than the transition gets a
+shorter fade.</li>
+<li><strong>Slow Zoom In</strong>: every picture starts at its normal
+size and slowly zooms in (to 110%) for as long as it is shown, so a
+still picture feels alive. The zoom is toward the center of the picture.
+Videos are not zoomed. This makes the conversion slower, especially for
+a long video with a few pictures.</li>
+</ul>
+<p>You can use both effects at the same time.</p>
 <p>The video gets the size of the first picture or clip in the list
 (2560 × 1440 if <a href="#output">Video Quality</a> is set to High).
 Other files that have a different shape get black bars at the sides or
-at the top and bottom.</p>
+at the top and bottom. (With Slow Zoom In the black bars zoom along with
+the picture.)</p>
 <h3 id="include-lyrics-tag">Include Lyrics Tag</h3>
 <p>If the audio file contains lyrics, check <strong>Include Lyrics
 Tag</strong> to copy them into the video file. Music players that

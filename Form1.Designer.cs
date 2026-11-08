@@ -35,6 +35,12 @@
             btnBrowseForMp3File = new Button();
             btnBrowsForImageFile = new Button();
             btnAdd = new Button();
+            grpEffects = new GroupBox();
+            lblTransition = new Label();
+            cboTransition = new ComboBox();
+            lblTransitionLength = new Label();
+            numTransitionSeconds = new NumericUpDown();
+            chkSlowZoom = new CheckBox();
             btnDelete = new Button();
             btnMoveDown = new Button();
             btnMoveUp = new Button();
@@ -98,6 +104,8 @@
             tabSingle.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picImage).BeginInit();
             tabMultiple.SuspendLayout();
+            grpEffects.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numTransitionSeconds).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)grdFiles).BeginInit();
             groupBox2.SuspendLayout();
@@ -109,7 +117,7 @@
             txtMP3File.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtMP3File.Location = new Point(20, 46);
             txtMP3File.Name = "txtMP3File";
-            txtMP3File.Size = new Size(774, 29);
+            txtMP3File.Size = new Size(997, 29);
             txtMP3File.TabIndex = 0;
             // 
             // toolTip
@@ -120,7 +128,7 @@
             // 
             // btnBrowseForMp3File
             // 
-            btnBrowseForMp3File.Location = new Point(825, 46);
+            btnBrowseForMp3File.Location = new Point(1048, 46);
             btnBrowseForMp3File.Name = "btnBrowseForMp3File";
             btnBrowseForMp3File.Size = new Size(37, 29);
             btnBrowseForMp3File.TabIndex = 1;
@@ -131,7 +139,7 @@
             // btnBrowsForImageFile
             // 
             btnBrowsForImageFile.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnBrowsForImageFile.Location = new Point(805, 37);
+            btnBrowsForImageFile.Location = new Point(1028, 37);
             btnBrowsForImageFile.Name = "btnBrowsForImageFile";
             btnBrowsForImageFile.Size = new Size(37, 29);
             btnBrowsForImageFile.TabIndex = 4;
@@ -185,7 +193,7 @@
             // 
             // cmdBrowseForMP4File
             // 
-            cmdBrowseForMP4File.Location = new Point(827, 52);
+            cmdBrowseForMP4File.Location = new Point(1050, 52);
             cmdBrowseForMP4File.Name = "cmdBrowseForMP4File";
             cmdBrowseForMP4File.Size = new Size(37, 29);
             cmdBrowseForMP4File.TabIndex = 1;
@@ -222,7 +230,7 @@
             // 
             lblLength.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblLength.AutoSize = true;
-            lblLength.Location = new Point(879, 50);
+            lblLength.Location = new Point(1102, 50);
             lblLength.Name = "lblLength";
             lblLength.Size = new Size(0, 21);
             lblLength.TabIndex = 33;
@@ -254,7 +262,7 @@
             cboImageFile.FormattingEnabled = true;
             cboImageFile.Location = new Point(31, 38);
             cboImageFile.Name = "cboImageFile";
-            cboImageFile.Size = new Size(753, 29);
+            cboImageFile.Size = new Size(976, 29);
             cboImageFile.TabIndex = 3;
             // 
             // grpInput
@@ -278,7 +286,7 @@
             grpInput.Font = new Font("Segoe UI", 12F);
             grpInput.Location = new Point(12, 27);
             grpInput.Name = "grpInput";
-            grpInput.Size = new Size(1171, 466);
+            grpInput.Size = new Size(1394, 466);
             grpInput.TabIndex = 0;
             grpInput.TabStop = false;
             grpInput.Text = "Input";
@@ -375,7 +383,7 @@
             tabImage.Location = new Point(6, 132);
             tabImage.Name = "tabImage";
             tabImage.SelectedIndex = 0;
-            tabImage.Size = new Size(1159, 260);
+            tabImage.Size = new Size(1382, 260);
             tabImage.TabIndex = 7;
             // 
             // tabSingle
@@ -392,7 +400,7 @@
             tabSingle.Location = new Point(4, 30);
             tabSingle.Name = "tabSingle";
             tabSingle.Padding = new Padding(3);
-            tabSingle.Size = new Size(1151, 226);
+            tabSingle.Size = new Size(1374, 226);
             tabSingle.TabIndex = 0;
             tabSingle.Text = "Single Image/Video";
             tabSingle.UseVisualStyleBackColor = true;
@@ -404,7 +412,7 @@
             txtVideoText.Location = new Point(94, 150);
             txtVideoText.Multiline = true;
             txtVideoText.Name = "txtVideoText";
-            txtVideoText.Size = new Size(690, 60);
+            txtVideoText.Size = new Size(913, 60);
             txtVideoText.TabIndex = 6;
             txtVideoText.Visible = false;
             // 
@@ -455,7 +463,7 @@
             // picImage
             // 
             picImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            picImage.Location = new Point(862, 6);
+            picImage.Location = new Point(1085, 6);
             picImage.Name = "picImage";
             picImage.Size = new Size(280, 214);
             picImage.TabIndex = 7;
@@ -463,6 +471,7 @@
             // 
             // tabMultiple
             // 
+            tabMultiple.Controls.Add(grpEffects);
             tabMultiple.Controls.Add(pictureBox2);
             tabMultiple.Controls.Add(btnAdd);
             tabMultiple.Controls.Add(btnDelete);
@@ -472,15 +481,80 @@
             tabMultiple.Location = new Point(4, 30);
             tabMultiple.Name = "tabMultiple";
             tabMultiple.Padding = new Padding(3);
-            tabMultiple.Size = new Size(1151, 226);
+            tabMultiple.Size = new Size(1374, 226);
             tabMultiple.TabIndex = 1;
             tabMultiple.Text = "Multiple Images/Videos";
             tabMultiple.UseVisualStyleBackColor = true;
             // 
+            // grpEffects
+            //
+            grpEffects.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            grpEffects.Controls.Add(lblTransition);
+            grpEffects.Controls.Add(cboTransition);
+            grpEffects.Controls.Add(lblTransitionLength);
+            grpEffects.Controls.Add(numTransitionSeconds);
+            grpEffects.Controls.Add(chkSlowZoom);
+            grpEffects.Location = new Point(843, 6);
+            grpEffects.Name = "grpEffects";
+            grpEffects.Size = new Size(210, 204);
+            grpEffects.TabIndex = 5;
+            grpEffects.TabStop = false;
+            grpEffects.Text = "Effects";
+            //
+            // lblTransition
+            //
+            lblTransition.AutoSize = true;
+            lblTransition.Location = new Point(12, 30);
+            lblTransition.Name = "lblTransition";
+            lblTransition.Size = new Size(77, 21);
+            lblTransition.TabIndex = 3;
+            lblTransition.Text = "Transition";
+            //
+            // cboTransition
+            //
+            cboTransition.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboTransition.FormattingEnabled = true;
+            cboTransition.Items.AddRange(new object[] { "None", "Dip to Black" });
+            cboTransition.Location = new Point(12, 54);
+            cboTransition.Name = "cboTransition";
+            cboTransition.Size = new Size(184, 29);
+            cboTransition.TabIndex = 0;
+            //
+            // lblTransitionLength
+            //
+            lblTransitionLength.AutoSize = true;
+            lblTransitionLength.Location = new Point(12, 98);
+            lblTransitionLength.Name = "lblTransitionLength";
+            lblTransitionLength.Size = new Size(125, 21);
+            lblTransitionLength.TabIndex = 4;
+            lblTransitionLength.Text = "Length (seconds)";
+            //
+            // numTransitionSeconds
+            //
+            numTransitionSeconds.DecimalPlaces = 1;
+            numTransitionSeconds.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
+            numTransitionSeconds.Location = new Point(12, 122);
+            numTransitionSeconds.Maximum = new decimal(new int[] { 20, 0, 0, 65536 });
+            numTransitionSeconds.Minimum = new decimal(new int[] { 2, 0, 0, 65536 });
+            numTransitionSeconds.Name = "numTransitionSeconds";
+            numTransitionSeconds.Size = new Size(80, 29);
+            numTransitionSeconds.TabIndex = 1;
+            numTransitionSeconds.Value = new decimal(new int[] { 5, 0, 0, 65536 });
+            //
+            // chkSlowZoom
+            //
+            chkSlowZoom.AutoSize = true;
+            chkSlowZoom.Location = new Point(12, 166);
+            chkSlowZoom.Name = "chkSlowZoom";
+            chkSlowZoom.Size = new Size(119, 25);
+            chkSlowZoom.TabIndex = 2;
+            chkSlowZoom.Text = "Slow Zoom In";
+            chkSlowZoom.UseVisualStyleBackColor = true;
+            //
             // pictureBox2
-            // 
+            //
             pictureBox2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            pictureBox2.Location = new Point(848, 17);
+            pictureBox2.Location = new Point(1071, 17);
             pictureBox2.Name = "pictureBox2";
             pictureBox2.Size = new Size(283, 193);
             pictureBox2.TabIndex = 24;
@@ -538,7 +612,7 @@
             groupBox2.Controls.Add(cboVideoQuality);
             groupBox2.Location = new Point(12, 509);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(1171, 103);
+            groupBox2.Size = new Size(1394, 103);
             groupBox2.TabIndex = 9;
             groupBox2.TabStop = false;
             groupBox2.Text = "Output";
@@ -548,7 +622,7 @@
             txtMP4File.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtMP4File.Location = new Point(22, 52);
             txtMP4File.Name = "txtMP4File";
-            txtMP4File.Size = new Size(774, 29);
+            txtMP4File.Size = new Size(997, 29);
             txtMP4File.TabIndex = 0;
             // 
             // lblVideoQuality
@@ -556,7 +630,7 @@
             lblVideoQuality.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblVideoQuality.AutoSize = true;
             lblVideoQuality.Font = new Font("Segoe UI", 12F);
-            lblVideoQuality.Location = new Point(905, 28);
+            lblVideoQuality.Location = new Point(1128, 28);
             lblVideoQuality.Name = "lblVideoQuality";
             lblVideoQuality.Size = new Size(104, 21);
             lblVideoQuality.TabIndex = 3;
@@ -569,7 +643,7 @@
             cboVideoQuality.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cboVideoQuality.FormattingEnabled = true;
             cboVideoQuality.Items.AddRange(new object[] { "Standard (720p)", "High (1440p for YouTube)" });
-            cboVideoQuality.Location = new Point(905, 52);
+            cboVideoQuality.Location = new Point(1128, 52);
             cboVideoQuality.Name = "cboVideoQuality";
             cboVideoQuality.Size = new Size(240, 29);
             cboVideoQuality.TabIndex = 2;
@@ -590,7 +664,7 @@
             progressBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             progressBar.Location = new Point(12, 720);
             progressBar.Name = "progressBar";
-            progressBar.Size = new Size(1171, 23);
+            progressBar.Size = new Size(1394, 23);
             progressBar.TabIndex = 16;
             // 
             // btnCancel
@@ -622,7 +696,7 @@
             menuStrip.Items.AddRange(new ToolStripItem[] { menuTools, helpToolStripMenuItem, menuNewVersion });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
-            menuStrip.Size = new Size(1195, 24);
+            menuStrip.Size = new Size(1418, 24);
             menuStrip.TabIndex = 22;
             // 
             // menuTools
@@ -744,7 +818,7 @@
             AcceptButton = btnConvert;
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1195, 809);
+            ClientSize = new Size(1418, 809);
             Controls.Add(btnOpenLogFile);
             Controls.Add(btnOpenFolder);
             Controls.Add(btnOpenFile);
@@ -768,6 +842,9 @@
             tabSingle.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)picImage).EndInit();
             tabMultiple.ResumeLayout(false);
+            grpEffects.ResumeLayout(false);
+            grpEffects.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numTransitionSeconds).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             ((System.ComponentModel.ISupportInitialize)grdFiles).EndInit();
             groupBox2.ResumeLayout(false);
@@ -829,6 +906,12 @@
         private DataGridViewTextBoxColumn colStart;
         private DataGridViewTextBoxColumn colDuration;
         private PictureBox pictureBox2;
+        private GroupBox grpEffects;
+        private Label lblTransition;
+        private ComboBox cboTransition;
+        private Label lblTransitionLength;
+        private NumericUpDown numTransitionSeconds;
+        private CheckBox chkSlowZoom;
         private CheckBox chkTrimToRange;
         private ToolTip toolTip;
         private Label label4;

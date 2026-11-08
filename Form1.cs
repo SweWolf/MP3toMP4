@@ -48,6 +48,12 @@ namespace MP3toMP4
 
         private record ImageSegment(string FilePath, TimeSpan Duration);
 
+        /// <summary>
+        /// Effects for Multiple Images/Videos. <paramref name="DipSeconds"/> is the total length of a
+        /// Dip to Black transition (0 = none); <paramref name="SlowZoom"/> zooms in on every image.
+        /// </summary>
+        private record ImageEffects(double DipSeconds, bool SlowZoom);
+
         // Caption for the app's message boxes (same as the window title)
         internal const string AppTitle = "MP3 to MP4";
 
@@ -192,6 +198,25 @@ namespace MP3toMP4
                 "treats uploads of 1440p and up better, so a picture looks sharper there when its " +
                 "quality is set to Auto. A picture that isn't 16:9 is not stretched: black bars are added.");
             cboVideoQuality.SelectedIndex = 0;
+
+            // Effects (Multiple Images/Videos tab)
+            string transitionTip =
+                "What happens where one image or video is replaced by the next.\n" +
+                "None: an immediate cut.\n" +
+                "Dip to Black: the first one quickly fades out to black and the next one fades in from black.";
+            toolTip.SetToolTip(cboTransition, transitionTip);
+            toolTip.SetToolTip(lblTransition, transitionTip);
+            string transitionLengthTip =
+                "The total time of one transition, from the start of the fade out to the end of the fade in " +
+                "(half of it for each). The audio is not affected. 0.5 seconds is quick but clearly visible.";
+            toolTip.SetToolTip(numTransitionSeconds, transitionLengthTip);
+            toolTip.SetToolTip(lblTransitionLength, transitionLengthTip);
+            toolTip.SetToolTip(chkSlowZoom,
+                "Every image starts at its normal size and zooms in slowly (to 110%) for as long as it is shown.\n" +
+                "Videos are not zoomed. The conversion takes longer with this option.");
+            cboTransition.SelectedIndexChanged += (_, _) => UpdateEffectsState();
+            cboTransition.SelectedIndex = 0;
+            UpdateEffectsState();
 
             chkLyrics.Enabled = false;
             LoadSettings();
@@ -639,9 +664,29 @@ namespace MP3toMP4
                     chkLyrics.Checked = v.GetBoolean();
                 if (doc.RootElement.TryGetProperty("videoQuality", out var q))
                     cboVideoQuality.SelectedIndex = q.GetString() == "High" ? 1 : 0;
+                if (doc.RootElement.TryGetProperty("transition", out var tr))
+                    cboTransition.SelectedIndex = tr.GetString() == "DipToBlack" ? 1 : 0;
+                if (doc.RootElement.TryGetProperty("transitionSeconds", out var ts)
+                    && ts.TryGetDecimal(out decimal secs))
+                    numTransitionSeconds.Value = Math.Clamp(secs, numTransitionSeconds.Minimum, numTransitionSeconds.Maximum);
+                if (doc.RootElement.TryGetProperty("slowZoom", out var sz))
+                    chkSlowZoom.Checked = sz.GetBoolean();
             }
             catch { }
         }
+
+        /// <summary>The Length box only matters while a transition is chosen.</summary>
+        private void UpdateEffectsState()
+        {
+            bool on = cboTransition.SelectedIndex > 0;
+            lblTransitionLength.Enabled = on;
+            numTransitionSeconds.Enabled = on;
+        }
+
+        /// <summary>The effects chosen on the Multiple Images/Videos tab.</summary>
+        private ImageEffects GetEffects() => new(
+            cboTransition.SelectedIndex == 1 ? (double)numTransitionSeconds.Value : 0,
+            chkSlowZoom.Checked);
 
         private void SaveSettings()
         {
@@ -653,6 +698,9 @@ namespace MP3toMP4
                     {
                         includeLyrics = chkLyrics.Checked,
                         videoQuality = HighQuality ? "High" : "Standard",
+                        transition = cboTransition.SelectedIndex == 1 ? "DipToBlack" : "None",
+                        transitionSeconds = numTransitionSeconds.Value,
+                        slowZoom = chkSlowZoom.Checked,
                     }));
             }
             catch { }
@@ -1178,7 +1226,8 @@ namespace MP3toMP4
                     MessageBox.Show(segError, AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                ffmpegArgs = BuildMultiImageArgs(mp3, mp4, segments, audioInputPrefix, audioCodec, audioFilter, high);
+                var effects = GetEffects();
+                ffmpegArgs = BuildMultiImageArgs(mp3, mp4, segments, audioInputPrefix, audioCodec, audioFilter, high, effects);
                 double endSeconds = 0;
                 segmentEnds = segments.Select(sg => endSeconds += sg.Duration.TotalSeconds).ToList();
                 var sb = new System.Text.StringBuilder();
@@ -1188,6 +1237,13 @@ namespace MP3toMP4
                     string kind = IsVideoFile(segments[i].FilePath) ? "Video" : "Image";
                     sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {kind} {i + 1}: {segments[i].FilePath} ({FormatTime(segments[i].Duration)})");
                 }
+                if (effects.DipSeconds > 0 || effects.SlowZoom)
+                    sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Effects: " +
+                        string.Join(", ", new[]
+                        {
+                            effects.DipSeconds > 0 ? $"Dip to Black ({effects.DipSeconds.ToString("0.0", CultureInfo.InvariantCulture)} s)" : null,
+                            effects.SlowZoom ? "Slow Zoom In" : null,
+                        }.Where(s => s != null)));
                 sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP4   : {mp4}");
                 logInfo = sb.ToString();
             }
@@ -1536,14 +1592,22 @@ namespace MP3toMP4
             }
         }
 
+        // Slow Zoom In: how far an image zooms in (0.10 = 10%) and the frame rate zoompan renders at
+        private const double SlowZoomAmount = 0.10;
+        private const int ZoomFrameRate = 30;
+
         private static string BuildMultiImageArgs(string mp3, string mp4, List<ImageSegment> segments,
-            string audioInputPrefix, string audioCodec, string audioFilter, bool high)
+            string audioInputPrefix, string audioCodec, string audioFilter, bool high, ImageEffects fx)
         {
             // Standard: target size from the first image, both dimensions even (libx264 requirement).
             // High: always 2560x1440.
             string sf;
+            int outW, outH;
             if (high)
+            {
                 sf = HighScaleFilter;
+                (outW, outH) = (HighVideoWidth, HighVideoHeight);
+            }
             else
             {
                 var (tw, th) = GetImagePixelSize(segments[0].FilePath);
@@ -1551,6 +1615,7 @@ namespace MP3toMP4
                 th = (th / 2) * 2;
                 sf = $"scale={tw}:{th}:force_original_aspect_ratio=decrease," +
                      $"pad={tw}:{th}:(ow-iw)/2:(oh-ih)/2,setsar=1";
+                (outW, outH) = (tw, th);
             }
 
             var sb = new System.Text.StringBuilder("-y ");
@@ -1579,11 +1644,40 @@ namespace MP3toMP4
             sb.Append($"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\" ");
 
             sb.Append("-filter_complex \"");
+            string Num(double d) => d.ToString("0.###", CultureInfo.InvariantCulture);
+
             for (int i = 0; i < segments.Count; i++)
             {
-                string hold = IsVideoFile(segments[i].FilePath)
-                    ? $",tpad=stop_mode=clone:stop_duration=1,trim=duration={Secs(segments[i])},setpts=PTS-STARTPTS"
-                    : $",loop=loop=-1:size=1,trim=duration={Secs(segments[i])},setpts=PTS-STARTPTS";
+                double secs = segments[i].Duration.TotalSeconds;
+                string hold;
+                if (IsVideoFile(segments[i].FilePath))
+                    hold = $",tpad=stop_mode=clone:stop_duration=1,trim=duration={Secs(segments[i])},setpts=PTS-STARTPTS";
+                else if (fx.SlowZoom)
+                {
+                    // Slow Zoom In: zoompan makes one output frame per step from the single
+                    // picture frame, zooming from 100% to 100% + SlowZoomAmount around the centre.
+                    // The picture is scaled up 2x first: zoompan rounds the crop to whole pixels,
+                    // which would make the movement jerky at the normal size.
+                    int frames = Math.Max(2, (int)Math.Ceiling(secs * ZoomFrameRate) + 1);
+                    hold = $",scale=iw*2:ih*2:flags=bicubic," +
+                           $"zoompan=z='1+{Num(SlowZoomAmount)}*on/{frames}':x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2'" +
+                           $":d={frames}:s={outW}x{outH}:fps={ZoomFrameRate}," +
+                           $"setsar=1,trim=duration={Secs(segments[i])},setpts=PTS-STARTPTS";
+                }
+                else
+                    hold = $",loop=loop=-1:size=1,trim=duration={Secs(segments[i])},setpts=PTS-STARTPTS";
+
+                // Dip to Black: half of the transition fades this one in (not the first), half
+                // fades it out (not the last). The length of the segment is not changed, so the
+                // pictures still start at the times in the list. Short segments get shorter fades.
+                if (fx.DipSeconds > 0)
+                {
+                    double half = Math.Min(fx.DipSeconds / 2, secs / 2);
+                    if (i > 0)
+                        hold += $",fade=t=in:st=0:d={Num(half)}";
+                    if (i < segments.Count - 1)
+                        hold += $",fade=t=out:st={Num(secs - half)}:d={Num(half)}";
+                }
                 sb.Append($"[{i}:v]{sf}{hold}[v{i}];");
             }
             for (int i = 0; i < segments.Count; i++)
@@ -1591,7 +1685,9 @@ namespace MP3toMP4
             sb.Append($"concat=n={segments.Count}:v=1:a=0[v]\" ");
 
             sb.Append($"-map \"[v]\" -map \"{segments.Count}:a\" ");
-            sb.Append($"-c:v libx264 -tune stillimage {(high ? HighEncoderOptions + " " : "")}-r 30 -pix_fmt yuv420p {audioCodec} ");
+            // The stillimage tune suits a picture that doesn't move, not a zoom
+            string tune = fx.SlowZoom ? "" : "-tune stillimage ";
+            sb.Append($"-c:v libx264 {tune}{(high ? HighEncoderOptions + " " : "")}-r 30 -pix_fmt yuv420p {audioCodec} ");
             if (!string.IsNullOrEmpty(audioFilter)) sb.Append($"{audioFilter} ");
             sb.Append($"-shortest {FastStartOption(mp4)} ");
             sb.Append($"\"{mp4}\"");
