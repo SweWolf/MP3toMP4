@@ -38,6 +38,7 @@
             grpEffects = new GroupBox();
             lblTransition = new Label();
             cboTransition = new ComboBox();
+            cboTransitionVariant = new ComboBox();
             lblTransitionLength = new Label();
             numTransitionSeconds = new NumericUpDown();
             chkSlowZoom = new CheckBox();
@@ -491,6 +492,7 @@
             grpEffects.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             grpEffects.Controls.Add(lblTransition);
             grpEffects.Controls.Add(cboTransition);
+            grpEffects.Controls.Add(cboTransitionVariant);
             grpEffects.Controls.Add(lblTransitionLength);
             grpEffects.Controls.Add(numTransitionSeconds);
             grpEffects.Controls.Add(chkSlowZoom);
@@ -504,50 +506,58 @@
             // lblTransition
             //
             lblTransition.AutoSize = true;
-            lblTransition.Location = new Point(12, 30);
+            lblTransition.Location = new Point(12, 22);
             lblTransition.Name = "lblTransition";
             lblTransition.Size = new Size(77, 21);
-            lblTransition.TabIndex = 3;
+            lblTransition.TabIndex = 4;
             lblTransition.Text = "Transition";
             //
             // cboTransition
             //
             cboTransition.DropDownStyle = ComboBoxStyle.DropDownList;
             cboTransition.FormattingEnabled = true;
-            cboTransition.Items.AddRange(new object[] { "None", "Dip to Black" });
-            cboTransition.Location = new Point(12, 54);
+            cboTransition.Location = new Point(12, 44);
             cboTransition.Name = "cboTransition";
             cboTransition.Size = new Size(184, 29);
             cboTransition.TabIndex = 0;
             //
+            // cboTransitionVariant
+            //
+            cboTransitionVariant.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboTransitionVariant.FormattingEnabled = true;
+            cboTransitionVariant.Location = new Point(12, 77);
+            cboTransitionVariant.Name = "cboTransitionVariant";
+            cboTransitionVariant.Size = new Size(184, 29);
+            cboTransitionVariant.TabIndex = 1;
+            //
             // lblTransitionLength
             //
             lblTransitionLength.AutoSize = true;
-            lblTransitionLength.Location = new Point(12, 98);
+            lblTransitionLength.Location = new Point(12, 114);
             lblTransitionLength.Name = "lblTransitionLength";
             lblTransitionLength.Size = new Size(125, 21);
-            lblTransitionLength.TabIndex = 4;
+            lblTransitionLength.TabIndex = 5;
             lblTransitionLength.Text = "Length (seconds)";
             //
             // numTransitionSeconds
             //
             numTransitionSeconds.DecimalPlaces = 1;
             numTransitionSeconds.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
-            numTransitionSeconds.Location = new Point(12, 122);
+            numTransitionSeconds.Location = new Point(12, 137);
             numTransitionSeconds.Maximum = new decimal(new int[] { 20, 0, 0, 65536 });
             numTransitionSeconds.Minimum = new decimal(new int[] { 2, 0, 0, 65536 });
             numTransitionSeconds.Name = "numTransitionSeconds";
             numTransitionSeconds.Size = new Size(80, 29);
-            numTransitionSeconds.TabIndex = 1;
+            numTransitionSeconds.TabIndex = 2;
             numTransitionSeconds.Value = new decimal(new int[] { 5, 0, 0, 65536 });
             //
             // chkSlowZoom
             //
             chkSlowZoom.AutoSize = true;
-            chkSlowZoom.Location = new Point(12, 166);
+            chkSlowZoom.Location = new Point(12, 172);
             chkSlowZoom.Name = "chkSlowZoom";
             chkSlowZoom.Size = new Size(119, 25);
-            chkSlowZoom.TabIndex = 2;
+            chkSlowZoom.TabIndex = 3;
             chkSlowZoom.Text = "Slow Zoom In";
             chkSlowZoom.UseVisualStyleBackColor = true;
             //
@@ -792,13 +802,13 @@
             // btnOpenFolder
             // 
             btnOpenFolder.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnOpenFolder.Enabled = false;
             btnOpenFolder.Font = new Font("Segoe UI", 12F);
             btnOpenFolder.Location = new Point(187, 761);
             btnOpenFolder.Name = "btnOpenFolder";
             btnOpenFolder.Size = new Size(153, 36);
             btnOpenFolder.TabIndex = 14;
             btnOpenFolder.Text = "Open Folder";
+            toolTip.SetToolTip(btnOpenFolder, "Open the folder of the output file");
             btnOpenFolder.UseVisualStyleBackColor = true;
             // 
             // btnOpenFile
@@ -811,6 +821,7 @@
             btnOpenFile.Size = new Size(153, 36);
             btnOpenFile.TabIndex = 13;
             btnOpenFile.Text = "Open File";
+            toolTip.SetToolTip(btnOpenFile, "Play the video in SweWolf Media Player, or in your default video player if SweWolf Media Player is not found. Right-click for Open With. With MKV output this is also available while the video is still being created, if the conversion is fast enough to stay ahead of the playback. You can then watch the part that is done so far (you can't skip ahead).");
             btnOpenFile.UseVisualStyleBackColor = true;
             // 
             // Form1
@@ -909,6 +920,7 @@
         private GroupBox grpEffects;
         private Label lblTransition;
         private ComboBox cboTransition;
+        private ComboBox cboTransitionVariant;
         private Label lblTransitionLength;
         private NumericUpDown numTransitionSeconds;
         private CheckBox chkSlowZoom;

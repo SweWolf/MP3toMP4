@@ -192,14 +192,29 @@ Single Image/Video tab.
 **Effects** (new in the next version): the **Effects** box between the buttons and the preview
 changes how the files follow each other. MP3 to MP4 remembers your choices for next time.
 
-- **Transition**: what happens where one file is replaced by the next. **None** is an immediate cut.
-  **Dip to Black** makes the first file fade out to black and the next one fade in from black.
+- **Transition**: what happens where one file is replaced by the next. It is the same for every
+  switch. **None** is an immediate cut. Otherwise choose a type in the first list, and the exact
+  variant (for example **Left** or **Right**) in the second list, which changes with the type:
+  - **Fade**: Crossfade, Fast Fade, Slow Fade, Through Black (the first file fades out to black
+    and the next one fades in from black), Through White, Through Gray, and Dissolve (the picture
+    changes pixel by pixel).
+  - **Wipe**: the next picture is uncovered by an edge that moves across (Left, Right, Up, Down,
+    or from a corner). **Diagonal Wipe** moves diagonally, and **Soft Wipe** has a soft edge.
+  - **Slide**: both pictures slide away together. In **Cover** the next picture slides in over the
+    old one, and in **Reveal** the old picture slides away and uncovers the next.
+  - **Shape**: Circle Open, Circle Close, Circle Crop, Rectangle Crop and Radial.
+  - **Doors**: the next picture opens or closes like doors (vertical or horizontal).
+  - **Slices** and **Wind**: the pictures are cut into thin strips that move or are blown away.
+  - **Effect**: Pixelize, Horizontal Blur, Distance, Squeeze Horizontal, Squeeze Vertical and Zoom In.
+  - **Random**: a different transition for every switch, picked from all of the above. Which ones
+    were used is written to the log file.
+
   Nothing is added at the very start or the very end of the video.
-- **Length (seconds)**: the total time of one Dip to Black transition, from the start of the fade
-  out to the end of the fade in (half of it for each). The default is 0.5 seconds, which is quick
-  but clearly visible. The transition does not change the Start Times: the new file still
-  begins at its Start Time, but it is dark for the first part of the transition. A file that is
-  shorter than the transition gets a shorter fade.
+- **Length (seconds)**: the total time of one transition. During the transition the two files are
+  on screen at the same time, centered on the Start Time of the new file: half of the time before
+  it and half after it. So every file still appears when the list says, and the audio is not
+  affected. The default is 0.5 seconds, which is quick but clearly visible. A file that is shorter
+  than the transition gets a shorter transition.
 - **Slow Zoom In**: every picture starts at its normal size and slowly zooms in (to 110%) for as
   long as it is shown, so a still picture feels alive. The zoom is toward the center of the
   picture. Videos are not zoomed. This makes the conversion slower, especially for a long video
@@ -258,11 +273,24 @@ only enlarged.
 - **Clear** empties all the fields, so you can start over.
 
 When the conversion is finished, MP3 to MP4 plays a sound (you can change this in
-[Settings](#settings)) and three buttons become available:
+[Settings](#settings)) and the **Open File** and **Open Log File** buttons become available:
 
-- **Open File**: plays the video in your default video player.
-- **Open Folder**: opens File Explorer with the video selected.
+- **Open File**: plays the video in SweWolf Media Player. If SweWolf Media Player is not installed
+  (next to MP3 to MP4, or in its own folder beside it), the video opens in your default video player.
+  Right-click the button and choose **Open With** to pick another program in the Windows "Open with"
+  window.
+- **Open Folder** (always available): opens the folder of the video, with the video selected when it
+  exists. It uses SweWolf File Explorer if that is installed, else Windows File Explorer.
 - **Open Log File**: shows FFmpeg's report of the conversion. Useful when something went wrong.
+
+**Watching while it is being created (new in the next version):** when the output is an MKV file,
+**Open File** can become available while the conversion is still running. This happens after about
+10 seconds of video have been created, and only if the estimated remaining time is clearly shorter than
+the length of the video. Then the conversion stays ahead of the player. With slower settings (for example
+High video quality with many images) the conversion takes longer than the video, so the button waits
+until the conversion is finished. The video player shows the part that is done so far. You can't skip
+ahead, because the player doesn't know the full length yet. MP4 files can't be played until the
+conversion is finished.
 
 If you close MP3 to MP4 during a conversion, you are asked first, and the unfinished video file
 is deleted.

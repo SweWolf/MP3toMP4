@@ -253,17 +253,43 @@ how the files follow each other. MP3 to MP4 remembers your choices for
 next time.</p>
 <ul>
 <li><strong>Transition</strong>: what happens where one file is replaced
-by the next. <strong>None</strong> is an immediate cut. <strong>Dip to
-Black</strong> makes the first file fade out to black and the next one
-fade in from black. Nothing is added at the very start or the very end
-of the video.</li>
-<li><strong>Length (seconds)</strong>: the total time of one Dip to
-Black transition, from the start of the fade out to the end of the fade
-in (half of it for each). The default is 0.5 seconds, which is quick but
-clearly visible. The transition does not change the Start Times: the new
-file still begins at its Start Time, but it is dark for the first part
-of the transition. A file that is shorter than the transition gets a
-shorter fade.</li>
+by the next. It is the same for every switch. <strong>None</strong> is
+an immediate cut. Otherwise choose a type in the first list, and the
+exact variant (for example <strong>Left</strong> or
+<strong>Right</strong>) in the second list, which changes with the type:
+<ul>
+<li><strong>Fade</strong>: Crossfade, Fast Fade, Slow Fade, Through
+Black (the first file fades out to black and the next one fades in from
+black), Through White, Through Gray, and Dissolve (the picture changes
+pixel by pixel).</li>
+<li><strong>Wipe</strong>: the next picture is uncovered by an edge that
+moves across (Left, Right, Up, Down, or from a corner). <strong>Diagonal
+Wipe</strong> moves diagonally, and <strong>Soft Wipe</strong> has a
+soft edge.</li>
+<li><strong>Slide</strong>: both pictures slide away together. In
+<strong>Cover</strong> the next picture slides in over the old one, and
+in <strong>Reveal</strong> the old picture slides away and uncovers the
+next.</li>
+<li><strong>Shape</strong>: Circle Open, Circle Close, Circle Crop,
+Rectangle Crop and Radial.</li>
+<li><strong>Doors</strong>: the next picture opens or closes like doors
+(vertical or horizontal).</li>
+<li><strong>Slices</strong> and <strong>Wind</strong>: the pictures are
+cut into thin strips that move or are blown away.</li>
+<li><strong>Effect</strong>: Pixelize, Horizontal Blur, Distance,
+Squeeze Horizontal, Squeeze Vertical and Zoom In.</li>
+<li><strong>Random</strong>: a different transition for every switch,
+picked from all of the above. Which ones were used is written to the log
+file.</li>
+</ul>
+Nothing is added at the very start or the very end of the video.</li>
+<li><strong>Length (seconds)</strong>: the total time of one transition.
+During the transition the two files are on screen at the same time,
+centered on the Start Time of the new file: half of the time before it
+and half after it. So every file still appears when the list says, and
+the audio is not affected. The default is 0.5 seconds, which is quick
+but clearly visible. A file that is shorter than the transition gets a
+shorter transition.</li>
 <li><strong>Slow Zoom In</strong>: every picture starts at its normal
 size and slowly zooms in (to 110%) for as long as it is shown, so a
 still picture feels alive. The zoom is toward the center of the picture.
@@ -323,16 +349,33 @@ file is deleted.</li>
 over.</li>
 </ul>
 <p>When the conversion is finished, MP3 to MP4 plays a sound (you can
-change this in <a href="#settings">Settings</a>) and three buttons
-become available:</p>
+change this in <a href="#settings">Settings</a>) and the <strong>Open
+File</strong> and <strong>Open Log File</strong> buttons become
+available:</p>
 <ul>
-<li><strong>Open File</strong>: plays the video in your default video
-player.</li>
-<li><strong>Open Folder</strong>: opens File Explorer with the video
-selected.</li>
+<li><strong>Open File</strong>: plays the video in SweWolf Media Player.
+If SweWolf Media Player is not installed (next to MP3 to MP4, or in its
+own folder beside it), the video opens in your default video player.
+Right-click the button and choose <strong>Open With</strong> to pick
+another program in the Windows “Open with” window.</li>
+<li><strong>Open Folder</strong> (always available): opens the folder of
+the video, with the video selected when it exists. It uses SweWolf File
+Explorer if that is installed, else Windows File Explorer.</li>
 <li><strong>Open Log File</strong>: shows FFmpeg’s report of the
 conversion. Useful when something went wrong.</li>
 </ul>
+<p><strong>Watching while it is being created (new in the next
+version):</strong> when the output is an MKV file, <strong>Open
+File</strong> can become available while the conversion is still
+running. This happens after about 10 seconds of video have been created,
+and only if the estimated remaining time is clearly shorter than the
+length of the video. Then the conversion stays ahead of the player. With
+slower settings (for example High video quality with many images) the
+conversion takes longer than the video, so the button waits until the
+conversion is finished. The video player shows the part that is done so
+far. You can’t skip ahead, because the player doesn’t know the full
+length yet. MP4 files can’t be played until the conversion is
+finished.</p>
 <p>If you close MP3 to MP4 during a conversion, you are asked first, and
 the unfinished video file is deleted.</p>
 <h2 id="mp4-or-mkv">MP4 or MKV?</h2>

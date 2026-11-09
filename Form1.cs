@@ -49,10 +49,108 @@ namespace MP3toMP4
         private record ImageSegment(string FilePath, TimeSpan Duration);
 
         /// <summary>
-        /// Effects for Multiple Images/Videos. <paramref name="DipSeconds"/> is the total length of a
-        /// Dip to Black transition (0 = none); <paramref name="SlowZoom"/> zooms in on every image.
+        /// Effects for Multiple Images/Videos. <paramref name="Transition"/> is "none", "random" or
+        /// the xfade name of the transition used for every switch; <paramref name="TransitionSeconds"/>
+        /// is the total length of one transition; <paramref name="SlowZoom"/> zooms in on every image.
         /// </summary>
-        private record ImageEffects(double DipSeconds, bool SlowZoom);
+        private record ImageEffects(string Transition, double TransitionSeconds, bool SlowZoom);
+
+        // The transitions of FFmpeg's xfade filter, grouped for the two Transition lists.
+        // Each entry: the text in the second list and the xfade name (also what is saved).
+        private static readonly (string Type, (string Label, string Id)[] Variants)[] TransitionTypes =
+        [
+            ("Fade",
+            [
+                ("Crossfade", "fade"), ("Fast Fade", "fadefast"), ("Slow Fade", "fadeslow"),
+                ("Through Black", "fadeblack"), ("Through White", "fadewhite"), ("Through Gray", "fadegrays"),
+                ("Dissolve", "dissolve"),
+            ]),
+            ("Wipe",
+            [
+                ("Left", "wipeleft"), ("Right", "wiperight"), ("Up", "wipeup"), ("Down", "wipedown"),
+                ("Top Left", "wipetl"), ("Top Right", "wipetr"), ("Bottom Left", "wipebl"), ("Bottom Right", "wipebr"),
+            ]),
+            ("Diagonal Wipe",
+            [
+                ("Top Left", "diagtl"), ("Top Right", "diagtr"), ("Bottom Left", "diagbl"), ("Bottom Right", "diagbr"),
+            ]),
+            ("Soft Wipe",
+            [
+                ("Left", "smoothleft"), ("Right", "smoothright"), ("Up", "smoothup"), ("Down", "smoothdown"),
+            ]),
+            ("Slide",
+            [
+                ("Left", "slideleft"), ("Right", "slideright"), ("Up", "slideup"), ("Down", "slidedown"),
+            ]),
+            ("Cover",
+            [
+                ("Left", "coverleft"), ("Right", "coverright"), ("Up", "coverup"), ("Down", "coverdown"),
+            ]),
+            ("Reveal",
+            [
+                ("Left", "revealleft"), ("Right", "revealright"), ("Up", "revealup"), ("Down", "revealdown"),
+            ]),
+            ("Shape",
+            [
+                ("Circle Open", "circleopen"), ("Circle Close", "circleclose"), ("Circle Crop", "circlecrop"),
+                ("Rectangle Crop", "rectcrop"), ("Radial", "radial"),
+            ]),
+            ("Doors",
+            [
+                ("Vertical Open", "vertopen"), ("Vertical Close", "vertclose"),
+                ("Horizontal Open", "horzopen"), ("Horizontal Close", "horzclose"),
+            ]),
+            ("Slices",
+            [
+                ("Horizontal Left", "hlslice"), ("Horizontal Right", "hrslice"),
+                ("Vertical Up", "vuslice"), ("Vertical Down", "vdslice"),
+            ]),
+            ("Wind",
+            [
+                ("Horizontal Left", "hlwind"), ("Horizontal Right", "hrwind"),
+                ("Vertical Up", "vuwind"), ("Vertical Down", "vdwind"),
+            ]),
+            ("Effect",
+            [
+                ("Pixelize", "pixelize"), ("Horizontal Blur", "hblur"), ("Distance", "distance"),
+                ("Squeeze Horizontal", "squeezeh"), ("Squeeze Vertical", "squeezev"), ("Zoom In", "zoomin"),
+            ]),
+        ];
+
+        private static IEnumerable<string> AllTransitionIds =>
+            TransitionTypes.SelectMany(t => t.Variants.Select(v => v.Id));
+
+        /// <summary>"Slide, Left" for the xfade name "slideleft" (used in the log).</summary>
+        private static string TransitionLabel(string id)
+        {
+            foreach (var (type, variants) in TransitionTypes)
+                foreach (var (label, vid) in variants)
+                    if (vid == id) return $"{type}, {label}";
+            return id;
+        }
+
+        /// <summary>
+        /// The xfade name for each switch (switch k goes into segment k + 1): "" is a plain cut.
+        /// Random picks a different one for every switch, never the same twice in a row.
+        /// </summary>
+        private static string[] ResolveTransitions(ImageEffects fx, int switches)
+        {
+            var result = new string[switches];
+            var all = AllTransitionIds.ToArray();
+            var rnd = new Random();
+            for (int k = 0; k < switches; k++)
+            {
+                if (fx.Transition == "none") result[k] = "";
+                else if (fx.Transition == "random")
+                {
+                    string pick;
+                    do pick = all[rnd.Next(all.Length)]; while (k > 0 && pick == result[k - 1]);
+                    result[k] = pick;
+                }
+                else result[k] = fx.Transition;
+            }
+            return result;
+        }
 
         // Caption for the app's message boxes (same as the window title)
         internal const string AppTitle = "MP3 to MP4";
@@ -201,22 +299,28 @@ namespace MP3toMP4
 
             // Effects (Multiple Images/Videos tab)
             string transitionTip =
-                "What happens where one image or video is replaced by the next.\n" +
+                "What happens where one image or video is replaced by the next. It is the same for every switch.\n" +
                 "None: an immediate cut.\n" +
-                "Dip to Black: the first one quickly fades out to black and the next one fades in from black.";
+                "Choose a type in the first list and the exact variant (for example Left or Right) in the second.\n" +
+                "Fade > Through Black: the first one fades out to black and the next one fades in from black.\n" +
+                "Random: a different transition for every switch.";
             toolTip.SetToolTip(cboTransition, transitionTip);
+            toolTip.SetToolTip(cboTransitionVariant, transitionTip);
             toolTip.SetToolTip(lblTransition, transitionTip);
             string transitionLengthTip =
-                "The total time of one transition, from the start of the fade out to the end of the fade in " +
-                "(half of it for each). The audio is not affected. 0.5 seconds is quick but clearly visible.";
+                "The total time of one transition. The two pictures overlap during this time, centered on the " +
+                "Start Time of the new one, so every picture still appears when the list says. The audio is not " +
+                "affected. 0.5 seconds is quick but clearly visible.";
             toolTip.SetToolTip(numTransitionSeconds, transitionLengthTip);
             toolTip.SetToolTip(lblTransitionLength, transitionLengthTip);
             toolTip.SetToolTip(chkSlowZoom,
                 "Every image starts at its normal size and zooms in slowly (to 110%) for as long as it is shown.\n" +
                 "Videos are not zoomed. The conversion takes longer with this option.");
-            cboTransition.SelectedIndexChanged += (_, _) => UpdateEffectsState();
+            cboTransition.Items.Add("None");
+            foreach (var (type, _) in TransitionTypes) cboTransition.Items.Add(type);
+            cboTransition.Items.Add("Random");
+            cboTransition.SelectedIndexChanged += (_, _) => FillTransitionVariants();
             cboTransition.SelectedIndex = 0;
-            UpdateEffectsState();
 
             chkLyrics.Enabled = false;
             LoadSettings();
@@ -665,7 +769,7 @@ namespace MP3toMP4
                 if (doc.RootElement.TryGetProperty("videoQuality", out var q))
                     cboVideoQuality.SelectedIndex = q.GetString() == "High" ? 1 : 0;
                 if (doc.RootElement.TryGetProperty("transition", out var tr))
-                    cboTransition.SelectedIndex = tr.GetString() == "DipToBlack" ? 1 : 0;
+                    SelectTransition(tr.GetString() == "DipToBlack" ? "fadeblack" : tr.GetString() ?? "none");
                 if (doc.RootElement.TryGetProperty("transitionSeconds", out var ts)
                     && ts.TryGetDecimal(out decimal secs))
                     numTransitionSeconds.Value = Math.Clamp(secs, numTransitionSeconds.Minimum, numTransitionSeconds.Maximum);
@@ -675,18 +779,54 @@ namespace MP3toMP4
             catch { }
         }
 
-        /// <summary>The Length box only matters while a transition is chosen.</summary>
-        private void UpdateEffectsState()
+        // The first Transition list holds None, the types in TransitionTypes, and Random
+        private bool IsTransitionTypeSelected =>
+            cboTransition.SelectedIndex >= 1 && cboTransition.SelectedIndex <= TransitionTypes.Length;
+
+        /// <summary>Fills the second list for the type chosen in the first one.</summary>
+        private void FillTransitionVariants()
         {
+            cboTransitionVariant.Items.Clear();
+            if (IsTransitionTypeSelected)
+            {
+                foreach (var (label, _) in TransitionTypes[cboTransition.SelectedIndex - 1].Variants)
+                    cboTransitionVariant.Items.Add(label);
+                cboTransitionVariant.SelectedIndex = 0;
+            }
+            // The Length box only matters while a transition is chosen
             bool on = cboTransition.SelectedIndex > 0;
+            cboTransitionVariant.Enabled = IsTransitionTypeSelected;
             lblTransitionLength.Enabled = on;
             numTransitionSeconds.Enabled = on;
         }
 
+        /// <summary>"none", "random" or the xfade name of the chosen transition.</summary>
+        private string GetTransitionId()
+        {
+            if (cboTransition.SelectedIndex <= 0) return "none";
+            if (!IsTransitionTypeSelected) return "random";
+            int v = Math.Max(0, cboTransitionVariant.SelectedIndex);
+            return TransitionTypes[cboTransition.SelectedIndex - 1].Variants[v].Id;
+        }
+
+        /// <summary>Selects the two lists for a saved id; an unknown id means None.</summary>
+        private void SelectTransition(string id)
+        {
+            if (id == "random") { cboTransition.SelectedIndex = cboTransition.Items.Count - 1; return; }
+            for (int t = 0; t < TransitionTypes.Length; t++)
+            {
+                int v = Array.FindIndex(TransitionTypes[t].Variants, x => x.Id == id);
+                if (v < 0) continue;
+                cboTransition.SelectedIndex = t + 1;   // fills the second list
+                cboTransitionVariant.SelectedIndex = v;
+                return;
+            }
+            cboTransition.SelectedIndex = 0;
+        }
+
         /// <summary>The effects chosen on the Multiple Images/Videos tab.</summary>
         private ImageEffects GetEffects() => new(
-            cboTransition.SelectedIndex == 1 ? (double)numTransitionSeconds.Value : 0,
-            chkSlowZoom.Checked);
+            GetTransitionId(), (double)numTransitionSeconds.Value, chkSlowZoom.Checked);
 
         private void SaveSettings()
         {
@@ -698,7 +838,7 @@ namespace MP3toMP4
                     {
                         includeLyrics = chkLyrics.Checked,
                         videoQuality = HighQuality ? "High" : "Standard",
-                        transition = cboTransition.SelectedIndex == 1 ? "DipToBlack" : "None",
+                        transition = GetTransitionId(),
                         transitionSeconds = numTransitionSeconds.Value,
                         slowZoom = chkSlowZoom.Checked,
                     }));
@@ -1227,7 +1367,8 @@ namespace MP3toMP4
                     return;
                 }
                 var effects = GetEffects();
-                ffmpegArgs = BuildMultiImageArgs(mp3, mp4, segments, audioInputPrefix, audioCodec, audioFilter, high, effects);
+                string[] transitions = ResolveTransitions(effects, segments.Count - 1);
+                ffmpegArgs = BuildMultiImageArgs(mp3, mp4, segments, audioInputPrefix, audioCodec, audioFilter, high, effects, transitions);
                 double endSeconds = 0;
                 segmentEnds = segments.Select(sg => endSeconds += sg.Duration.TotalSeconds).ToList();
                 var sb = new System.Text.StringBuilder();
@@ -1237,13 +1378,16 @@ namespace MP3toMP4
                     string kind = IsVideoFile(segments[i].FilePath) ? "Video" : "Image";
                     sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {kind} {i + 1}: {segments[i].FilePath} ({FormatTime(segments[i].Duration)})");
                 }
-                if (effects.DipSeconds > 0 || effects.SlowZoom)
-                    sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Effects: " +
-                        string.Join(", ", new[]
-                        {
-                            effects.DipSeconds > 0 ? $"Dip to Black ({effects.DipSeconds.ToString("0.0", CultureInfo.InvariantCulture)} s)" : null,
-                            effects.SlowZoom ? "Slow Zoom In" : null,
-                        }.Where(s => s != null)));
+                if (transitions.Any(t => t != ""))
+                {
+                    string len = effects.TransitionSeconds.ToString("0.0", CultureInfo.InvariantCulture);
+                    sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Transitions ({len} s): " +
+                        (effects.Transition == "random"
+                            ? string.Join(" / ", transitions.Select(TransitionLabel))
+                            : TransitionLabel(effects.Transition)));
+                }
+                if (effects.SlowZoom)
+                    sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Effects: Slow Zoom In");
                 sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MP4   : {mp4}");
                 logInfo = sb.ToString();
             }
@@ -1597,7 +1741,8 @@ namespace MP3toMP4
         private const int ZoomFrameRate = 30;
 
         private static string BuildMultiImageArgs(string mp3, string mp4, List<ImageSegment> segments,
-            string audioInputPrefix, string audioCodec, string audioFilter, bool high, ImageEffects fx)
+            string audioInputPrefix, string audioCodec, string audioFilter, bool high, ImageEffects fx,
+            string[] transitions)
         {
             // Standard: target size from the first image, both dimensions even (libx264 requirement).
             // High: always 2560x1440.
@@ -1620,10 +1765,30 @@ namespace MP3toMP4
 
             var sb = new System.Text.StringBuilder("-y ");
 
-            string Secs(ImageSegment s) => s.Duration.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
+            string Secs(double s) => s.ToString("F3", CultureInfo.InvariantCulture);
+            string Num(double d) => d.ToString("0.###", CultureInfo.InvariantCulture);
 
-            foreach (var seg in segments)
+            // Transitions (xfade): transitions[k - 1] is the xfade name for the switch into
+            // segment k, or "" for a plain cut. The two pictures overlap while it runs, so it is
+            // centered on the Start Time of segment k: half of it (half[k]) before that time and
+            // half after. Segment i's stream is therefore half[i] longer at the start and
+            // half[i + 1] longer at the end than its slot, and every picture still appears at its
+            // Start Time. A transition is cut short when a neighboring segment is shorter than it.
+            int n = segments.Count;
+            double[] dur = segments.Select(s => s.Duration.TotalSeconds).ToArray();
+            double[] half = new double[n + 1];
+            for (int k = 1; k < n; k++)
             {
+                if (string.IsNullOrEmpty(transitions[k - 1])) continue;
+                double h = Math.Min(fx.TransitionSeconds / 2, Math.Min(dur[k - 1], dur[k]) / 2);
+                if (h >= 0.02) half[k] = h;   // anything shorter is not visible: a cut
+            }
+            bool anyTransition = half.Any(h => h > 0);
+            double Ext(int i) => dur[i] + half[i] + half[i + 1];
+
+            for (int i = 0; i < n; i++)
+            {
+                var seg = segments[i];
                 // A video repeats (-stream_loop, re-read from the file) until the segment's
                 // duration (-t). A picture is read once and repeated in the filter graph below:
                 // an endless "-loop 1" picture input made FFmpeg 9 hang (no frames, no output)
@@ -1634,8 +1799,8 @@ namespace MP3toMP4
                 // those 20 ms instead.
                 if (IsVideoFile(seg.FilePath))
                 {
-                    double inputSecs = Math.Max(0.001, seg.Duration.TotalSeconds - 0.02);
-                    sb.Append($"-stream_loop -1 -t {inputSecs.ToString("F3", CultureInfo.InvariantCulture)} -i \"{FfmpegPath(seg.FilePath)}\" ");
+                    double inputSecs = Math.Max(0.001, Ext(i) - 0.02);
+                    sb.Append($"-stream_loop -1 -t {Secs(inputSecs)} -i \"{FfmpegPath(seg.FilePath)}\" ");
                 }
                 else
                     sb.Append($"-i \"{FfmpegPath(seg.FilePath)}\" ");
@@ -1644,14 +1809,14 @@ namespace MP3toMP4
             sb.Append($"{audioInputPrefix}-i \"{FfmpegPath(mp3)}\" ");
 
             sb.Append("-filter_complex \"");
-            string Num(double d) => d.ToString("0.###", CultureInfo.InvariantCulture);
+            var graph = new List<string>();
 
-            for (int i = 0; i < segments.Count; i++)
+            for (int i = 0; i < n; i++)
             {
-                double secs = segments[i].Duration.TotalSeconds;
+                double secs = Ext(i);
                 string hold;
                 if (IsVideoFile(segments[i].FilePath))
-                    hold = $",tpad=stop_mode=clone:stop_duration=1,trim=duration={Secs(segments[i])},setpts=PTS-STARTPTS";
+                    hold = $",tpad=stop_mode=clone:stop_duration=1,trim=duration={Secs(secs)},setpts=PTS-STARTPTS";
                 else if (fx.SlowZoom)
                 {
                     // Slow Zoom In: zoompan makes one output frame per step from the single
@@ -1662,29 +1827,42 @@ namespace MP3toMP4
                     hold = $",scale=iw*2:ih*2:flags=bicubic," +
                            $"zoompan=z='1+{Num(SlowZoomAmount)}*on/{frames}':x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2'" +
                            $":d={frames}:s={outW}x{outH}:fps={ZoomFrameRate}," +
-                           $"setsar=1,trim=duration={Secs(segments[i])},setpts=PTS-STARTPTS";
+                           $"setsar=1,trim=duration={Secs(secs)},setpts=PTS-STARTPTS";
                 }
                 else
-                    hold = $",loop=loop=-1:size=1,trim=duration={Secs(segments[i])},setpts=PTS-STARTPTS";
+                    hold = $",loop=loop=-1:size=1,trim=duration={Secs(secs)},setpts=PTS-STARTPTS";
 
-                // Dip to Black: half of the transition fades this one in (not the first), half
-                // fades it out (not the last). The length of the segment is not changed, so the
-                // pictures still start at the times in the list. Short segments get shorter fades.
-                if (fx.DipSeconds > 0)
-                {
-                    double half = Math.Min(fx.DipSeconds / 2, secs / 2);
-                    if (i > 0)
-                        hold += $",fade=t=in:st=0:d={Num(half)}";
-                    if (i < segments.Count - 1)
-                        hold += $",fade=t=out:st={Num(secs - half)}:d={Num(half)}";
-                }
-                sb.Append($"[{i}:v]{sf}{hold}[v{i}];");
+                // xfade needs both inputs to have the same frame rate, time base and pixel format
+                if (anyTransition)
+                    hold += $",fps={ZoomFrameRate},format=yuv420p";
+
+                graph.Add($"[{i}:v]{sf}{hold}[v{i}]");
             }
-            for (int i = 0; i < segments.Count; i++)
-                sb.Append($"[v{i}]");
-            sb.Append($"concat=n={segments.Count}:v=1:a=0[v]\" ");
 
-            sb.Append($"-map \"[v]\" -map \"{segments.Count}:a\" ");
+            if (!anyTransition)
+            {
+                graph.Add(string.Concat(Enumerable.Range(0, n).Select(i => $"[v{i}]")) + $"concat=n={n}:v=1:a=0[v]");
+            }
+            else
+            {
+                // One step per switch: xfade for a transition, concat for a cut. The result of a
+                // step starts at 0, so an xfade starts at (Start Time of the next segment - half).
+                string cur = "v0";
+                double boundary = dur[0];
+                for (int k = 1; k < n; k++)
+                {
+                    string next = k == n - 1 ? "v" : $"x{k}";
+                    graph.Add(half[k] > 0
+                        ? $"[{cur}][v{k}]xfade=transition={transitions[k - 1]}:duration={Num(2 * half[k])}:offset={Num(boundary - half[k])}[{next}]"
+                        // (concat leaves a microsecond time base that a later xfade rejects)
+                        : $"[{cur}][v{k}]concat=n=2:v=1:a=0,fps={ZoomFrameRate}[{next}]");
+                    cur = next;
+                    boundary += dur[k];
+                }
+            }
+            sb.Append(string.Join(";", graph)).Append("\" ");
+
+            sb.Append($"-map \"[v]\" -map \"{n}:a\" ");
             // The stillimage tune suits a picture that doesn't move, not a zoom
             string tune = fx.SlowZoom ? "" : "-tune stillimage ";
             sb.Append($"-c:v libx264 {tune}{(high ? HighEncoderOptions + " " : "")}-r 30 -pix_fmt yuv420p {audioCodec} ");
