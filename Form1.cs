@@ -258,6 +258,10 @@ namespace MP3toMP4
             toolTip.SetToolTip(txtInputEnd, startEndTooltip);
 
             btnOpenFile.Click += BtnOpenFile_Click;
+            // Right-click on Open File: Open With... (the Windows "Open with" dialog)
+            var openFileMenu = new ContextMenuStrip();
+            openFileMenu.Items.Add("Open With...", null, MenuOpenWith_Click);
+            btnOpenFile.ContextMenuStrip = openFileMenu;
             btnOpenFolder.Click += BtnOpenFolder_Click;
             btnOpenLogFile.Click += BtnOpenLogFile_Click;
 
@@ -362,7 +366,6 @@ namespace MP3toMP4
             lblEstimatedRemaining.Text = "Estimated remaining time: —";
 
             btnOpenFile.Enabled = false;
-            btnOpenFolder.Enabled = false;
             btnOpenLogFile.Enabled = false;
 
             _lastLogFile = null;
@@ -1425,7 +1428,6 @@ namespace MP3toMP4
             btnClear.Enabled = false;
             btnCancel.Enabled = true;
             btnOpenFile.Enabled = false;
-            btnOpenFolder.Enabled = false;
             btnOpenLogFile.Enabled = false;
             _cancelRequested = false;
             _segmentEnds = segmentEnds;
@@ -1451,19 +1453,19 @@ namespace MP3toMP4
                     WriteLyricsToMp4(mp3, mp4);
 
                 btnOpenFile.Enabled = File.Exists(mp4);
-                btnOpenFolder.Enabled = true;
                 progressBar.Value = progressBar.Maximum;
                 lblEstimatedRemaining.Text = "Estimated remaining time: Done";
                 NotifyConversionFinished(mp4);
             }
             catch (OperationCanceledException)
             {
+                btnOpenFile.Enabled = false;
                 progressBar.Value = 0;
                 lblEstimatedRemaining.Text = "Estimated remaining time: —";
             }
             catch (Exception ex)
             {
-                btnOpenFolder.Enabled = !string.IsNullOrEmpty(Path.GetDirectoryName(mp4));
+                btnOpenFile.Enabled = false;
                 MessageBox.Show("Conversion failed: " + ex.Message, AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -1924,6 +1926,13 @@ namespace MP3toMP4
             return true;
         }
 
+        // How much video must be encoded before Open File is enabled for an MKV that is still being created
+        // (Matroska writes in clusters of up to 5 s, so a smaller value could open an empty file)
+        private const double PlayWhileConvertingSeconds = 10;
+
+        // ... and the estimated remaining conversion time must be at most this share of the video length
+        private const double PlayWhileConvertingMargin = 0.8;
+
         private Task RunFFmpegAsync(string ffmpeg, string ffmpegArgs, TimeSpan totalDuration,
                                      string mp4, string logFile, string logInfo, string? workingDir = null)
         {
@@ -1944,6 +1953,7 @@ namespace MP3toMP4
                 _ffmpegProcess = process;
 
                 var startTime = DateTime.UtcNow;
+                bool isMkv = IsMkv(mp4);
 
                 LogFiles.AppendFFmpegCall(ffmpeg, ffmpegArgs);
                 process.Start();
@@ -1968,6 +1978,7 @@ namespace MP3toMP4
                         int progressValue = (int)(percent * 100);
 
                         string remaining = "—";
+                        bool encodingFastEnough = false;
                         if (percent > 0.01)
                         {
                             var elapsed = DateTime.UtcNow - startTime;
@@ -1975,10 +1986,19 @@ namespace MP3toMP4
                             remaining = left.TotalSeconds < 60
                                 ? $"{(int)left.TotalSeconds}s"
                                 : $"{(int)left.TotalMinutes}m {left.Seconds}s";
+                            // A player started now needs the full video length to reach the end, so it never
+                            // catches up with FFmpeg if the conversion finishes sooner than that (with a margin,
+                            // because the speed varies from image to image)
+                            encodingFastEnough = left.TotalSeconds <= totalDuration.TotalSeconds * PlayWhileConvertingMargin;
                         }
 
                         Invoke(() =>
                         {
+                            // MKV can be played while it is being written. Open File is enabled once ~10 s of video
+                            // exist AND the conversion is expected to stay ahead of the player (no seeking ahead)
+                            if (isMkv && !btnOpenFile.Enabled && encodingFastEnough
+                                && current >= PlayWhileConvertingSeconds && File.Exists(mp4))
+                                btnOpenFile.Enabled = true;
                             progressBar.Value = progressValue;
                             if (_segmentEnds != null)
                             {
@@ -2762,16 +2782,38 @@ namespace MP3toMP4
                 MessageBox.Show("File not found.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            Process.Start(new ProcessStartInfo(mp4) { UseShellExecute = true });
+            // SweWolf Media Player if it is found, else the program Windows has for the file
+            MediaPlayerLauncher.Play(mp4);
+        }
+
+        // Right-click on Open File > Open With...: the Windows "Open with" dialog
+        private void MenuOpenWith_Click(object? sender, EventArgs e)
+        {
+            string mp4 = txtMP4File.Text.Trim();
+            if (!File.Exists(mp4))
+            {
+                MessageBox.Show("File not found.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            MediaPlayerLauncher.OpenWithDialog(mp4);
         }
 
         private void BtnOpenFolder_Click(object? sender, EventArgs e)
         {
             string mp4 = txtMP4File.Text.Trim();
+            string? folder = string.IsNullOrEmpty(mp4) ? null : Path.GetDirectoryName(Path.GetFullPath(mp4));
+            if (string.IsNullOrEmpty(folder))
+            {
+                MessageBox.Show("There is no output file yet.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            if (!Directory.Exists(folder))
+            {
+                MessageBox.Show($"The folder \"{folder}\" does not exist yet.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
             // SweWolf File Explorer if it is found, else the Windows Explorer; the MP4 is selected in both
-            string? folder = Path.GetDirectoryName(mp4);
-            if (!string.IsNullOrEmpty(folder) && Directory.Exists(folder))
-                FolderOpener.Open(folder, mp4);
+            FolderOpener.Open(folder, mp4);
         }
 
         private void BtnOpenLogFile_Click(object? sender, EventArgs e)
