@@ -24,6 +24,7 @@ namespace MP3toMP4
             cboNewVersionCheck = new ComboBox();
             lblNewVersionCheck = new Label();
             grpOutputFolder = new GroupBox();
+            lblDefaultOutputFolderHint = new Label();
             btnBrowseDefaultOutputFolder = new Button();
             txtDefaultOutputFolder = new TextBox();
             grpActionWhenFinished = new GroupBox();
@@ -40,7 +41,8 @@ namespace MP3toMP4
             lblRecentProjects = new Label();
             chkAutosaveProjects = new CheckBox();
             btnBrowseDefaultProjectFolder = new Button();
-            txtDefaultProjectFolder = new TextBox();
+            lblDefaultProjectFolderHint = new Label();
+            cboDefaultProjectFolder = new ComboBox();
             lblDefaultProjectFolder = new Label();
             cboProjectExtension = new ComboBox();
             lblProjectExtension = new Label();
@@ -92,11 +94,12 @@ namespace MP3toMP4
             //
             // grpOutputFolder
             //
+            grpOutputFolder.Controls.Add(lblDefaultOutputFolderHint);
             grpOutputFolder.Controls.Add(btnBrowseDefaultOutputFolder);
             grpOutputFolder.Controls.Add(txtDefaultOutputFolder);
             grpOutputFolder.Location = new Point(12, 108);
             grpOutputFolder.Name = "grpOutputFolder";
-            grpOutputFolder.Size = new Size(360, 62);
+            grpOutputFolder.Size = new Size(360, 80);
             grpOutputFolder.TabIndex = 1;
             grpOutputFolder.TabStop = false;
             grpOutputFolder.Text = "Default Output Folder";
@@ -118,10 +121,19 @@ namespace MP3toMP4
             btnBrowseDefaultOutputFolder.UseVisualStyleBackColor = true;
             btnBrowseDefaultOutputFolder.Click += btnBrowseDefaultOutputFolder_Click;
             //
+            // lblDefaultOutputFolderHint
+            //
+            lblDefaultOutputFolderHint.AutoSize = true;
+            lblDefaultOutputFolderHint.ForeColor = SystemColors.GrayText;
+            lblDefaultOutputFolderHint.Location = new Point(10, 50);
+            lblDefaultOutputFolderHint.Name = "lblDefaultOutputFolderHint";
+            lblDefaultOutputFolderHint.TabIndex = 2;
+            lblDefaultOutputFolderHint.Text = "Empty: the same folder as the audio file.";
+            //
             // grpOutputFormat
             //
             grpOutputFormat.Controls.Add(cboDefaultOutputFormat);
-            grpOutputFormat.Location = new Point(12, 176);
+            grpOutputFormat.Location = new Point(12, 194);
             grpOutputFormat.Name = "grpOutputFormat";
             grpOutputFormat.Size = new Size(360, 62);
             grpOutputFormat.TabIndex = 2;
@@ -150,7 +162,7 @@ namespace MP3toMP4
             //
             grpAudio.Controls.Add(cboOptimizeAudioFor);
             grpAudio.Controls.Add(lblOptimizeAudioFor);
-            grpAudio.Location = new Point(12, 244);
+            grpAudio.Location = new Point(12, 262);
             grpAudio.Name = "grpAudio";
             grpAudio.Size = new Size(360, 90);
             grpAudio.TabIndex = 3;
@@ -280,13 +292,14 @@ namespace MP3toMP4
             grpProjects.Controls.Add(lblRecentProjects);
             grpProjects.Controls.Add(chkAutosaveProjects);
             grpProjects.Controls.Add(btnBrowseDefaultProjectFolder);
-            grpProjects.Controls.Add(txtDefaultProjectFolder);
+            grpProjects.Controls.Add(lblDefaultProjectFolderHint);
+            grpProjects.Controls.Add(cboDefaultProjectFolder);
             grpProjects.Controls.Add(lblDefaultProjectFolder);
             grpProjects.Controls.Add(cboProjectExtension);
             grpProjects.Controls.Add(lblProjectExtension);
             grpProjects.Location = new Point(384, 228);
             grpProjects.Name = "grpProjects";
-            grpProjects.Size = new Size(360, 228);
+            grpProjects.Size = new Size(360, 246);
             grpProjects.TabIndex = 5;
             grpProjects.TabStop = false;
             grpProjects.Text = "Projects";
@@ -319,15 +332,27 @@ namespace MP3toMP4
             lblDefaultProjectFolder.TabIndex = 2;
             lblDefaultProjectFolder.Text = "Default Project &Folder";
             //
-            // txtDefaultProjectFolder
+            // cboDefaultProjectFolder
             //
-            txtDefaultProjectFolder.Location = new Point(10, 102);
-            txtDefaultProjectFolder.Name = "txtDefaultProjectFolder";
-            txtDefaultProjectFolder.Size = new Size(300, 23);
-            txtDefaultProjectFolder.TabIndex = 3;
-            toolTip.SetToolTip(txtDefaultProjectFolder,
+            cboDefaultProjectFolder.FormattingEnabled = true;
+            cboDefaultProjectFolder.Location = new Point(10, 102);
+            cboDefaultProjectFolder.Name = "cboDefaultProjectFolder";
+            cboDefaultProjectFolder.Size = new Size(300, 23);
+            cboDefaultProjectFolder.TabIndex = 3;
+            toolTip.SetToolTip(cboDefaultProjectFolder,
                 "The folder that File > Save Project As and File > Open Project start in.\n" +
-                "Leave it empty to start in the folder of the audio file.");
+                "Empty: they start in the folder of the audio file.\n" +
+                "Type or browse for a folder, or choose the one in the list: a Projects folder that MP3 to MP4\n" +
+                "keeps together with its settings. A folder that does not exist yet is created when you click OK.");
+            //
+            // lblDefaultProjectFolderHint
+            //
+            lblDefaultProjectFolderHint.AutoSize = true;
+            lblDefaultProjectFolderHint.ForeColor = SystemColors.GrayText;
+            lblDefaultProjectFolderHint.Location = new Point(10, 128);
+            lblDefaultProjectFolderHint.Name = "lblDefaultProjectFolderHint";
+            lblDefaultProjectFolderHint.TabIndex = 5;
+            lblDefaultProjectFolderHint.Text = "Empty: the same folder as the audio file.";
             //
             // btnBrowseDefaultProjectFolder
             //
@@ -342,9 +367,9 @@ namespace MP3toMP4
             // chkAutosaveProjects
             //
             chkAutosaveProjects.AutoSize = true;
-            chkAutosaveProjects.Location = new Point(10, 138);
+            chkAutosaveProjects.Location = new Point(10, 156);
             chkAutosaveProjects.Name = "chkAutosaveProjects";
-            chkAutosaveProjects.TabIndex = 5;
+            chkAutosaveProjects.TabIndex = 6;
             chkAutosaveProjects.Text = "Autosave &Projects";
             chkAutosaveProjects.UseVisualStyleBackColor = true;
             toolTip.SetToolTip(chkAutosaveProjects,
@@ -356,18 +381,18 @@ namespace MP3toMP4
             // lblRecentProjects
             //
             lblRecentProjects.AutoSize = true;
-            lblRecentProjects.Location = new Point(10, 170);
+            lblRecentProjects.Location = new Point(10, 188);
             lblRecentProjects.Name = "lblRecentProjects";
-            lblRecentProjects.TabIndex = 6;
+            lblRecentProjects.TabIndex = 7;
             lblRecentProjects.Text = "&Recent Projects to Show";
             //
             // numRecentProjects
             //
-            numRecentProjects.Location = new Point(10, 188);
+            numRecentProjects.Location = new Point(10, 206);
             numRecentProjects.Maximum = new decimal(new int[] { 9, 0, 0, 0 });
             numRecentProjects.Name = "numRecentProjects";
             numRecentProjects.Size = new Size(60, 23);
-            numRecentProjects.TabIndex = 7;
+            numRecentProjects.TabIndex = 8;
             toolTip.SetToolTip(numRecentProjects,
                 "How many of the projects you opened or saved last are listed under File > Recent Projects (0 to 9).\n" +
                 "0 hides that menu item. The last nine projects are always remembered, so a higher number\n" +
@@ -376,7 +401,7 @@ namespace MP3toMP4
             // btnOK
             //
             btnOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnOK.Location = new Point(588, 468);
+            btnOK.Location = new Point(588, 486);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(75, 27);
             btnOK.TabIndex = 6;
@@ -388,7 +413,7 @@ namespace MP3toMP4
             //
             btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnCancel.DialogResult = DialogResult.Cancel;
-            btnCancel.Location = new Point(669, 468);
+            btnCancel.Location = new Point(669, 486);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(75, 27);
             btnCancel.TabIndex = 7;
@@ -402,7 +427,7 @@ namespace MP3toMP4
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new Size(756, 507);
+            ClientSize = new Size(756, 525);
             ControlBox = false;
             Controls.Add(grpUpdate);
             Controls.Add(grpOutputFolder);
@@ -441,6 +466,7 @@ namespace MP3toMP4
         private GroupBox grpOutputFolder;
         private TextBox txtDefaultOutputFolder;
         private Button btnBrowseDefaultOutputFolder;
+        private Label lblDefaultOutputFolderHint;
         private ToolTip toolTip;
         private GroupBox grpOutputFormat;
         private ComboBox cboDefaultOutputFormat;
@@ -460,7 +486,8 @@ namespace MP3toMP4
         private Label lblProjectExtension;
         private ComboBox cboProjectExtension;
         private Label lblDefaultProjectFolder;
-        private TextBox txtDefaultProjectFolder;
+        private ComboBox cboDefaultProjectFolder;
+        private Label lblDefaultProjectFolderHint;
         private Button btnBrowseDefaultProjectFolder;
         private CheckBox chkAutosaveProjects;
         private Label lblRecentProjects;

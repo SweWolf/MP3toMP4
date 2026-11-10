@@ -59,7 +59,12 @@ namespace MP3toMP4
             // Projects: the list holds suggestions, any other extension can be typed
             cboProjectExtension.Items.AddRange(ProjectFiles.SuggestedExtensions);
             cboProjectExtension.Text = AppSettings.ProjectFileExtension;
-            txtDefaultProjectFolder.Text = AppSettings.DefaultProjectFolder;
+            // The list offers one ready-made folder; any other folder can be typed or browsed for
+            cboDefaultProjectFolder.Items.Add(ProjectFiles.ProjectsFolder);
+            cboDefaultProjectFolder.DropDownWidth = Math.Max(cboDefaultProjectFolder.Width,
+                TextRenderer.MeasureText(ProjectFiles.ProjectsFolder, cboDefaultProjectFolder.Font).Width
+                + SystemInformation.VerticalScrollBarWidth);
+            cboDefaultProjectFolder.Text = AppSettings.DefaultProjectFolder;
             chkAutosaveProjects.Checked = AppSettings.AutosaveProjects == "Yes";
             numRecentProjects.Value = AppSettings.RecentProjectsToShow;
         }
@@ -122,10 +127,10 @@ namespace MP3toMP4
             BrowseForFolder(txtDefaultOutputFolder, "Select Default Output Folder");
 
         private void btnBrowseDefaultProjectFolder_Click(object? sender, EventArgs e) =>
-            BrowseForFolder(txtDefaultProjectFolder, "Select Default Project Folder");
+            BrowseForFolder(cboDefaultProjectFolder, "Select Default Project Folder");
 
-        /// <summary>Shows the folder picker, starting in the folder that is in the text box.</summary>
-        private void BrowseForFolder(TextBox target, string title)
+        /// <summary>Shows the folder picker, starting in the folder that is in the box.</summary>
+        private void BrowseForFolder(Control target, string title)
         {
             using var dlg = new FolderBrowserDialog
             {
@@ -140,6 +145,42 @@ namespace MP3toMP4
 
             if (dlg.ShowDialog(this) == DialogResult.OK)
                 target.Text = dlg.SelectedPath;
+        }
+
+        /// <summary>
+        /// The Default Project Folder is only used while it exists, so a folder that is missing
+        /// (like the one from the list, the first time) is created here, after asking. Empty is
+        /// fine: it means the folder of the audio file. Returns false when the user should
+        /// correct the field.
+        /// </summary>
+        private bool EnsureProjectFolderExists(string folder)
+        {
+            if (folder.Length == 0) return true;
+
+            if (!Path.IsPathFullyQualified(folder))
+            {
+                MessageBox.Show("Enter the full path of the Default Project Folder, for example C:\\Projects, " +
+                                "or leave it empty to use the folder of the audio file.",
+                    Form1.AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+            if (Directory.Exists(folder)) return true;
+
+            if (MessageBox.Show($"The folder \"{folder}\" does not exist.\n\nDo you want to create it now?",
+                    Form1.AppTitle, MessageBoxButtons.OKCancel, MessageBoxIcon.Question) != DialogResult.OK)
+                return false;
+
+            try
+            {
+                Directory.CreateDirectory(folder); // creates any missing intermediate subfolders too
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Could not create the folder:\n{folder}\n\n{ex.Message}",
+                    Form1.AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
         }
 
         private void btnOK_Click(object sender, EventArgs e)
@@ -165,8 +206,16 @@ namespace MP3toMP4
                 return;
             }
 
+            // "Copy as path" in Explorer adds quotes
+            string projectFolder = cboDefaultProjectFolder.Text.Trim().Trim('"').Trim();
+            if (!EnsureProjectFolderExists(projectFolder))
+            {
+                cboDefaultProjectFolder.Focus();
+                return;
+            }
+
             AppSettings.ProjectFileExtension = projectExtension;
-            AppSettings.DefaultProjectFolder = txtDefaultProjectFolder.Text.Trim();
+            AppSettings.DefaultProjectFolder = projectFolder;
             AppSettings.AutosaveProjects = chkAutosaveProjects.Checked ? "Yes" : "No";
             AppSettings.RecentProjectsToShow = (int)numRecentProjects.Value;
             AppSettings.CheckForUpdatesOnStartup = cboNewVersionCheck.SelectedItem?.ToString() ?? "Yes";

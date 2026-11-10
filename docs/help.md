@@ -444,8 +444,11 @@ It is not used for MKV files, which always keep the full quality.
   `.json`, `.mp3tomp4.json` or `.mp3tomp4` from the list, or type your own. It makes no
   difference when a project is opened.
 - **Default Project Folder**: the folder where **Save Project As...** and **Open Project...**
-  start. Leave it empty to start in the folder of the audio file. Click **...** to browse for a
-  folder.
+  start. Empty means the same folder as the audio file. Type a folder, click **...** to browse
+  for one, or open the list and choose the ready-made folder
+  `%AppData%\SweWolfSoftware\MP3toMP4\Projects`. If the folder does not exist yet, you are asked
+  whether to create it when you click **OK**. While a project is open, both commands start in
+  the folder of that project instead.
 - **Autosave Projects**: the same switch as **File > Autosave**.
 - **Recent Projects to Show**: how many projects **File > Recent Projects** lists, from 0 to 9.
   With 0 the menu item is hidden. The last nine projects are always remembered, so if you

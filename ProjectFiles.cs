@@ -29,6 +29,7 @@ namespace MP3toMP4
     ///   2026-11-09  Created for File > Save Project / Open Project in MP3toMP4.
     ///   2026-11-09  Added the list of recent projects (the last nine are kept) and
     ///               FillRecentMenu for File > Recent Projects.
+    ///   2026-11-09  Added ProjectsFolder, the folder suggested in Settings > Default Project Folder.
     /// </summary>
     internal static class ProjectFiles
     {
@@ -53,6 +54,15 @@ namespace MP3toMP4
         internal static string BackupFolder => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "SweWolfSoftware", AppFolderName, "Backups");
+
+        /// <summary>
+        /// A ready-made folder for project files, next to the app's settings. It is only a
+        /// suggestion in Settings > Default Project Folder: nothing is saved here unless the
+        /// user chooses it.
+        /// </summary>
+        internal static string ProjectsFolder => Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", AppFolderName, "Projects");
 
         /// <summary>
         /// Indented, camelCase, and readable: letters like å, ä, ö and the quotes and backslashes
