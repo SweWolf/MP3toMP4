@@ -16,7 +16,10 @@ namespace MP3toMP4
     ///   - backup copies under %APPDATA%\SweWolfSoftware\&lt;app&gt;\Backups\, deleted after 30 days,
     ///   - checking a file extension typed in Settings,
     ///   - the list of recent projects (recent-projects.txt in the app's %APPDATA% folder) and
-    ///     the File > Recent Projects menu that shows it.
+    ///     the File > Recent Projects menu that shows it,
+    ///   - drafts under %APPDATA%\SweWolfSoftware\&lt;app&gt;\Drafts\: work that is not (yet) saved
+    ///     in a project file, kept so it survives a crash and can be continued later, and the
+    ///     File > Open Draft menu that lists them.
     /// What a project contains is app-specific: a class that derives from ProjectEnvelope
     /// (ProjectData.cs in MP3toMP4).
     ///
@@ -30,6 +33,11 @@ namespace MP3toMP4
     ///   2026-11-09  Added the list of recent projects (the last nine are kept) and
     ///               FillRecentMenu for File > Recent Projects.
     ///   2026-11-09  Added ProjectsFolder, the folder suggested in Settings > Default Project Folder.
+    ///   2026-11-10  Added drafts: DraftsFolder, draft file names, DraftSession (tells a crash from a
+    ///               normal close), TakeCrashedDrafts, FillDraftMenu, and "draftOf" in the envelope.
+    ///               Drafts are deleted 30 days after they were last changed.
+    ///   2026-11-10  Added ProjectName: the file name without its project extension, for the title
+    ///               bar and for naming a project's draft.
     /// </summary>
     internal static class ProjectFiles
     {
@@ -208,6 +216,24 @@ namespace MP3toMP4
             name = fileName[..^extension.Length];
         }
 
+        /// <summary>
+        /// A project's name for showing (the title bar) and for naming its draft: the file name
+        /// without its project extension. "Song.json", "Song.mp3tomp4.json" and "Song.mp3tomp4"
+        /// are all "Song". <paramref name="chosenExtension"/> is the extension from Settings,
+        /// which may be one the user made up. A file with some other extension keeps its whole
+        /// name ("Notes.txt"), so it can't be mistaken for another file.
+        /// </summary>
+        internal static string ProjectName(string path, string? chosenExtension = null)
+        {
+            string fileName = Path.GetFileName(path);
+            var extensions = SuggestedExtensions.AsEnumerable();
+            if (!string.IsNullOrEmpty(chosenExtension)) extensions = extensions.Append(chosenExtension);
+            string? extension = extensions
+                .OrderByDescending(e => e.Length)
+                .FirstOrDefault(e => fileName.Length > e.Length && fileName.EndsWith(e, StringComparison.OrdinalIgnoreCase));
+            return extension == null ? fileName : fileName[..^extension.Length];
+        }
+
         // "... 2026-11-09 14.32.json" and "... 2026-11-09 14.32 (2).json": the names CreateBackup gives
         private static readonly Regex BackupName = new(@" \d{4}-\d{2}-\d{2} \d{2}\.\d{2}( \(\d+\))?\.", RegexOptions.Compiled);
 
@@ -372,6 +398,226 @@ namespace MP3toMP4
             }
         }
 
+        // ----- Drafts -----
+
+        /// <summary>
+        /// Where drafts are kept. A draft is a project file that the app writes by itself while
+        /// the user works, for work that is not safely in a project file: work that was never
+        /// saved as a project, or a project with unsaved changes. It is named
+        /// "Name draft yyyy-MM-dd HH.mm.json", with the time the draft was started.
+        /// </summary>
+        internal static string DraftsFolder => Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", AppFolderName, "Drafts");
+
+        private const int DraftDays = 30;
+        private const string DraftStampFormat = "yyyy-MM-dd HH.mm";
+
+        private static readonly Regex DraftFileName = new(
+            @"^.* draft (?<stamp>\d{4}-\d{2}-\d{2} \d{2}\.\d{2})( \(\d+\))?\.json$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        /// <summary>True when the path is a draft: a file in the drafts folder with a draft's name.</summary>
+        internal static bool IsDraft(string path)
+        {
+            try
+            {
+                return SamePath(Path.GetDirectoryName(Path.GetFullPath(path)), DraftsFolder)
+                       && DraftFileName.IsMatch(Path.GetFileName(path));
+            }
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// The file for a draft named after <paramref name="name"/> (the audio or project file's
+        /// name) that was started at <paramref name="started"/>. While the name stays the same,
+        /// this is <paramref name="current"/>, the file the draft already has; otherwise a file
+        /// that doesn't exist yet.
+        /// </summary>
+        internal static string DraftPath(string name, DateTime started, string? current)
+        {
+            string stem = $"{name} draft {started.ToString(DraftStampFormat, System.Globalization.CultureInfo.InvariantCulture)}";
+            if (current != null)
+            {
+                string currentStem = Path.GetFileNameWithoutExtension(current);
+                if (currentStem.Equals(stem, StringComparison.OrdinalIgnoreCase)
+                    || currentStem.StartsWith(stem + " (", StringComparison.OrdinalIgnoreCase))
+                    return current;
+            }
+            string path = Path.Combine(DraftsFolder, stem + ".json");
+            for (int n = 2; File.Exists(path); n++)
+                path = Path.Combine(DraftsFolder, $"{stem} ({n}).json");
+            return path;
+        }
+
+        /// <summary>The time in a draft's file name (when it was started), or null if it has none.</summary>
+        internal static DateTime? DraftStarted(string path)
+        {
+            var match = DraftFileName.Match(Path.GetFileName(path));
+            return match.Success && DateTime.TryParseExact(match.Groups["stamp"].Value, DraftStampFormat,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out var started)
+                ? started
+                : null;
+        }
+
+        /// <summary>All drafts, the one changed last first.</summary>
+        internal static List<string> Drafts
+        {
+            get
+            {
+                try
+                {
+                    if (Directory.Exists(DraftsFolder))
+                        return Directory.GetFiles(DraftsFolder, "*.json")
+                            .Where(file => DraftFileName.IsMatch(Path.GetFileName(file)))
+                            .OrderByDescending(File.GetLastWriteTimeUtc)
+                            .ToList();
+                }
+                catch { }
+                return [];
+            }
+        }
+
+        /// <summary>
+        /// Deletes drafts that were last changed more than 30 days ago, in the background.
+        /// Only files with a draft's name are touched.
+        /// </summary>
+        internal static void DeleteOldDraftsInBackground()
+        {
+            Task.Run(() =>
+            {
+                DateTime limit = DateTime.UtcNow.AddDays(-DraftDays);
+                foreach (string file in Drafts)
+                {
+                    try
+                    {
+                        if (File.GetLastWriteTimeUtc(file) < limit) File.Delete(file);
+                    }
+                    catch { }
+                }
+            });
+        }
+
+        /// <summary>
+        /// Tells a crash from a normal close. While the app has a draft in use, it keeps a small
+        /// file, "session-&lt;id&gt;.open" in the drafts folder, open and locked; the file holds
+        /// the draft's path. A normal close deletes it (Dispose). After a crash or a power
+        /// failure it is still there, but no longer locked: the next start finds it with
+        /// <see cref="TakeCrashedDrafts"/>. A file that is locked belongs to a copy of the app
+        /// that is running right now.
+        /// </summary>
+        internal sealed class DraftSession : IDisposable
+        {
+            private FileStream? _stream;
+            private string? _file;
+            private string? _draft;
+
+            /// <summary>Notes which draft is in use; null when there is none.</summary>
+            internal void SetDraft(string? draftPath)
+            {
+                if (draftPath == _draft) return;
+                try
+                {
+                    if (_stream == null)
+                    {
+                        if (draftPath == null) return;
+                        Directory.CreateDirectory(DraftsFolder);
+                        _file = Path.Combine(DraftsFolder, $"session-{Guid.NewGuid():N}.open");
+                        _stream = new FileStream(_file, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
+                    }
+                    _stream.SetLength(0);
+                    _stream.Write(Encoding.UTF8.GetBytes(draftPath ?? ""));
+                    _stream.Flush(flushToDisk: true);
+                    _draft = draftPath;
+                }
+                catch { }
+            }
+
+            /// <summary>A normal close: nothing is left for the next start to find.</summary>
+            public void Dispose()
+            {
+                try
+                {
+                    _stream?.Dispose();
+                    if (_file != null) File.Delete(_file);
+                }
+                catch { }
+                _stream = null;
+                _file = null;
+                _draft = null;
+            }
+        }
+
+        /// <summary>
+        /// The drafts that were in use when the app crashed (or the power failed), the one changed
+        /// last first. Each is reported once: the "session-*.open" files that named them are
+        /// deleted. Files of copies of the app that are running now are left alone.
+        /// </summary>
+        internal static List<string> TakeCrashedDrafts()
+        {
+            var result = new List<string>();
+            try
+            {
+                if (!Directory.Exists(DraftsFolder)) return result;
+                foreach (string marker in Directory.GetFiles(DraftsFolder, "session-*.open"))
+                {
+                    string draft;
+                    try
+                    {
+                        using (var stream = new FileStream(marker, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                        using (var reader = new StreamReader(stream, Encoding.UTF8))
+                            draft = reader.ReadToEnd().Trim();
+                        File.Delete(marker);
+                    }
+                    catch (IOException) { continue; }                 // locked: a running copy
+                    catch (UnauthorizedAccessException) { continue; }
+
+                    // Only a real draft: the path comes from a file, so it is not trusted blindly
+                    if (draft.Length > 0 && IsDraft(draft) && File.Exists(draft)
+                        && !result.Contains(draft, StringComparer.OrdinalIgnoreCase))
+                        result.Add(draft);
+                }
+            }
+            catch { }
+            return result.OrderByDescending(File.GetLastWriteTimeUtc).ToList();
+        }
+
+        /// <summary>
+        /// Fills an "Open Draft" menu item with the nine drafts changed last ("1  Song draft
+        /// 2026-11-10 14.32", the number is the access key), then "Open Draft Folder". Call it
+        /// when the menu that holds the item opens.
+        /// </summary>
+        /// <param name="exclude">The draft of the work that is in the window now: not listed.</param>
+        /// <param name="open">Called with the full path of the draft that was clicked.</param>
+        internal static void FillDraftMenu(ToolStripMenuItem menu, bool enabled, string? exclude,
+                                           Action<string> open, Action openFolder)
+        {
+            var drafts = Drafts.Where(path => !SamePath(path, exclude)).Take(MaxRecentProjects).ToList();
+
+            var old = menu.DropDownItems.Cast<ToolStripItem>().ToList();
+            menu.DropDownItems.Clear();
+            foreach (var item in old) item.Dispose();
+
+            menu.Enabled = enabled;
+
+            for (int i = 0; i < drafts.Count; i++)
+            {
+                string path = drafts[i];
+                var item = new ToolStripMenuItem($"&{i + 1}  {Path.GetFileNameWithoutExtension(path).Replace("&", "&&")}")
+                {
+                    ToolTipText = path
+                };
+                item.Click += (_, _) => open(path);
+                menu.DropDownItems.Add(item);
+            }
+            if (drafts.Count == 0)
+                menu.DropDownItems.Add(new ToolStripMenuItem("No Drafts") { Enabled = false });
+
+            menu.DropDownItems.Add(new ToolStripSeparator());
+            menu.DropDownItems.Add("Open Draft Folder", null, (_, _) => openFolder());
+        }
+
         /// <summary>
         /// A long path shortened for the menu: the drive, "...", and as many of the last folders
         /// as fit, e.g. "D:\...\Albums\2026\My Song.json". The file name is always kept whole.
@@ -406,10 +652,15 @@ namespace MP3toMP4
     /// </summary>
     internal class ProjectEnvelope
     {
-        [JsonPropertyOrder(-3)] public string App { get; set; } = "";
-        [JsonPropertyOrder(-2)] public int FormatVersion { get; set; }
+        [JsonPropertyOrder(-4)] public string App { get; set; } = "";
+        [JsonPropertyOrder(-3)] public int FormatVersion { get; set; }
         /// <summary>The version of the app that saved the file (information only).</summary>
-        [JsonPropertyOrder(-1)] public string AppVersion { get; set; } = "";
+        [JsonPropertyOrder(-2)] public string AppVersion { get; set; } = "";
+        /// <summary>
+        /// Only in a draft that holds unsaved changes to a project: the full path of that project.
+        /// Left out of project files and of drafts of work that was never saved as a project.
+        /// </summary>
+        [JsonPropertyOrder(-1)] public string? DraftOf { get; set; }
     }
 
     /// <summary>

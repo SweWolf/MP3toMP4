@@ -399,6 +399,8 @@ last, with the newest first. Click one to open it, or press its number.
 <strong>Clear List</strong> at the bottom empties the list. If a project
 is no longer where it was, you are asked whether to remove it from the
 list. You choose how many projects are shown in <a href="#projects-1">Settings</a>.</li>
+<li><strong>Open Draft</strong>: work that was not saved as a project,
+see <a href="#drafts">Drafts</a>.</li>
 <li><strong>Save Project</strong> (Ctrl+S): saves the project. The first
 time, you are asked for a file name.</li>
 <li><strong>Save Project As…</strong> (Ctrl+Shift+S): saves the project
@@ -411,7 +413,7 @@ see below.</li>
 <li><strong>Exit</strong>: closes MP3 to MP4.</li>
 </ul>
 <p>The title bar shows the name of the open project, for example
-<code>My Song.json (Autosave) - MP3 to MP4</code>.</p>
+<code>MP3 to MP4 - My Song (Autosave)</code>.</p>
 <h3 id="autosave">Autosave</h3>
 <p>With <strong>File &gt; Autosave</strong> checked, every change you
 make to an open project is saved to its file about a second later, and
@@ -419,11 +421,12 @@ the title bar shows <strong>(Autosave)</strong>. You are not asked
 anything when you close the window. Autosave is on from the start.</p>
 <p>With <strong>Autosave</strong> unchecked, the project is only saved
 when you choose <strong>Save Project</strong>. A star after the name in
-the title bar (<code>My Song.json*</code>) means there are changes that
-are not saved, and you are asked whether to save them when you close the
+the title bar (<code>My Song*</code>) means there are changes that are
+not saved, and you are asked whether to save them when you close the
 window, open another project or choose <strong>New Project</strong>.</p>
-<p>Work that has not been saved as a project yet is never saved by
-itself, and you are never asked about it.</p>
+<p>Work that has not been saved as a project yet is never written to a
+project file by itself, and you are never asked about it. It is kept as
+a <a href="#drafts">draft</a> instead.</p>
 <p>To try something out without changing your project, uncheck
 <strong>Autosave</strong> first, or make a copy with <strong>Save
 Project As…</strong> and try it there. If you changed the project by
@@ -440,6 +443,34 @@ are deleted automatically after 30 days.</p>
 copies are normal project files: open one with <strong>Open
 Project…</strong>, and use <strong>Save Project As…</strong> to put it
 back where you want it.</p>
+<h3 id="drafts">Drafts</h3>
+<p>While you work, MP3 to MP4 keeps a draft of everything that is not
+saved in a project file. It is written about a second after each change,
+to <code>%AppData%\SweWolfSoftware\MP3toMP4\Drafts</code>, with a name
+like <code>My Song draft 2026-11-10 14.32.json</code>: the name of the
+audio file and the time you started. You don’t have to do anything for
+this.</p>
+<ul>
+<li><strong>Work that was never saved as a project</strong> keeps its
+draft when you close the window or click <strong>Clear</strong>, so you
+can continue later. When you save the work as a project, the draft is
+deleted, because the project file takes over.</li>
+<li><strong>A project with unsaved changes</strong> (only possible with
+<strong>Autosave</strong> unchecked) has a draft of those changes until
+you save or drop them.</li>
+</ul>
+<p><strong>File &gt; Open Draft</strong> lists the nine drafts that were
+changed last, with the newest first. Click one to get that work back in
+the window. It is still not a project: use <strong>Save Project</strong>
+if you want to keep it. <strong>Open Draft Folder</strong> at the bottom
+of the list opens the folder with all the drafts. Drafts are deleted
+automatically 30 days after they were last changed.</p>
+<p><strong>After a crash:</strong> if MP3 to MP4 was not closed
+properly, for example because of a power failure, the next start asks
+whether you want to continue with the draft you were working on. If you
+answer <strong>No</strong>, the draft stays under <strong>File &gt; Open
+Draft</strong>. The question is not asked when you start the program
+with a file, and you can turn it off in <a href="#projects-1">Settings</a>.</p>
 <h3 id="the-project-file">The Project File</h3>
 <p>A project file is a text file in the JSON format, so you can look at
 it in a text editor or a web browser. Its name ends with
@@ -544,6 +575,10 @@ does not exist yet, you are asked whether to create it when you click
 folder of that project instead.</li>
 <li><strong>Autosave Projects</strong>: the same switch as <strong>File
 &gt; Autosave</strong>.</li>
+<li><strong>Ask to Restore a Draft After a Crash</strong>: when checked,
+a start after a crash asks whether to continue with the <a href="#drafts">draft</a> you were working on. When unchecked, it never
+asks; the draft is still listed under <strong>File &gt; Open
+Draft</strong>.</li>
 <li><strong>Recent Projects to Show</strong>: how many projects
 <strong>File &gt; Recent Projects</strong> lists, from 0 to 9. With 0
 the menu item is hidden. The last nine projects are always remembered,

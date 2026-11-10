@@ -315,6 +315,7 @@ The commands are in the **File** menu:
   open it, or press its number. **Clear List** at the bottom empties the list. If a project is no
   longer where it was, you are asked whether to remove it from the list. You choose how many
   projects are shown in [Settings](#projects-1).
+- **Open Draft**: work that was not saved as a project, see [Drafts](#drafts).
 - **Save Project** (Ctrl+S): saves the project. The first time, you are asked for a file name.
 - **Save Project As...** (Ctrl+Shift+S): saves the project under another name. You then continue
   in the new file, and the old one stays as it is.
@@ -323,7 +324,7 @@ The commands are in the **File** menu:
 - **Autosave** and **Open Backup Folder**: see below.
 - **Exit**: closes MP3 to MP4.
 
-The title bar shows the name of the open project, for example `My Song.json (Autosave) - MP3 to MP4`.
+The title bar shows the name of the open project, for example `MP3 to MP4 - My Song (Autosave)`.
 
 ### Autosave
 
@@ -332,12 +333,12 @@ about a second later, and the title bar shows **(Autosave)**. You are not asked 
 close the window. Autosave is on from the start.
 
 With **Autosave** unchecked, the project is only saved when you choose **Save Project**. A star
-after the name in the title bar (`My Song.json*`) means there are changes that are not saved, and
+after the name in the title bar (`My Song*`) means there are changes that are not saved, and
 you are asked whether to save them when you close the window, open another project or choose
 **New Project**.
 
-Work that has not been saved as a project yet is never saved by itself, and you are never asked
-about it.
+Work that has not been saved as a project yet is never written to a project file by itself, and you
+are never asked about it. It is kept as a [draft](#drafts) instead.
 
 To try something out without changing your project, uncheck **Autosave** first, or make a copy with
 **Save Project As...** and try it there. If you changed the project by mistake, use
@@ -352,6 +353,29 @@ example `My Song 2026-11-09 14.32.json`. The same happens to a file that you rep
 
 **File > Open Backup Folder** opens that folder. The copies are normal project files: open one
 with **Open Project...**, and use **Save Project As...** to put it back where you want it.
+
+### Drafts
+
+While you work, MP3 to MP4 keeps a draft of everything that is not saved in a project file. It is
+written about a second after each change, to `%AppData%\SweWolfSoftware\MP3toMP4\Drafts`, with a
+name like `My Song draft 2026-11-10 14.32.json`: the name of the audio file and the time you
+started. You don't have to do anything for this.
+
+- **Work that was never saved as a project** keeps its draft when you close the window or click
+  **Clear**, so you can continue later. When you save the work as a project, the draft is deleted,
+  because the project file takes over.
+- **A project with unsaved changes** (only possible with **Autosave** unchecked) has a draft of
+  those changes until you save or drop them.
+
+**File > Open Draft** lists the nine drafts that were changed last, with the newest first. Click
+one to get that work back in the window. It is still not a project: use **Save Project** if you
+want to keep it. **Open Draft Folder** at the bottom of the list opens the folder with all the
+drafts. Drafts are deleted automatically 30 days after they were last changed.
+
+**After a crash:** if MP3 to MP4 was not closed properly, for example because of a power failure,
+the next start asks whether you want to continue with the draft you were working on. If you
+answer **No**, the draft stays under **File > Open Draft**. The question is not asked when you
+start the program with a file, and you can turn it off in [Settings](#projects-1).
 
 ### The Project File
 
@@ -450,6 +474,9 @@ It is not used for MKV files, which always keep the full quality.
   whether to create it when you click **OK**. While a project is open, both commands start in
   the folder of that project instead.
 - **Autosave Projects**: the same switch as **File > Autosave**.
+- **Ask to Restore a Draft After a Crash**: when checked, a start after a crash asks whether to
+  continue with the [draft](#drafts) you were working on. When unchecked, it never asks; the draft
+  is still listed under **File > Open Draft**.
 - **Recent Projects to Show**: how many projects **File > Recent Projects** lists, from 0 to 9.
   With 0 the menu item is hidden. The last nine projects are always remembered, so if you
   choose a higher number later, the older ones are shown again.

@@ -27,6 +27,14 @@ namespace MP3toMP4
         private bool _autosaveErrorShown;
         private string? _startupProject;
 
+        // The draft of the work in the window (see the Drafts section): its file, when it was
+        // started (part of the file name) and what was written last. All null while the work
+        // needs no draft, because it is empty or safely in its project file.
+        private string? _draftPath;
+        private DateTime? _draftStarted;
+        private string? _draftJson;
+        private readonly ProjectFiles.DraftSession _draftSession = new();
+
         // Restarted by every change; when it fires, the window has been left alone for a moment
         private readonly System.Windows.Forms.Timer _projectTimer = new() { Interval = 1000 };
 
@@ -85,6 +93,7 @@ namespace MP3toMP4
             menuAutosave.Checked = AutosaveOn;
 
             ProjectFiles.DeleteOldBackupsInBackground();
+            ProjectFiles.DeleteOldDraftsInBackground();
         }
 
         private void UpdateFileMenu()
@@ -96,6 +105,8 @@ namespace MP3toMP4
                                          && CaptureState() != _openedState;
             menuAutosave.Checked = AutosaveOn;
             UpdateRecentProjectsMenu();
+            // The draft of the work that is in the window now is not listed
+            ProjectFiles.FillDraftMenu(menuOpenDraft, enabled: idle, exclude: _draftPath, OpenDraft, OpenDraftFolder);
         }
 
         /// <summary>
@@ -130,14 +141,15 @@ namespace MP3toMP4
 
         private void ProjectChanged()
         {
-            if (_applyingProject || _projectPath == null) return;
+            if (_applyingProject) return;
             _projectTimer.Stop();
             _projectTimer.Start();
         }
 
         /// <summary>
         /// With Autosave on, writes the project file if the window no longer matches it.
-        /// Then shows the state in the title bar.
+        /// What is then still not in a project file goes to the draft. Last, the state is shown
+        /// in the title bar.
         /// </summary>
         private void CheckProjectChanges()
         {
@@ -145,13 +157,202 @@ namespace MP3toMP4
             if (_projectPath != null && AutosaveOn && !grdFiles.IsCurrentCellInEditMode
                 && CaptureState() != _savedState)
                 SaveProjectTo(_projectPath, automatic: true);
+            UpdateDraft();
             UpdateTitle();
         }
 
+        // ----- Drafts -----
+        // A draft is written by the program itself, a moment after every change, for work that is
+        // not safely in a project file: work that was never saved as a project, and a project
+        // with unsaved changes (Autosave off, or the project file could not be written). It is a
+        // normal project file in ProjectFiles.DraftsFolder.
+        //  - Work without a project keeps its draft when the window is closed or emptied, so it
+        //    can be continued later with File > Open Draft. Saving it as a project deletes it.
+        //  - A draft of a project's unsaved changes only outlives a crash: it is deleted when the
+        //    changes are saved or deliberately dropped ("No" to "Do you want to save the changes?").
+        //  - After a crash, the next start offers the draft that was in use (AskToRestoreCrashedDraft).
+        // Problems with drafts are never shown: a draft is a safety net, not the user's own file.
+
+        /// <summary>There is something in the window that would be work to fill in again.</summary>
+        private bool HasWork =>
+            txtMP3File.Text.Trim().Length > 0
+            || cboImageFile.Text.Trim().Length > 0
+            || GetGridDataRows().Count > 0
+            || (radText.Checked && txtVideoText.Text.Trim().Length > 0);
+
+        /// <summary>Writes the draft if the window changed since it was written; deletes it when none is needed.</summary>
+        private void UpdateDraft()
+        {
+            if (_applyingProject) return;
+            try
+            {
+                bool needed = _projectPath == null ? HasWork : CaptureState() != _savedState;
+                if (!needed)
+                {
+                    DeleteDraft();
+                    return;
+                }
+
+                var data = CaptureProject(Path.GetDirectoryName(_projectPath));
+                data.DraftOf = _projectPath;
+                string json = ProjectFiles.Serialize(data);
+                if (json == _draftJson && _draftPath != null && File.Exists(_draftPath)) return;
+
+                // Named after the project or the audio file; the name follows if another audio file is chosen
+                _draftStarted ??= DateTime.Now;
+                string name = _projectPath != null
+                    ? ProjectFiles.ProjectName(_projectPath, AppSettings.ProjectFileExtension)
+                    : SafeFileNameWithoutExtension(txtMP3File.Text.Trim());
+                string path = ProjectFiles.DraftPath(name, _draftStarted.Value, _draftPath);
+
+                Directory.CreateDirectory(ProjectFiles.DraftsFolder);
+                ProjectFiles.WriteAtomic(path, json);
+                if (_draftPath != null && !ProjectFiles.SamePath(path, _draftPath))
+                    try { File.Delete(_draftPath); } catch { }
+
+                _draftPath = path;
+                _draftJson = json;
+                _draftSession.SetDraft(path);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException
+                                           or NotSupportedException or System.Security.SecurityException)
+            {
+                // No draft this time; the next change tries again
+            }
+        }
+
+        private void DeleteDraft()
+        {
+            if (_draftPath != null)
+                try { File.Delete(_draftPath); } catch { }
+            ForgetDraft();
+        }
+
+        private void ForgetDraft()
+        {
+            _draftPath = null;
+            _draftStarted = null;
+            _draftJson = null;
+            _draftSession.SetDraft(null);
+        }
+
         /// <summary>
-        /// "Song.json (Autosave) - MP3 to MP4" with Autosave on, "Song.json* - MP3 to MP4" with
-        /// unsaved changes, and just "MP3 to MP4" when no project is open. The project's name
-        /// comes first, so it stays readable when the taskbar cuts the text.
+        /// Called just before the work in the window is replaced (New, Open) or the window closes.
+        /// Work without a project: its draft gets the latest changes and stays behind. A project:
+        /// it was just saved or its changes were dropped, so its draft goes.
+        /// </summary>
+        private void LeaveDraft()
+        {
+            if (_projectPath != null)
+            {
+                DeleteDraft();
+                return;
+            }
+            UpdateDraft();
+            ForgetDraft();
+        }
+
+        /// <summary>File > Open Draft: one of the listed drafts.</summary>
+        private void OpenDraft(string path)
+        {
+            if (IsBusy) return;
+            if (!File.Exists(path))
+            {
+                MessageBox.Show(this, $"The draft \"{Path.GetFileName(path)}\" was not found.", AppTitle,
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (!ConfirmLeaveProject()) return;
+            UpdateTitle();   // the changes were just saved
+            OpenDraftFile(path);
+        }
+
+        /// <summary>
+        /// Puts a draft back in the window and goes on working in that same draft. A draft of
+        /// work without a project comes back as work without a project. A draft of a project's
+        /// unsaved changes opens that project with the changes on top, still unsaved.
+        /// </summary>
+        private bool OpenDraftFile(string path)
+        {
+            var data = ProjectFiles.Load<ProjectData>(path, out string error);
+            if (data == null)
+            {
+                MessageBox.Show(this, error, AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            string? project = data.DraftOf;
+            if (!string.IsNullOrWhiteSpace(project) && File.Exists(project) && !ProjectFiles.IsDraft(project))
+            {
+                if (!LoadProjectFile(project, showMissingFiles: false)) return false;
+                ApplyProject(data, Path.GetDirectoryName(project));
+            }
+            else
+            {
+                LeaveDraft();
+                _projectTimer.Stop();
+                _projectPath = null;
+                _openedData = null;
+                _backupPending = false;
+                ApplyProject(data, null);
+            }
+
+            _draftPath = path;
+            _draftStarted = ProjectFiles.DraftStarted(path);
+            _draftJson = null;
+            _draftSession.SetDraft(path);
+
+            CheckProjectChanges();
+            ShowMissingFiles();
+            return true;
+        }
+
+        private void OpenDraftFolder()
+        {
+            try
+            {
+                // Created if missing, so the right folder opens (empty before the first draft)
+                Directory.CreateDirectory(ProjectFiles.DraftsFolder);
+                FolderOpener.Open(ProjectFiles.DraftsFolder);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Could not open the folder.\n\n{ex.Message}", AppTitle,
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        /// <summary>
+        /// At start-up, without a start argument: if the program was not closed properly the
+        /// last time (a crash, a power failure), offers the draft that was in use then. Asked
+        /// once; "No" leaves the draft under File > Open Draft. Settings > Projects can turn
+        /// the question off.
+        /// </summary>
+        private void AskToRestoreCrashedDraft()
+        {
+            var crashed = ProjectFiles.TakeCrashedDrafts();
+            if (crashed.Count == 0 || AppSettings.RestoreDraftAfterCrash != "Yes") return;
+
+            string draft = crashed[0];
+            if (MessageBox.Show(this,
+                    $"{AppTitle} was not closed properly the last time.\n\n" +
+                    $"Do you want to continue with the draft \"{Path.GetFileNameWithoutExtension(draft)}\"?\n\n" +
+                    "If you choose No, you can still open it later with File > Open Draft.",
+                    AppTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                OpenDraftFile(draft);
+        }
+
+        /// <summary>The window is closing normally: the draft is finished and nothing is left for the next start to ask about.</summary>
+        private void EndDraftSession()
+        {
+            LeaveDraft();
+            _draftSession.Dispose();
+        }
+
+        /// <summary>
+        /// "MP3 to MP4 - Song (Autosave)" with Autosave on, "MP3 to MP4 - Song*" with unsaved
+        /// changes, and just "MP3 to MP4" when no project is open. The app's name comes first
+        /// and the project's name has no extension (the user's choices, 2026-11-10).
         /// </summary>
         private void UpdateTitle()
         {
@@ -160,7 +361,9 @@ namespace MP3toMP4
             {
                 string unsaved = CaptureState() != _savedState ? "*" : "";
                 string autosave = AutosaveOn ? " (Autosave)" : "";
-                title = $"{Path.GetFileName(_projectPath)}{unsaved}{autosave} - {AppTitle}";
+                // Without the extension (.json, .mp3tomp4.json, ...): it says nothing here
+                string name = ProjectFiles.ProjectName(_projectPath, AppSettings.ProjectFileExtension);
+                title = $"{AppTitle} - {name}{unsaved}{autosave}";
             }
             if (Text != title) Text = title;
         }
@@ -313,9 +516,13 @@ namespace MP3toMP4
         /// Opens a project file in the window. Returns false, after telling why, when the file
         /// is not a project of this app or can't be read; the window is then left as it was.
         /// </summary>
-        private bool LoadProjectFile(string path)
+        private bool LoadProjectFile(string path, bool showMissingFiles = true)
         {
             try { path = Path.GetFullPath(path); } catch { }
+
+            // A draft (e.g. picked in Open Project, or given as the start argument) is opened as a
+            // draft, not as a project that lives in the drafts folder
+            if (ProjectFiles.IsDraft(path)) return OpenDraftFile(path);
 
             var data = ProjectFiles.Load<ProjectData>(path, out string error);
             if (data == null)
@@ -330,6 +537,7 @@ namespace MP3toMP4
                     "does not know are ignored, and they are removed from the file when it is saved here.",
                     AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
+            LeaveDraft();
             _projectTimer.Stop();
             _projectPath = path;
             _openedData = data;
@@ -339,7 +547,7 @@ namespace MP3toMP4
             _savedState = _openedState = CaptureState();
             ProjectFiles.AddRecentProject(path);
             UpdateTitle();
-            ShowMissingFiles();
+            if (showMissingFiles) ShowMissingFiles();
             return true;
         }
 
@@ -413,6 +621,7 @@ namespace MP3toMP4
             _projectPath = path;
             _savedState = CaptureState();
             _autosaveErrorShown = false;
+            UpdateDraft();   // the work is in its project file now: the draft goes
             return true;
         }
 
@@ -457,6 +666,7 @@ namespace MP3toMP4
         {
             if (IsBusy || !ConfirmLeaveProject()) return;
 
+            LeaveDraft();   // work without a project stays behind as a draft (File > Open Draft)
             _projectTimer.Stop();
             _projectPath = null;
             _openedData = null;

@@ -436,5 +436,50 @@ namespace MP3toMP4
         }
 
         // The list of recent projects itself is kept by ProjectFiles.cs (recent-projects.txt).
+
+        // -------------------------------------------------------------------------
+        // Projects: after a crash, ask at the next start whether to continue with
+        // the draft that was in use: "Yes" (default) | "No". Not asked when the app
+        // is started with a file.
+        // -------------------------------------------------------------------------
+
+        private static readonly string RestoreDraftAfterCrashFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", "MP3toMP4", "restore-draft-after-crash.txt");
+
+        private static string? _cachedRestoreDraftAfterCrash;
+
+        public static string RestoreDraftAfterCrash
+        {
+            get
+            {
+                if (_cachedRestoreDraftAfterCrash != null) return _cachedRestoreDraftAfterCrash;
+                try
+                {
+                    if (File.Exists(RestoreDraftAfterCrashFile))
+                    {
+                        string v = File.ReadAllText(RestoreDraftAfterCrashFile, System.Text.Encoding.UTF8).Trim();
+                        if (v == "Yes" || v == "No")
+                        {
+                            _cachedRestoreDraftAfterCrash = v;
+                            return v;
+                        }
+                    }
+                }
+                catch { }
+                _cachedRestoreDraftAfterCrash = "Yes";
+                return _cachedRestoreDraftAfterCrash;
+            }
+            set
+            {
+                _cachedRestoreDraftAfterCrash = value;
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(RestoreDraftAfterCrashFile)!);
+                    File.WriteAllText(RestoreDraftAfterCrashFile, value, System.Text.Encoding.UTF8);
+                }
+                catch { /* never crash the host app */ }
+            }
+        }
     }
 }

@@ -90,6 +90,7 @@
             menuNewProject = new ToolStripMenuItem();
             menuOpenProject = new ToolStripMenuItem();
             menuRecentProjects = new ToolStripMenuItem();
+            menuOpenDraft = new ToolStripMenuItem();
             menuFileSeparator1 = new ToolStripSeparator();
             menuSaveProject = new ToolStripMenuItem();
             menuSaveProjectAs = new ToolStripMenuItem();
@@ -724,7 +725,7 @@
             //
             // menuFile
             //
-            menuFile.DropDownItems.AddRange(new ToolStripItem[] { menuNewProject, menuOpenProject, menuRecentProjects, menuFileSeparator1, menuSaveProject, menuSaveProjectAs, menuUndoAllChanges, menuFileSeparator2, menuAutosave, menuOpenBackupFolder, menuFileSeparator3, menuExit });
+            menuFile.DropDownItems.AddRange(new ToolStripItem[] { menuNewProject, menuOpenProject, menuRecentProjects, menuOpenDraft, menuFileSeparator1, menuSaveProject, menuSaveProjectAs, menuUndoAllChanges, menuFileSeparator2, menuAutosave, menuOpenBackupFolder, menuFileSeparator3, menuExit });
             menuFile.Name = "menuFile";
             menuFile.Size = new Size(37, 20);
             menuFile.Text = "File";
@@ -749,6 +750,12 @@
             menuRecentProjects.Name = "menuRecentProjects";
             menuRecentProjects.Size = new Size(232, 22);
             menuRecentProjects.Text = "Recent Projects";
+            //
+            // menuOpenDraft
+            //
+            menuOpenDraft.Name = "menuOpenDraft";
+            menuOpenDraft.Size = new Size(232, 22);
+            menuOpenDraft.Text = "Open Draft";
             //
             // menuFileSeparator1
             //
@@ -993,6 +1000,7 @@
         private ToolStripMenuItem menuNewProject;
         private ToolStripMenuItem menuOpenProject;
         private ToolStripMenuItem menuRecentProjects;
+        private ToolStripMenuItem menuOpenDraft;
         private ToolStripSeparator menuFileSeparator1;
         private ToolStripMenuItem menuSaveProject;
         private ToolStripMenuItem menuSaveProjectAs;

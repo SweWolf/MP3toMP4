@@ -155,6 +155,20 @@ namespace MP3toMP4
         // Caption for the app's message boxes (same as the window title)
         internal const string AppTitle = "MP3 to MP4";
 
+        // Pictures pasted from the clipboard or dragged from a web browser. A project or draft can
+        // point to them, so they are the user's data: kept under Roaming, like the projects.
+        // (Until 2026-11-10 they were written to a folder called "Temp" next to this one; pictures
+        // that are still there keep working, the folder is just not written to any more.)
+        private static string PicturesFolder => Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", "MP3toMP4", "Pictures");
+
+        // Pictures taken out of an audio file's tags ("Use Image from the Audio File"). The app can
+        // make them again at any time, so this is a cache: kept under Local, not Roaming.
+        private static string ArtworkCacheFolder => Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "SweWolfSoftware", "MP3toMP4", "ArtworkCache");
+
         private Process? _ffmpegProcess;
         private bool _cancelRequested;
         private string? _lastLogFile;
@@ -556,9 +570,7 @@ namespace MP3toMP4
                 string ext = Path.GetExtension(new Uri(url).LocalPath).ToLowerInvariant();
                 if (!ImageExtensions.Contains(ext)) ext = ".jpg";
 
-                string tempDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "SweWolfSoftware", "MP3toMP4", "Temp");
+                string tempDir = PicturesFolder;
                 Directory.CreateDirectory(tempDir);
 
                 string tempFile = Path.Combine(tempDir, $"drag_{DateTime.Now:yyyyMMdd_HHmmss}{ext}");
@@ -595,9 +607,7 @@ namespace MP3toMP4
                 using var img = Clipboard.GetImage();
                 if (img == null) return;
 
-                string tempDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "SweWolfSoftware", "MP3toMP4", "Temp");
+                string tempDir = PicturesFolder;
                 Directory.CreateDirectory(tempDir);
 
                 string tempFile = Path.Combine(tempDir, $"paste_{DateTime.Now:yyyyMMdd_HHmmss}.png");
@@ -929,9 +939,7 @@ namespace MP3toMP4
                     _ => ".jpg"
                 };
 
-                string tempDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "SweWolfSoftware", "MP3toMP4", "Temp");
+                string tempDir = ArtworkCacheFolder;
                 Directory.CreateDirectory(tempDir);
 
                 string baseName = Path.GetFileNameWithoutExtension(mp3Path);
@@ -2059,6 +2067,10 @@ namespace MP3toMP4
                 _startupProject = null;
                 LoadProjectFile(path);
             }
+            // Started without a file: after a crash, offer the draft that was in use. Not when a
+            // file was given: the user is then starting on something else.
+            else if (Environment.GetCommandLineArgs().Length <= 1)
+                AskToRestoreCrashedDraft();
         }
 
         /// <summary>
@@ -2159,6 +2171,9 @@ namespace MP3toMP4
                 string mp4 = txtMP4File.Text.Trim();
                 try { if (File.Exists(mp4)) File.Delete(mp4); } catch { }
             }
+
+            // A normal close: the draft gets the latest changes, and the next start has nothing to ask
+            EndDraftSession();
 
             base.OnFormClosing(e);
         }

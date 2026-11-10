@@ -37,6 +37,7 @@ namespace MP3toMP4
             cboActionWhenFinished = new ComboBox();
             lblAction = new Label();
             grpProjects = new GroupBox();
+            chkRestoreDraft = new CheckBox();
             numRecentProjects = new NumericUpDown();
             lblRecentProjects = new Label();
             chkAutosaveProjects = new CheckBox();
@@ -288,6 +289,7 @@ namespace MP3toMP4
             //
             // grpProjects
             //
+            grpProjects.Controls.Add(chkRestoreDraft);
             grpProjects.Controls.Add(numRecentProjects);
             grpProjects.Controls.Add(lblRecentProjects);
             grpProjects.Controls.Add(chkAutosaveProjects);
@@ -299,7 +301,7 @@ namespace MP3toMP4
             grpProjects.Controls.Add(lblProjectExtension);
             grpProjects.Location = new Point(534, 228);
             grpProjects.Name = "grpProjects";
-            grpProjects.Size = new Size(510, 246);
+            grpProjects.Size = new Size(510, 271);
             grpProjects.TabIndex = 5;
             grpProjects.TabStop = false;
             grpProjects.Text = "Projects";
@@ -378,21 +380,35 @@ namespace MP3toMP4
                 "This is the same switch as File > Autosave. Before an opened project is changed for the first\n" +
                 "time, a copy of it is kept for 30 days (File > Open Backup Folder).");
             //
+            // chkRestoreDraft
+            //
+            chkRestoreDraft.AutoSize = true;
+            chkRestoreDraft.Location = new Point(10, 181);
+            chkRestoreDraft.Name = "chkRestoreDraft";
+            chkRestoreDraft.TabIndex = 7;
+            chkRestoreDraft.Text = "Ask to Restore a &Draft After a Crash";
+            chkRestoreDraft.UseVisualStyleBackColor = true;
+            toolTip.SetToolTip(chkRestoreDraft,
+                "While you work, MP3 to MP4 keeps a draft of everything that is not saved in a project file.\n" +
+                "Checked: if the program was not closed properly (a crash or a power failure), the next start\n" +
+                "asks whether to continue with that draft. It does not ask when the program is started with a file.\n" +
+                "Unchecked: it never asks. The draft is still listed under File > Open Draft.");
+            //
             // lblRecentProjects
             //
             lblRecentProjects.AutoSize = true;
-            lblRecentProjects.Location = new Point(10, 188);
+            lblRecentProjects.Location = new Point(10, 213);
             lblRecentProjects.Name = "lblRecentProjects";
-            lblRecentProjects.TabIndex = 7;
+            lblRecentProjects.TabIndex = 8;
             lblRecentProjects.Text = "&Recent Projects to Show";
             //
             // numRecentProjects
             //
-            numRecentProjects.Location = new Point(10, 206);
+            numRecentProjects.Location = new Point(10, 231);
             numRecentProjects.Maximum = new decimal(new int[] { 9, 0, 0, 0 });
             numRecentProjects.Name = "numRecentProjects";
             numRecentProjects.Size = new Size(60, 23);
-            numRecentProjects.TabIndex = 8;
+            numRecentProjects.TabIndex = 9;
             toolTip.SetToolTip(numRecentProjects,
                 "How many of the projects you opened or saved last are listed under File > Recent Projects (0 to 9).\n" +
                 "0 hides that menu item. The last nine projects are always remembered, so a higher number\n" +
@@ -401,7 +417,7 @@ namespace MP3toMP4
             // btnOK
             //
             btnOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnOK.Location = new Point(828, 486);
+            btnOK.Location = new Point(828, 511);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(105, 27);
             btnOK.TabIndex = 6;
@@ -413,7 +429,7 @@ namespace MP3toMP4
             //
             btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnCancel.DialogResult = DialogResult.Cancel;
-            btnCancel.Location = new Point(939, 486);
+            btnCancel.Location = new Point(939, 511);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(105, 27);
             btnCancel.TabIndex = 7;
@@ -427,7 +443,7 @@ namespace MP3toMP4
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new Size(1056, 525);
+            ClientSize = new Size(1056, 550);
             ControlBox = false;
             Controls.Add(grpUpdate);
             Controls.Add(grpOutputFolder);
@@ -490,6 +506,7 @@ namespace MP3toMP4
         private Label lblDefaultProjectFolderHint;
         private Button btnBrowseDefaultProjectFolder;
         private CheckBox chkAutosaveProjects;
+        private CheckBox chkRestoreDraft;
         private Label lblRecentProjects;
         private NumericUpDown numRecentProjects;
         private Button btnOK;

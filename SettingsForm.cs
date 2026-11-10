@@ -66,6 +66,7 @@ namespace MP3toMP4
                 + SystemInformation.VerticalScrollBarWidth);
             cboDefaultProjectFolder.Text = AppSettings.DefaultProjectFolder;
             chkAutosaveProjects.Checked = AppSettings.AutosaveProjects == "Yes";
+            chkRestoreDraft.Checked = AppSettings.RestoreDraftAfterCrash == "Yes";
             numRecentProjects.Value = AppSettings.RecentProjectsToShow;
         }
 
@@ -217,6 +218,7 @@ namespace MP3toMP4
             AppSettings.ProjectFileExtension = projectExtension;
             AppSettings.DefaultProjectFolder = projectFolder;
             AppSettings.AutosaveProjects = chkAutosaveProjects.Checked ? "Yes" : "No";
+            AppSettings.RestoreDraftAfterCrash = chkRestoreDraft.Checked ? "Yes" : "No";
             AppSettings.RecentProjectsToShow = (int)numRecentProjects.Value;
             AppSettings.CheckForUpdatesOnStartup = cboNewVersionCheck.SelectedItem?.ToString() ?? "Yes";
             AppSettings.DefaultOutputFolder = txtDefaultOutputFolder.Text.Trim();
