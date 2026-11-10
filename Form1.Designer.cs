@@ -89,6 +89,7 @@
             menuFile = new ToolStripMenuItem();
             menuNewProject = new ToolStripMenuItem();
             menuOpenProject = new ToolStripMenuItem();
+            menuRecentProjects = new ToolStripMenuItem();
             menuFileSeparator1 = new ToolStripSeparator();
             menuSaveProject = new ToolStripMenuItem();
             menuSaveProjectAs = new ToolStripMenuItem();
@@ -723,7 +724,7 @@
             //
             // menuFile
             //
-            menuFile.DropDownItems.AddRange(new ToolStripItem[] { menuNewProject, menuOpenProject, menuFileSeparator1, menuSaveProject, menuSaveProjectAs, menuUndoAllChanges, menuFileSeparator2, menuAutosave, menuOpenBackupFolder, menuFileSeparator3, menuExit });
+            menuFile.DropDownItems.AddRange(new ToolStripItem[] { menuNewProject, menuOpenProject, menuRecentProjects, menuFileSeparator1, menuSaveProject, menuSaveProjectAs, menuUndoAllChanges, menuFileSeparator2, menuAutosave, menuOpenBackupFolder, menuFileSeparator3, menuExit });
             menuFile.Name = "menuFile";
             menuFile.Size = new Size(37, 20);
             menuFile.Text = "File";
@@ -742,6 +743,12 @@
             menuOpenProject.Size = new Size(232, 22);
             menuOpenProject.Text = "Open Project...";
             menuOpenProject.Click += menuOpenProject_Click;
+            //
+            // menuRecentProjects
+            //
+            menuRecentProjects.Name = "menuRecentProjects";
+            menuRecentProjects.Size = new Size(232, 22);
+            menuRecentProjects.Text = "Recent Projects";
             //
             // menuFileSeparator1
             //
@@ -985,6 +992,7 @@
         private ToolStripMenuItem menuFile;
         private ToolStripMenuItem menuNewProject;
         private ToolStripMenuItem menuOpenProject;
+        private ToolStripMenuItem menuRecentProjects;
         private ToolStripSeparator menuFileSeparator1;
         private ToolStripMenuItem menuSaveProject;
         private ToolStripMenuItem menuSaveProjectAs;

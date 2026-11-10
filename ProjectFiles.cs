@@ -14,7 +14,9 @@ namespace MP3toMP4
     ///   - file references that are stored both absolute and relative to the project file,
     ///   - reading (with the "app" check) and crash-safe writing,
     ///   - backup copies under %APPDATA%\SweWolfSoftware\&lt;app&gt;\Backups\, deleted after 30 days,
-    ///   - checking a file extension typed in Settings.
+    ///   - checking a file extension typed in Settings,
+    ///   - the list of recent projects (recent-projects.txt in the app's %APPDATA% folder) and
+    ///     the File > Recent Projects menu that shows it.
     /// What a project contains is app-specific: a class that derives from ProjectEnvelope
     /// (ProjectData.cs in MP3toMP4).
     ///
@@ -25,6 +27,8 @@ namespace MP3toMP4
     ///
     /// History:
     ///   2026-11-09  Created for File > Save Project / Open Project in MP3toMP4.
+    ///   2026-11-09  Added the list of recent projects (the last nine are kept) and
+    ///               FillRecentMenu for File > Recent Projects.
     /// </summary>
     internal static class ProjectFiles
     {
@@ -255,6 +259,134 @@ namespace MP3toMP4
                 return string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase);
             }
             catch { return false; }
+        }
+
+        // ----- Recent projects -----
+
+        /// <summary>
+        /// How many recent projects are remembered. The menu may show fewer (a setting of the
+        /// app, 0 to this number), but the last nine are always kept, so raising that setting
+        /// brings older ones back.
+        /// </summary>
+        internal const int MaxRecentProjects = 9;
+
+        private static string RecentProjectsFile => Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", AppFolderName, "recent-projects.txt");
+
+        /// <summary>
+        /// The projects opened or saved last, newest first: one full path per line in the file.
+        /// Read from the file every time (not cached), so two running copies of the app don't
+        /// overwrite each other's entries. Errors are ignored: the list is only a convenience.
+        /// </summary>
+        internal static List<string> RecentProjects
+        {
+            get
+            {
+                try
+                {
+                    if (File.Exists(RecentProjectsFile))
+                        return File.ReadAllLines(RecentProjectsFile, Encoding.UTF8)
+                            .Select(line => line.Trim())
+                            .Where(line => line.Length > 0)
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .Take(MaxRecentProjects)
+                            .ToList();
+                }
+                catch { }
+                return [];
+            }
+            private set
+            {
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(RecentProjectsFile)!);
+                    File.WriteAllLines(RecentProjectsFile, value.Take(MaxRecentProjects),
+                        new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+                }
+                catch { }
+            }
+        }
+
+        /// <summary>Puts a project first in the list of recent projects.</summary>
+        internal static void AddRecentProject(string path)
+        {
+            var list = RecentProjects;
+            list.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
+            list.Insert(0, path);
+            RecentProjects = list;
+        }
+
+        internal static void RemoveRecentProject(string path)
+        {
+            var list = RecentProjects;
+            if (list.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase)) > 0)
+                RecentProjects = list;
+        }
+
+        internal static void ClearRecentProjects() => RecentProjects = [];
+
+        /// <summary>
+        /// Fills a "Recent Projects" menu item with the newest <paramref name="show"/> projects
+        /// ("1  D:\Music\Song.json", the number is the access key) and "Clear List". Call it when
+        /// the menu that holds the item opens. With <paramref name="show"/> = 0 the item is
+        /// hidden; with an empty list, or <paramref name="enabled"/> false, it is grayed out.
+        /// </summary>
+        /// <param name="open">Called with the full path of the project that was clicked.</param>
+        internal static void FillRecentMenu(ToolStripMenuItem menu, int show, bool enabled, Action<string> open)
+        {
+            var recent = RecentProjects.Take(Math.Clamp(show, 0, MaxRecentProjects)).ToList();
+
+            var old = menu.DropDownItems.Cast<ToolStripItem>().ToList();
+            menu.DropDownItems.Clear();
+            foreach (var item in old) item.Dispose();
+
+            menu.Visible = show > 0;
+            menu.Enabled = enabled && recent.Count > 0;
+
+            for (int i = 0; i < recent.Count; i++)
+            {
+                string path = recent[i];
+                // "&1" makes the number the access key; a "&" in the path itself is doubled to show it
+                var item = new ToolStripMenuItem($"&{i + 1}  {CompactPath(path).Replace("&", "&&")}")
+                {
+                    ToolTipText = path
+                };
+                item.Click += (_, _) => open(path);
+                menu.DropDownItems.Add(item);
+            }
+            if (recent.Count > 0)
+            {
+                menu.DropDownItems.Add(new ToolStripSeparator());
+                menu.DropDownItems.Add("Clear List", null, (_, _) => ClearRecentProjects());
+            }
+        }
+
+        /// <summary>
+        /// A long path shortened for the menu: the drive, "...", and as many of the last folders
+        /// as fit, e.g. "D:\...\Albums\2026\My Song.json". The file name is always kept whole.
+        /// </summary>
+        internal static string CompactPath(string path)
+        {
+            const int max = 60;
+            if (path.Length <= max) return path;
+            try
+            {
+                string root = Path.GetPathRoot(path) ?? "";
+                string[] parts = path[root.Length..].Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                string tail = parts[^1];
+                for (int i = parts.Length - 2; i >= 0; i--)
+                {
+                    string longer = parts[i] + Path.DirectorySeparatorChar + tail;
+                    if (root.Length + 4 + longer.Length > max) break;
+                    tail = longer;
+                }
+                return $"{root}...{Path.DirectorySeparatorChar}{tail}";
+            }
+            catch (ArgumentException)
+            {
+                return path;
+            }
         }
     }
 

@@ -95,6 +95,35 @@ namespace MP3toMP4
             menuUndoAllChanges.Enabled = idle && _projectPath != null && _openedData != null
                                          && CaptureState() != _openedState;
             menuAutosave.Checked = AutosaveOn;
+            UpdateRecentProjectsMenu();
+        }
+
+        /// <summary>
+        /// Fills File > Recent Projects with the projects opened or saved last, newest first, as
+        /// many as Settings > Recent Projects to Show says (0 hides the menu item). The list
+        /// itself always holds the last nine, so a higher number shows older ones again.
+        /// </summary>
+        private void UpdateRecentProjectsMenu() =>
+            ProjectFiles.FillRecentMenu(menuRecentProjects, AppSettings.RecentProjectsToShow,
+                enabled: !IsBusy, OpenRecentProject);
+
+        private void OpenRecentProject(string path)
+        {
+            if (IsBusy) return;
+
+            if (!File.Exists(path))
+            {
+                if (MessageBox.Show(this,
+                        $"The project \"{path}\" was not found. It may have been moved, renamed or deleted.\n\n" +
+                        "Do you want to remove it from the Recent Projects list?",
+                        AppTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                    ProjectFiles.RemoveRecentProject(path);
+                return;
+            }
+
+            if (!ConfirmLeaveProject()) return;
+            UpdateTitle();   // the changes were just saved
+            LoadProjectFile(path);
         }
 
         // ----- Noticing changes, autosave and the title bar -----
@@ -308,6 +337,7 @@ namespace MP3toMP4
             _autosaveErrorShown = false;
             ApplyProject(data, Path.GetDirectoryName(path));
             _savedState = _openedState = CaptureState();
+            ProjectFiles.AddRecentProject(path);
             UpdateTitle();
             ShowMissingFiles();
             return true;
@@ -510,6 +540,7 @@ namespace MP3toMP4
             if (!sameFile && File.Exists(path)) ProjectFiles.CreateBackup(path);
 
             if (!SaveProjectTo(path, automatic: false)) return false;
+            ProjectFiles.AddRecentProject(_projectPath ?? path);
 
             if (!sameFile)
             {

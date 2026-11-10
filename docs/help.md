@@ -311,6 +311,10 @@ The commands are in the **File** menu:
 - **New Project** (Ctrl+N): closes the project and empties the window. The **Clear** button does
   the same.
 - **Open Project...**: opens a project file.
+- **Recent Projects**: the projects you opened or saved last, with the newest first. Click one to
+  open it, or press its number. **Clear List** at the bottom empties the list. If a project is no
+  longer where it was, you are asked whether to remove it from the list. You choose how many
+  projects are shown in [Settings](#projects-1).
 - **Save Project** (Ctrl+S): saves the project. The first time, you are asked for a file name.
 - **Save Project As...** (Ctrl+Shift+S): saves the project under another name. You then continue
   in the new file, and the old one stays as it is.
@@ -443,6 +447,9 @@ It is not used for MKV files, which always keep the full quality.
   start. Leave it empty to start in the folder of the audio file. Click **...** to browse for a
   folder.
 - **Autosave Projects**: the same switch as **File > Autosave**.
+- **Recent Projects to Show**: how many projects **File > Recent Projects** lists, from 0 to 9.
+  With 0 the menu item is hidden. The last nine projects are always remembered, so if you
+  choose a higher number later, the older ones are shown again.
 
 ## Create Shortcut
 

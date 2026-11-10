@@ -390,5 +390,51 @@ namespace MP3toMP4
                 catch { /* never crash the host app */ }
             }
         }
+
+        // -------------------------------------------------------------------------
+        // Projects: how many projects File > Recent Projects lists: 0 to 9
+        // (default 4). 0 hides the menu item.
+        // -------------------------------------------------------------------------
+
+        private static readonly string RecentProjectsToShowFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", "MP3toMP4", "recent-projects-to-show.txt");
+
+        private static int? _cachedRecentProjectsToShow;
+
+        public static int RecentProjectsToShow
+        {
+            get
+            {
+                if (_cachedRecentProjectsToShow != null) return _cachedRecentProjectsToShow.Value;
+                try
+                {
+                    if (File.Exists(RecentProjectsToShowFile)
+                        && int.TryParse(File.ReadAllText(RecentProjectsToShowFile, System.Text.Encoding.UTF8).Trim(), out int v)
+                        && v >= 0 && v <= ProjectFiles.MaxRecentProjects)
+                    {
+                        _cachedRecentProjectsToShow = v;
+                        return v;
+                    }
+                }
+                catch { }
+                _cachedRecentProjectsToShow = 4;
+                return 4;
+            }
+            set
+            {
+                value = Math.Clamp(value, 0, ProjectFiles.MaxRecentProjects);
+                _cachedRecentProjectsToShow = value;
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(RecentProjectsToShowFile)!);
+                    File.WriteAllText(RecentProjectsToShowFile, value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        System.Text.Encoding.UTF8);
+                }
+                catch { /* never crash the host app */ }
+            }
+        }
+
+        // The list of recent projects itself is kept by ProjectFiles.cs (recent-projects.txt).
     }
 }

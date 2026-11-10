@@ -36,6 +36,8 @@ namespace MP3toMP4
             cboActionWhenFinished = new ComboBox();
             lblAction = new Label();
             grpProjects = new GroupBox();
+            numRecentProjects = new NumericUpDown();
+            lblRecentProjects = new Label();
             chkAutosaveProjects = new CheckBox();
             btnBrowseDefaultProjectFolder = new Button();
             txtDefaultProjectFolder = new TextBox();
@@ -50,6 +52,7 @@ namespace MP3toMP4
             grpAudio.SuspendLayout();
             grpActionWhenFinished.SuspendLayout();
             grpProjects.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numRecentProjects).BeginInit();
             SuspendLayout();
             //
             // toolTip
@@ -273,6 +276,8 @@ namespace MP3toMP4
             //
             // grpProjects
             //
+            grpProjects.Controls.Add(numRecentProjects);
+            grpProjects.Controls.Add(lblRecentProjects);
             grpProjects.Controls.Add(chkAutosaveProjects);
             grpProjects.Controls.Add(btnBrowseDefaultProjectFolder);
             grpProjects.Controls.Add(txtDefaultProjectFolder);
@@ -281,7 +286,7 @@ namespace MP3toMP4
             grpProjects.Controls.Add(lblProjectExtension);
             grpProjects.Location = new Point(384, 228);
             grpProjects.Name = "grpProjects";
-            grpProjects.Size = new Size(360, 172);
+            grpProjects.Size = new Size(360, 228);
             grpProjects.TabIndex = 5;
             grpProjects.TabStop = false;
             grpProjects.Text = "Projects";
@@ -348,10 +353,30 @@ namespace MP3toMP4
                 "This is the same switch as File > Autosave. Before an opened project is changed for the first\n" +
                 "time, a copy of it is kept for 30 days (File > Open Backup Folder).");
             //
+            // lblRecentProjects
+            //
+            lblRecentProjects.AutoSize = true;
+            lblRecentProjects.Location = new Point(10, 170);
+            lblRecentProjects.Name = "lblRecentProjects";
+            lblRecentProjects.TabIndex = 6;
+            lblRecentProjects.Text = "&Recent Projects to Show";
+            //
+            // numRecentProjects
+            //
+            numRecentProjects.Location = new Point(10, 188);
+            numRecentProjects.Maximum = new decimal(new int[] { 9, 0, 0, 0 });
+            numRecentProjects.Name = "numRecentProjects";
+            numRecentProjects.Size = new Size(60, 23);
+            numRecentProjects.TabIndex = 7;
+            toolTip.SetToolTip(numRecentProjects,
+                "How many of the projects you opened or saved last are listed under File > Recent Projects (0 to 9).\n" +
+                "0 hides that menu item. The last nine projects are always remembered, so a higher number\n" +
+                "brings older ones back.");
+            //
             // btnOK
             //
             btnOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnOK.Location = new Point(588, 412);
+            btnOK.Location = new Point(588, 468);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(75, 27);
             btnOK.TabIndex = 6;
@@ -363,7 +388,7 @@ namespace MP3toMP4
             //
             btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnCancel.DialogResult = DialogResult.Cancel;
-            btnCancel.Location = new Point(669, 412);
+            btnCancel.Location = new Point(669, 468);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(75, 27);
             btnCancel.TabIndex = 7;
@@ -377,7 +402,7 @@ namespace MP3toMP4
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new Size(756, 451);
+            ClientSize = new Size(756, 507);
             ControlBox = false;
             Controls.Add(grpUpdate);
             Controls.Add(grpOutputFolder);
@@ -406,6 +431,7 @@ namespace MP3toMP4
             grpActionWhenFinished.PerformLayout();
             grpProjects.ResumeLayout(false);
             grpProjects.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numRecentProjects).EndInit();
             ResumeLayout(false);
         }
 
@@ -437,6 +463,8 @@ namespace MP3toMP4
         private TextBox txtDefaultProjectFolder;
         private Button btnBrowseDefaultProjectFolder;
         private CheckBox chkAutosaveProjects;
+        private Label lblRecentProjects;
+        private NumericUpDown numRecentProjects;
         private Button btnOK;
         private Button btnCancel;
     }

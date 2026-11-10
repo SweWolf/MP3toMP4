@@ -61,6 +61,7 @@ namespace MP3toMP4
             cboProjectExtension.Text = AppSettings.ProjectFileExtension;
             txtDefaultProjectFolder.Text = AppSettings.DefaultProjectFolder;
             chkAutosaveProjects.Checked = AppSettings.AutosaveProjects == "Yes";
+            numRecentProjects.Value = AppSettings.RecentProjectsToShow;
         }
 
         private bool IsPlaySoundSelected => cboActionWhenFinished.SelectedItem?.ToString() == "Play a Sound";
@@ -167,6 +168,7 @@ namespace MP3toMP4
             AppSettings.ProjectFileExtension = projectExtension;
             AppSettings.DefaultProjectFolder = txtDefaultProjectFolder.Text.Trim();
             AppSettings.AutosaveProjects = chkAutosaveProjects.Checked ? "Yes" : "No";
+            AppSettings.RecentProjectsToShow = (int)numRecentProjects.Value;
             AppSettings.CheckForUpdatesOnStartup = cboNewVersionCheck.SelectedItem?.ToString() ?? "Yes";
             AppSettings.DefaultOutputFolder = txtDefaultOutputFolder.Text.Trim();
             AppSettings.DefaultOutputFormat = cboDefaultOutputFormat.SelectedIndex switch
