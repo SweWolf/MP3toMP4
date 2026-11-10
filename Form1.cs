@@ -328,18 +328,28 @@ namespace MP3toMP4
 
             chkLyrics.Enabled = false;
             LoadSettings();
+            InitProjects();
 
+            // Start argument: a project file (opened once the window is shown) or an audio file
             string[] args = Environment.GetCommandLineArgs();
             if (args.Length > 1 && File.Exists(args[1]))
             {
-                txtMP3File.Text = args[1];
-                PopulateImageCombo(args[1]);
-                UpdateMp3Length();
+                if (ProjectFiles.LooksLikeJson(args[1]))
+                    _startupProject = args[1];
+                else
+                {
+                    txtMP3File.Text = args[1];
+                    PopulateImageCombo(args[1]);
+                    UpdateMp3Length();
+                }
             }
         }
 
+        /// <summary>The Clear button does the same as File > New Project.</summary>
+        private void BtnClear_Click(object? sender, EventArgs e) => NewProject();
+
         /// <summary>Resets every field to how it looks when the window is first opened.</summary>
-        private void BtnClear_Click(object? sender, EventArgs e)
+        private void ResetFields()
         {
             // Clearing the MP3 path also clears the image combo items and the image/lyrics checkboxes
             txtMP3File.Text = "";
@@ -2038,6 +2048,19 @@ namespace MP3toMP4
                 _ = CheckForUpdatesAsync();
         }
 
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            // A project file given as the start argument. Opened here, not in the constructor,
+            // so its messages (e.g. files that were not found) appear on top of the window.
+            if (_startupProject != null)
+            {
+                string path = _startupProject;
+                _startupProject = null;
+                LoadProjectFile(path);
+            }
+        }
+
         /// <summary>
         /// Plays a sound, shows a message box, or does nothing, as chosen in Settings.
         /// </summary>
@@ -2108,6 +2131,13 @@ namespace MP3toMP4
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            // First the project: saved by itself with Autosave on, else "Do you want to save the changes?"
+            if (!ConfirmLeaveProject())
+            {
+                e.Cancel = true;
+                return;
+            }
+
             if (_ffmpegProcess != null && !_ffmpegProcess.HasExited)
             {
                 var result = MessageBox.Show(
@@ -2158,6 +2188,9 @@ namespace MP3toMP4
         {
             using var form = new SettingsForm();
             form.ShowDialog(this);
+            // Autosave Projects may have been changed
+            menuAutosave.Checked = AutosaveOn;
+            CheckProjectChanges();
         }
 
         private void aboutToolStripMenuItem_Click(object? sender, EventArgs e)

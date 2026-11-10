@@ -16,6 +16,7 @@ video files.
   - [Include Lyrics Tag](#include-lyrics-tag)
   - [Output](#output)
   - [Converting](#converting)
+- [Projects](#projects)
 - [MP4 or MKV?](#mp4-or-mkv)
 - [Settings](#settings)
 - [Create Shortcut](#create-shortcut)
@@ -270,7 +271,8 @@ only enlarged.
 - **Convert** starts the conversion. The progress bar and **Estimated remaining time** show how
   far it has come.
 - **Cancel** stops the conversion. The unfinished video file is deleted.
-- **Clear** empties all the fields, so you can start over.
+- **Clear** empties all the fields, so you can start over. It also closes the open
+  [project](#projects), like **File > New Project**.
 
 When the conversion is finished, MP3 to MP4 plays a sound (you can change this in
 [Settings](#settings)) and the **Open File** and **Open Log File** buttons become available:
@@ -294,6 +296,71 @@ conversion is finished.
 
 If you close MP3 to MP4 during a conversion, you are asked first, and the unfinished video file
 is deleted.
+
+## Projects
+
+*New in the next version.*
+
+A project is everything you have filled in in the main window, saved as one file: the audio file,
+the trim range, the picture, or the list of pictures and videos with their times, the effects and
+the output file. Save a project when you want to continue later, or to make the same video again
+with small changes. The settings under **Tools > Settings** are not part of a project.
+
+The commands are in the **File** menu:
+
+- **New Project** (Ctrl+N): closes the project and empties the window. The **Clear** button does
+  the same.
+- **Open Project...**: opens a project file.
+- **Save Project** (Ctrl+S): saves the project. The first time, you are asked for a file name.
+- **Save Project As...** (Ctrl+Shift+S): saves the project under another name. You then continue
+  in the new file, and the old one stays as it is.
+- **Undo All Changes**: puts the project back to what it was when you opened it. You are asked
+  first.
+- **Autosave** and **Open Backup Folder**: see below.
+- **Exit**: closes MP3 to MP4.
+
+The title bar shows the name of the open project, for example `My Song.json (Autosave) - MP3 to MP4`.
+
+### Autosave
+
+With **File > Autosave** checked, every change you make to an open project is saved to its file
+about a second later, and the title bar shows **(Autosave)**. You are not asked anything when you
+close the window. Autosave is on from the start.
+
+With **Autosave** unchecked, the project is only saved when you choose **Save Project**. A star
+after the name in the title bar (`My Song.json*`) means there are changes that are not saved, and
+you are asked whether to save them when you close the window, open another project or choose
+**New Project**.
+
+Work that has not been saved as a project yet is never saved by itself, and you are never asked
+about it.
+
+To try something out without changing your project, uncheck **Autosave** first, or make a copy with
+**Save Project As...** and try it there. If you changed the project by mistake, use
+**Undo All Changes** or a backup copy.
+
+### Backup Copies
+
+Just before an opened project is changed for the first time, a copy of the file as it was is saved
+in `%AppData%\SweWolfSoftware\MP3toMP4\Backups`. The copy has the date and time in its name, for
+example `My Song 2026-11-09 14.32.json`. The same happens to a file that you replace with
+**Save Project As...**. Backup copies are deleted automatically after 30 days.
+
+**File > Open Backup Folder** opens that folder. The copies are normal project files: open one
+with **Open Project...**, and use **Save Project As...** to put it back where you want it.
+
+### The Project File
+
+A project file is a text file in the JSON format, so you can look at it in a text editor or a web
+browser. Its name ends with `.json` unless you choose something else in
+[Settings](#projects-1). It starts with the line `"app": "SweWolf MP3 to MP4"`. That line, not the
+file name, is how MP3 to MP4 recognizes its projects.
+
+Every file is saved with its full path and also with its path relative to the project file. If you
+move or rename a folder that holds both the project and its files, the project still finds them.
+When files can't be found, you are told which ones when you open the project.
+
+You can also start the program with a project file, see [Create Shortcut](#create-shortcut).
 
 ## MP4 or MKV?
 
@@ -365,6 +432,18 @@ It is not used for MKV files, which always keep the full quality.
 - **Message Box**: shows a message with the name of the new video file.
 - **None**: does nothing.
 
+### Projects
+
+*New in the next version.* See [Projects](#projects).
+
+- **File Extension**: the ending of the file name that **Save Project As...** suggests. Choose
+  `.json`, `.mp3tomp4.json` or `.mp3tomp4` from the list, or type your own. It makes no
+  difference when a project is opened.
+- **Default Project Folder**: the folder where **Save Project As...** and **Open Project...**
+  start. Leave it empty to start in the folder of the audio file. Click **...** to browse for a
+  folder.
+- **Autosave Projects**: the same switch as **File > Autosave**.
+
 ## Create Shortcut
 
 **Tools > Create Shortcut...** creates shortcuts to MP3 to MP4. Check where you want them:
@@ -382,6 +461,12 @@ You can also start the program from the command line with an audio file:
 
 ```
 MP3toMP4.exe "C:\Music\My Song.mp3"
+```
+
+or with a [project](#projects) file, which is then opened (new in the next version):
+
+```
+MP3toMP4.exe "C:\Music\My Song.json"
 ```
 
 ## Drag and Drop, and Paste
@@ -408,6 +493,9 @@ around them are removed automatically.
 | Key | Action |
 |-----|--------|
 | **F1** | Open this help |
+| **Ctrl+N** | New Project |
+| **Ctrl+S** | Save Project |
+| **Ctrl+Shift+S** | Save Project As |
 | **Ctrl+E** | Convert |
 | **Ctrl+O** | Open File (the finished video) |
 | **Ctrl+Shift+O** | Open Folder |

@@ -46,6 +46,7 @@ video files.</p>
 <li><a href="#output">Output</a></li>
 <li><a href="#converting">Converting</a></li>
 </ul></li>
+<li><a href="#projects">Projects</a></li>
 <li><a href="#mp4-or-mkv">MP4 or MKV?</a></li>
 <li><a href="#settings">Settings</a></li>
 <li><a href="#create-shortcut">Create Shortcut</a></li>
@@ -346,7 +347,8 @@ get more detail: a small picture is only enlarged.</p>
 <li><strong>Cancel</strong> stops the conversion. The unfinished video
 file is deleted.</li>
 <li><strong>Clear</strong> empties all the fields, so you can start
-over.</li>
+over. It also closes the open <a href="#projects">project</a>, like
+<strong>File &gt; New Project</strong>.</li>
 </ul>
 <p>When the conversion is finished, MP3 to MP4 plays a sound (you can
 change this in <a href="#settings">Settings</a>) and the <strong>Open
@@ -378,6 +380,72 @@ length yet. MP4 files can’t be played until the conversion is
 finished.</p>
 <p>If you close MP3 to MP4 during a conversion, you are asked first, and
 the unfinished video file is deleted.</p>
+<h2 id="projects">Projects</h2>
+<p><em>New in the next version.</em></p>
+<p>A project is everything you have filled in in the main window, saved
+as one file: the audio file, the trim range, the picture, or the list of
+pictures and videos with their times, the effects and the output file.
+Save a project when you want to continue later, or to make the same
+video again with small changes. The settings under <strong>Tools &gt;
+Settings</strong> are not part of a project.</p>
+<p>The commands are in the <strong>File</strong> menu:</p>
+<ul>
+<li><strong>New Project</strong> (Ctrl+N): closes the project and
+empties the window. The <strong>Clear</strong> button does the
+same.</li>
+<li><strong>Open Project…</strong>: opens a project file.</li>
+<li><strong>Save Project</strong> (Ctrl+S): saves the project. The first
+time, you are asked for a file name.</li>
+<li><strong>Save Project As…</strong> (Ctrl+Shift+S): saves the project
+under another name. You then continue in the new file, and the old one
+stays as it is.</li>
+<li><strong>Undo All Changes</strong>: puts the project back to what it
+was when you opened it. You are asked first.</li>
+<li><strong>Autosave</strong> and <strong>Open Backup Folder</strong>:
+see below.</li>
+<li><strong>Exit</strong>: closes MP3 to MP4.</li>
+</ul>
+<p>The title bar shows the name of the open project, for example
+<code>My Song.json (Autosave) - MP3 to MP4</code>.</p>
+<h3 id="autosave">Autosave</h3>
+<p>With <strong>File &gt; Autosave</strong> checked, every change you
+make to an open project is saved to its file about a second later, and
+the title bar shows <strong>(Autosave)</strong>. You are not asked
+anything when you close the window. Autosave is on from the start.</p>
+<p>With <strong>Autosave</strong> unchecked, the project is only saved
+when you choose <strong>Save Project</strong>. A star after the name in
+the title bar (<code>My Song.json*</code>) means there are changes that
+are not saved, and you are asked whether to save them when you close the
+window, open another project or choose <strong>New Project</strong>.</p>
+<p>Work that has not been saved as a project yet is never saved by
+itself, and you are never asked about it.</p>
+<p>To try something out without changing your project, uncheck
+<strong>Autosave</strong> first, or make a copy with <strong>Save
+Project As…</strong> and try it there. If you changed the project by
+mistake, use <strong>Undo All Changes</strong> or a backup copy.</p>
+<h3 id="backup-copies">Backup Copies</h3>
+<p>Just before an opened project is changed for the first time, a copy
+of the file as it was is saved in
+<code>%AppData%\SweWolfSoftware\MP3toMP4\Backups</code>. The copy has
+the date and time in its name, for example
+<code>My Song 2026-11-09 14.32.json</code>. The same happens to a file
+that you replace with <strong>Save Project As…</strong>. Backup copies
+are deleted automatically after 30 days.</p>
+<p><strong>File &gt; Open Backup Folder</strong> opens that folder. The
+copies are normal project files: open one with <strong>Open
+Project…</strong>, and use <strong>Save Project As…</strong> to put it
+back where you want it.</p>
+<h3 id="the-project-file">The Project File</h3>
+<p>A project file is a text file in the JSON format, so you can look at
+it in a text editor or a web browser. Its name ends with
+<code>.json</code> unless you choose something else in <a href="#projects-1">Settings</a>. It starts with the line
+<code>&quot;app&quot;: &quot;SweWolf MP3 to MP4&quot;</code>. That line, not the file name,
+is how MP3 to MP4 recognizes its projects.</p>
+<p>Every file is saved with its full path and also with its path
+relative to the project file. If you move or rename a folder that holds
+both the project and its files, the project still finds them. When files
+can’t be found, you are told which ones when you open the project.</p>
+<p>You can also start the program with a project file, see <a href="#create-shortcut">Create Shortcut</a>.</p>
 <h2 id="mp4-or-mkv">MP4 or MKV?</h2>
 <p><strong>MP4</strong> plays almost everywhere: phones, TVs, browsers,
 video editors and all video sites. Choose MP4 if you are unsure.</p>
@@ -452,6 +520,20 @@ own WAV file, and select it under <strong>Custom Sound File
 new video file.</li>
 <li><strong>None</strong>: does nothing.</li>
 </ul>
+<h3 id="projects-1">Projects</h3>
+<p><em>New in the next version.</em> See <a href="#projects">Projects</a>.</p>
+<ul>
+<li><strong>File Extension</strong>: the ending of the file name that
+<strong>Save Project As…</strong> suggests. Choose <code>.json</code>,
+<code>.mp3tomp4.json</code> or <code>.mp3tomp4</code> from the list, or
+type your own. It makes no difference when a project is opened.</li>
+<li><strong>Default Project Folder</strong>: the folder where
+<strong>Save Project As…</strong> and <strong>Open Project…</strong>
+start. Leave it empty to start in the folder of the audio file. Click
+<strong>…</strong> to browse for a folder.</li>
+<li><strong>Autosave Projects</strong>: the same switch as <strong>File
+&gt; Autosave</strong>.</li>
+</ul>
 <h2 id="create-shortcut">Create Shortcut</h2>
 <p><strong>Tools &gt; Create Shortcut…</strong> creates shortcuts to MP3
 to MP4. Check where you want them:</p>
@@ -470,6 +552,9 @@ user only.</p>
 <p>You can also start the program from the command line with an audio
 file:</p>
 <pre><code>MP3toMP4.exe &quot;C:\Music\My Song.mp3&quot;</code></pre>
+<p>or with a <a href="#projects">project</a> file, which is then opened
+(new in the next version):</p>
+<pre><code>MP3toMP4.exe &quot;C:\Music\My Song.json&quot;</code></pre>
 <h2 id="drag-and-drop-and-paste">Drag and Drop, and Paste</h2>
 <p>You can drag files from File Explorer onto:</p>
 <ul>
@@ -504,6 +589,18 @@ automatically.</p>
 <tr>
 <td><strong>F1</strong></td>
 <td>Open this help</td>
+</tr>
+<tr>
+<td><strong>Ctrl+N</strong></td>
+<td>New Project</td>
+</tr>
+<tr>
+<td><strong>Ctrl+S</strong></td>
+<td>Save Project</td>
+</tr>
+<tr>
+<td><strong>Ctrl+Shift+S</strong></td>
+<td>Save Project As</td>
 </tr>
 <tr>
 <td><strong>Ctrl+E</strong></td>

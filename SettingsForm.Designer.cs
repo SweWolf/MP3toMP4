@@ -35,6 +35,13 @@ namespace MP3toMP4
             lblFinishedSound = new Label();
             cboActionWhenFinished = new ComboBox();
             lblAction = new Label();
+            grpProjects = new GroupBox();
+            chkAutosaveProjects = new CheckBox();
+            btnBrowseDefaultProjectFolder = new Button();
+            txtDefaultProjectFolder = new TextBox();
+            lblDefaultProjectFolder = new Label();
+            cboProjectExtension = new ComboBox();
+            lblProjectExtension = new Label();
             btnOK = new Button();
             btnCancel = new Button();
             grpUpdate.SuspendLayout();
@@ -42,6 +49,7 @@ namespace MP3toMP4
             grpOutputFormat.SuspendLayout();
             grpAudio.SuspendLayout();
             grpActionWhenFinished.SuspendLayout();
+            grpProjects.SuspendLayout();
             SuspendLayout();
             //
             // toolTip
@@ -180,7 +188,7 @@ namespace MP3toMP4
             grpActionWhenFinished.Controls.Add(lblFinishedSound);
             grpActionWhenFinished.Controls.Add(cboActionWhenFinished);
             grpActionWhenFinished.Controls.Add(lblAction);
-            grpActionWhenFinished.Location = new Point(12, 340);
+            grpActionWhenFinished.Location = new Point(384, 12);
             grpActionWhenFinished.Name = "grpActionWhenFinished";
             grpActionWhenFinished.Size = new Size(360, 210);
             grpActionWhenFinished.TabIndex = 4;
@@ -263,13 +271,90 @@ namespace MP3toMP4
             btnBrowseCustomSoundFile.Visible = false;
             btnBrowseCustomSoundFile.Click += BtnBrowseCustomSoundFile_Click;
             //
+            // grpProjects
+            //
+            grpProjects.Controls.Add(chkAutosaveProjects);
+            grpProjects.Controls.Add(btnBrowseDefaultProjectFolder);
+            grpProjects.Controls.Add(txtDefaultProjectFolder);
+            grpProjects.Controls.Add(lblDefaultProjectFolder);
+            grpProjects.Controls.Add(cboProjectExtension);
+            grpProjects.Controls.Add(lblProjectExtension);
+            grpProjects.Location = new Point(384, 228);
+            grpProjects.Name = "grpProjects";
+            grpProjects.Size = new Size(360, 172);
+            grpProjects.TabIndex = 5;
+            grpProjects.TabStop = false;
+            grpProjects.Text = "Projects";
+            //
+            // lblProjectExtension
+            //
+            lblProjectExtension.AutoSize = true;
+            lblProjectExtension.Location = new Point(10, 28);
+            lblProjectExtension.Name = "lblProjectExtension";
+            lblProjectExtension.TabIndex = 0;
+            lblProjectExtension.Text = "File &Extension";
+            //
+            // cboProjectExtension
+            //
+            cboProjectExtension.FormattingEnabled = true;
+            cboProjectExtension.Location = new Point(10, 46);
+            cboProjectExtension.Name = "cboProjectExtension";
+            cboProjectExtension.Size = new Size(218, 23);
+            cboProjectExtension.TabIndex = 1;
+            toolTip.SetToolTip(cboProjectExtension,
+                "The file extension that File > Save Project As suggests. Choose one from the list or type your own.\n" +
+                "A project file is a JSON text file, so with .json a text editor or web browser shows it properly.\n" +
+                "The extension makes no difference when a project is opened.");
+            //
+            // lblDefaultProjectFolder
+            //
+            lblDefaultProjectFolder.AutoSize = true;
+            lblDefaultProjectFolder.Location = new Point(10, 84);
+            lblDefaultProjectFolder.Name = "lblDefaultProjectFolder";
+            lblDefaultProjectFolder.TabIndex = 2;
+            lblDefaultProjectFolder.Text = "Default Project &Folder";
+            //
+            // txtDefaultProjectFolder
+            //
+            txtDefaultProjectFolder.Location = new Point(10, 102);
+            txtDefaultProjectFolder.Name = "txtDefaultProjectFolder";
+            txtDefaultProjectFolder.Size = new Size(300, 23);
+            txtDefaultProjectFolder.TabIndex = 3;
+            toolTip.SetToolTip(txtDefaultProjectFolder,
+                "The folder that File > Save Project As and File > Open Project start in.\n" +
+                "Leave it empty to start in the folder of the audio file.");
+            //
+            // btnBrowseDefaultProjectFolder
+            //
+            btnBrowseDefaultProjectFolder.Location = new Point(316, 101);
+            btnBrowseDefaultProjectFolder.Name = "btnBrowseDefaultProjectFolder";
+            btnBrowseDefaultProjectFolder.Size = new Size(34, 25);
+            btnBrowseDefaultProjectFolder.TabIndex = 4;
+            btnBrowseDefaultProjectFolder.Text = "...";
+            btnBrowseDefaultProjectFolder.UseVisualStyleBackColor = true;
+            btnBrowseDefaultProjectFolder.Click += btnBrowseDefaultProjectFolder_Click;
+            //
+            // chkAutosaveProjects
+            //
+            chkAutosaveProjects.AutoSize = true;
+            chkAutosaveProjects.Location = new Point(10, 138);
+            chkAutosaveProjects.Name = "chkAutosaveProjects";
+            chkAutosaveProjects.TabIndex = 5;
+            chkAutosaveProjects.Text = "Autosave &Projects";
+            chkAutosaveProjects.UseVisualStyleBackColor = true;
+            toolTip.SetToolTip(chkAutosaveProjects,
+                "Checked: every change to an open project is saved to its file a moment after you make it.\n" +
+                "Unchecked: a project is only saved with File > Save Project, and you are asked about unsaved changes.\n" +
+                "This is the same switch as File > Autosave. Before an opened project is changed for the first\n" +
+                "time, a copy of it is kept for 30 days (File > Open Backup Folder).");
+            //
             // btnOK
             //
             btnOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnOK.Location = new Point(216, 562);
+            btnOK.Location = new Point(588, 412);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(75, 27);
-            btnOK.TabIndex = 5;
+            btnOK.TabIndex = 6;
             btnOK.Text = "OK";
             btnOK.UseVisualStyleBackColor = true;
             btnOK.Click += btnOK_Click;
@@ -278,10 +363,10 @@ namespace MP3toMP4
             //
             btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnCancel.DialogResult = DialogResult.Cancel;
-            btnCancel.Location = new Point(297, 562);
+            btnCancel.Location = new Point(669, 412);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(75, 27);
-            btnCancel.TabIndex = 6;
+            btnCancel.TabIndex = 7;
             btnCancel.Text = "Cancel";
             btnCancel.UseVisualStyleBackColor = true;
             btnCancel.Click += btnCancel_Click;
@@ -292,13 +377,14 @@ namespace MP3toMP4
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new Size(384, 601);
+            ClientSize = new Size(756, 451);
             ControlBox = false;
             Controls.Add(grpUpdate);
             Controls.Add(grpOutputFolder);
             Controls.Add(grpOutputFormat);
             Controls.Add(grpAudio);
             Controls.Add(grpActionWhenFinished);
+            Controls.Add(grpProjects);
             Controls.Add(btnOK);
             Controls.Add(btnCancel);
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -318,6 +404,8 @@ namespace MP3toMP4
             grpAudio.PerformLayout();
             grpActionWhenFinished.ResumeLayout(false);
             grpActionWhenFinished.PerformLayout();
+            grpProjects.ResumeLayout(false);
+            grpProjects.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -342,6 +430,13 @@ namespace MP3toMP4
         private Label lblCustomSoundFile;
         private TextBox txtCustomSoundFile;
         private Button btnBrowseCustomSoundFile;
+        private GroupBox grpProjects;
+        private Label lblProjectExtension;
+        private ComboBox cboProjectExtension;
+        private Label lblDefaultProjectFolder;
+        private TextBox txtDefaultProjectFolder;
+        private Button btnBrowseDefaultProjectFolder;
+        private CheckBox chkAutosaveProjects;
         private Button btnOK;
         private Button btnCancel;
     }

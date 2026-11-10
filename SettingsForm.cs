@@ -11,8 +11,9 @@ namespace MP3toMP4
             // The Designer sets ClientSize before ControlBox = false / FixedDialog, and changing
             // those keeps the window size, so the client area ends up ~33 px too short and the
             // bottom-anchored OK/Cancel slide up over the last group. Size it from the layout instead.
-            ClientSize = new Size(grpActionWhenFinished.Right + 12,
-                                  grpActionWhenFinished.Bottom + 12 + btnOK.Height + 12);
+            // The groups are in two columns; Projects is the last group of the right, taller column.
+            ClientSize = new Size(grpProjects.Right + 12,
+                                  grpProjects.Bottom + 12 + btnOK.Height + 12);
         }
 
         private void SettingsForm_Load(object sender, EventArgs e)
@@ -54,6 +55,12 @@ namespace MP3toMP4
             cboActionWhenFinished.SelectedIndexChanged += (_, _) => UpdateSoundControlsVisibility();
             cboFinishedSound.SelectedIndexChanged += (_, _) => UpdateSoundControlsVisibility();
             UpdateSoundControlsVisibility();
+
+            // Projects: the list holds suggestions, any other extension can be typed
+            cboProjectExtension.Items.AddRange(ProjectFiles.SuggestedExtensions);
+            cboProjectExtension.Text = AppSettings.ProjectFileExtension;
+            txtDefaultProjectFolder.Text = AppSettings.DefaultProjectFolder;
+            chkAutosaveProjects.Checked = AppSettings.AutosaveProjects == "Yes";
         }
 
         private bool IsPlaySoundSelected => cboActionWhenFinished.SelectedItem?.ToString() == "Play a Sound";
@@ -110,21 +117,28 @@ namespace MP3toMP4
                 txtCustomSoundFile.Text = dlg.FileName;
         }
 
-        private void btnBrowseDefaultOutputFolder_Click(object sender, EventArgs e)
+        private void btnBrowseDefaultOutputFolder_Click(object sender, EventArgs e) =>
+            BrowseForFolder(txtDefaultOutputFolder, "Select Default Output Folder");
+
+        private void btnBrowseDefaultProjectFolder_Click(object? sender, EventArgs e) =>
+            BrowseForFolder(txtDefaultProjectFolder, "Select Default Project Folder");
+
+        /// <summary>Shows the folder picker, starting in the folder that is in the text box.</summary>
+        private void BrowseForFolder(TextBox target, string title)
         {
             using var dlg = new FolderBrowserDialog
             {
-                Description = "Select Default Output Folder",
+                Description = title,
                 UseDescriptionForTitle = true
             };
 
-            string current = txtDefaultOutputFolder.Text.Trim();
+            string current = target.Text.Trim();
             if (Directory.Exists(current))
                 // A trailing separator makes the folder picker open inside this folder
                 dlg.SelectedPath = Path.TrimEndingDirectorySeparator(current) + Path.DirectorySeparatorChar;
 
             if (dlg.ShowDialog(this) == DialogResult.OK)
-                txtDefaultOutputFolder.Text = dlg.SelectedPath;
+                target.Text = dlg.SelectedPath;
         }
 
         private void btnOK_Click(object sender, EventArgs e)
@@ -142,6 +156,17 @@ namespace MP3toMP4
                 }
             }
 
+            string? projectExtension = ProjectFiles.NormalizeExtension(cboProjectExtension.Text, out string extensionError);
+            if (projectExtension == null)
+            {
+                MessageBox.Show(extensionError, Form1.AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                cboProjectExtension.Focus();
+                return;
+            }
+
+            AppSettings.ProjectFileExtension = projectExtension;
+            AppSettings.DefaultProjectFolder = txtDefaultProjectFolder.Text.Trim();
+            AppSettings.AutosaveProjects = chkAutosaveProjects.Checked ? "Yes" : "No";
             AppSettings.CheckForUpdatesOnStartup = cboNewVersionCheck.SelectedItem?.ToString() ?? "Yes";
             AppSettings.DefaultOutputFolder = txtDefaultOutputFolder.Text.Trim();
             AppSettings.DefaultOutputFormat = cboDefaultOutputFormat.SelectedIndex switch

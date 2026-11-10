@@ -86,6 +86,18 @@
             btnCancel = new Button();
             btnClear = new Button();
             menuStrip = new MenuStrip();
+            menuFile = new ToolStripMenuItem();
+            menuNewProject = new ToolStripMenuItem();
+            menuOpenProject = new ToolStripMenuItem();
+            menuFileSeparator1 = new ToolStripSeparator();
+            menuSaveProject = new ToolStripMenuItem();
+            menuSaveProjectAs = new ToolStripMenuItem();
+            menuUndoAllChanges = new ToolStripMenuItem();
+            menuFileSeparator2 = new ToolStripSeparator();
+            menuAutosave = new ToolStripMenuItem();
+            menuOpenBackupFolder = new ToolStripMenuItem();
+            menuFileSeparator3 = new ToolStripSeparator();
+            menuExit = new ToolStripMenuItem();
             menuTools = new ToolStripMenuItem();
             menuCreateShortcut = new ToolStripMenuItem();
             menuSettings = new ToolStripMenuItem();
@@ -703,12 +715,93 @@
             // 
             // menuStrip
             // 
-            menuStrip.Items.AddRange(new ToolStripItem[] { menuTools, helpToolStripMenuItem, menuNewVersion });
+            menuStrip.Items.AddRange(new ToolStripItem[] { menuFile, menuTools, helpToolStripMenuItem, menuNewVersion });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
             menuStrip.Size = new Size(1418, 24);
             menuStrip.TabIndex = 22;
-            // 
+            //
+            // menuFile
+            //
+            menuFile.DropDownItems.AddRange(new ToolStripItem[] { menuNewProject, menuOpenProject, menuFileSeparator1, menuSaveProject, menuSaveProjectAs, menuUndoAllChanges, menuFileSeparator2, menuAutosave, menuOpenBackupFolder, menuFileSeparator3, menuExit });
+            menuFile.Name = "menuFile";
+            menuFile.Size = new Size(37, 20);
+            menuFile.Text = "File";
+            //
+            // menuNewProject
+            //
+            menuNewProject.Name = "menuNewProject";
+            menuNewProject.ShortcutKeys = Keys.Control | Keys.N;
+            menuNewProject.Size = new Size(232, 22);
+            menuNewProject.Text = "New Project";
+            menuNewProject.Click += menuNewProject_Click;
+            //
+            // menuOpenProject
+            //
+            menuOpenProject.Name = "menuOpenProject";
+            menuOpenProject.Size = new Size(232, 22);
+            menuOpenProject.Text = "Open Project...";
+            menuOpenProject.Click += menuOpenProject_Click;
+            //
+            // menuFileSeparator1
+            //
+            menuFileSeparator1.Name = "menuFileSeparator1";
+            menuFileSeparator1.Size = new Size(229, 6);
+            //
+            // menuSaveProject
+            //
+            menuSaveProject.Name = "menuSaveProject";
+            menuSaveProject.ShortcutKeys = Keys.Control | Keys.S;
+            menuSaveProject.Size = new Size(232, 22);
+            menuSaveProject.Text = "Save Project";
+            menuSaveProject.Click += menuSaveProject_Click;
+            //
+            // menuSaveProjectAs
+            //
+            menuSaveProjectAs.Name = "menuSaveProjectAs";
+            menuSaveProjectAs.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
+            menuSaveProjectAs.Size = new Size(232, 22);
+            menuSaveProjectAs.Text = "Save Project As...";
+            menuSaveProjectAs.Click += menuSaveProjectAs_Click;
+            //
+            // menuUndoAllChanges
+            //
+            menuUndoAllChanges.Name = "menuUndoAllChanges";
+            menuUndoAllChanges.Size = new Size(232, 22);
+            menuUndoAllChanges.Text = "Undo All Changes";
+            menuUndoAllChanges.Click += menuUndoAllChanges_Click;
+            //
+            // menuFileSeparator2
+            //
+            menuFileSeparator2.Name = "menuFileSeparator2";
+            menuFileSeparator2.Size = new Size(229, 6);
+            //
+            // menuAutosave
+            //
+            menuAutosave.Name = "menuAutosave";
+            menuAutosave.Size = new Size(232, 22);
+            menuAutosave.Text = "Autosave";
+            menuAutosave.Click += menuAutosave_Click;
+            //
+            // menuOpenBackupFolder
+            //
+            menuOpenBackupFolder.Name = "menuOpenBackupFolder";
+            menuOpenBackupFolder.Size = new Size(232, 22);
+            menuOpenBackupFolder.Text = "Open Backup Folder";
+            menuOpenBackupFolder.Click += menuOpenBackupFolder_Click;
+            //
+            // menuFileSeparator3
+            //
+            menuFileSeparator3.Name = "menuFileSeparator3";
+            menuFileSeparator3.Size = new Size(229, 6);
+            //
+            // menuExit
+            //
+            menuExit.Name = "menuExit";
+            menuExit.Size = new Size(232, 22);
+            menuExit.Text = "Exit";
+            menuExit.Click += menuExit_Click;
+            //
             // menuTools
             // 
             menuTools.DropDownItems.AddRange(new ToolStripItem[] { menuCreateShortcut, menuSettings });
@@ -889,6 +982,18 @@
         private Button btnCancel;
         private Button btnClear;
         private MenuStrip menuStrip;
+        private ToolStripMenuItem menuFile;
+        private ToolStripMenuItem menuNewProject;
+        private ToolStripMenuItem menuOpenProject;
+        private ToolStripSeparator menuFileSeparator1;
+        private ToolStripMenuItem menuSaveProject;
+        private ToolStripMenuItem menuSaveProjectAs;
+        private ToolStripMenuItem menuUndoAllChanges;
+        private ToolStripSeparator menuFileSeparator2;
+        private ToolStripMenuItem menuAutosave;
+        private ToolStripMenuItem menuOpenBackupFolder;
+        private ToolStripSeparator menuFileSeparator3;
+        private ToolStripMenuItem menuExit;
         private ToolStripMenuItem menuTools;
         private ToolStripMenuItem menuCreateShortcut;
         private ToolStripMenuItem menuSettings;

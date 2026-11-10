@@ -261,5 +261,134 @@ namespace MP3toMP4
                 catch { /* never crash the host app */ }
             }
         }
+
+        // -------------------------------------------------------------------------
+        // Projects: the extension Save Project As suggests: ".json" (default), or any
+        // other extension, with its leading dot (e.g. ".mp3tomp4.json", ".mp3tomp4")
+        // -------------------------------------------------------------------------
+
+        private static readonly string ProjectFileExtensionFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", "MP3toMP4", "project-file-extension.txt");
+
+        private static string? _cachedProjectFileExtension;
+
+        public static string ProjectFileExtension
+        {
+            get
+            {
+                if (_cachedProjectFileExtension != null) return _cachedProjectFileExtension;
+                try
+                {
+                    if (File.Exists(ProjectFileExtensionFile))
+                    {
+                        string? v = ProjectFiles.NormalizeExtension(
+                            File.ReadAllText(ProjectFileExtensionFile, System.Text.Encoding.UTF8), out _);
+                        if (v != null)
+                        {
+                            _cachedProjectFileExtension = v;
+                            return v;
+                        }
+                    }
+                }
+                catch { }
+                _cachedProjectFileExtension = ProjectFiles.DefaultExtension;
+                return _cachedProjectFileExtension;
+            }
+            set
+            {
+                _cachedProjectFileExtension = value;
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(ProjectFileExtensionFile)!);
+                    File.WriteAllText(ProjectFileExtensionFile, value, System.Text.Encoding.UTF8);
+                }
+                catch { /* never crash the host app */ }
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // Projects: the folder Save Project As and Open Project start in:
+        // "" (default, meaning "same folder as the audio file")
+        // -------------------------------------------------------------------------
+
+        private static readonly string DefaultProjectFolderFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", "MP3toMP4", "default-project-folder.txt");
+
+        private static string? _cachedDefaultProjectFolder;
+
+        public static string DefaultProjectFolder
+        {
+            get
+            {
+                if (_cachedDefaultProjectFolder != null) return _cachedDefaultProjectFolder;
+                try
+                {
+                    if (File.Exists(DefaultProjectFolderFile))
+                    {
+                        _cachedDefaultProjectFolder = File.ReadAllText(DefaultProjectFolderFile, System.Text.Encoding.UTF8).Trim();
+                        return _cachedDefaultProjectFolder;
+                    }
+                }
+                catch { }
+                _cachedDefaultProjectFolder = "";
+                return _cachedDefaultProjectFolder;
+            }
+            set
+            {
+                _cachedDefaultProjectFolder = value;
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(DefaultProjectFolderFile)!);
+                    File.WriteAllText(DefaultProjectFolderFile, value, System.Text.Encoding.UTF8);
+                }
+                catch { /* never crash the host app */ }
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // Projects: save every change to the open project file by itself:
+        // "Yes" (default) | "No". Also switched with File > Autosave.
+        // -------------------------------------------------------------------------
+
+        private static readonly string AutosaveProjectsFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SweWolfSoftware", "MP3toMP4", "autosave-projects.txt");
+
+        private static string? _cachedAutosaveProjects;
+
+        public static string AutosaveProjects
+        {
+            get
+            {
+                if (_cachedAutosaveProjects != null) return _cachedAutosaveProjects;
+                try
+                {
+                    if (File.Exists(AutosaveProjectsFile))
+                    {
+                        string v = File.ReadAllText(AutosaveProjectsFile, System.Text.Encoding.UTF8).Trim();
+                        if (v == "Yes" || v == "No")
+                        {
+                            _cachedAutosaveProjects = v;
+                            return v;
+                        }
+                    }
+                }
+                catch { }
+                _cachedAutosaveProjects = "Yes";
+                return _cachedAutosaveProjects;
+            }
+            set
+            {
+                _cachedAutosaveProjects = value;
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(AutosaveProjectsFile)!);
+                    File.WriteAllText(AutosaveProjectsFile, value, System.Text.Encoding.UTF8);
+                }
+                catch { /* never crash the host app */ }
+            }
+        }
     }
 }
