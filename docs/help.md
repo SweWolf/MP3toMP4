@@ -408,7 +408,7 @@ its audio file. Click **...** to browse for a folder.
 
 The format of the suggested output file:
 
-- **MP4 (Recommended)**: always MP4.
+- **MP4**: always MP4. This is the choice from the start.
 - **MKV**: always MKV.
 - **MKV When Converting from a Lossless Format**: MKV for WAV, FLAC and AIFF files, MP4 for all
   others.

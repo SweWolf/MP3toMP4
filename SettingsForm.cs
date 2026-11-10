@@ -20,7 +20,7 @@ namespace MP3toMP4
         {
             cboNewVersionCheck.SelectedItem = AppSettings.CheckForUpdatesOnStartup;
             txtDefaultOutputFolder.Text = AppSettings.DefaultOutputFolder;
-            // Item 0 = "MP4 (Recommended)", 1 = "MKV", 2 = "MKV When Converting from a Lossless Format"
+            // Item 0 = "MP4", 1 = "MKV", 2 = "MKV When Converting from a Lossless Format"
             cboDefaultOutputFormat.SelectedIndex = AppSettings.DefaultOutputFormat switch
             {
                 "MKV" => 1,

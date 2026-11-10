@@ -69,7 +69,7 @@ namespace MP3toMP4
             grpUpdate.Controls.Add(lblNewVersionCheck);
             grpUpdate.Location = new Point(12, 12);
             grpUpdate.Name = "grpUpdate";
-            grpUpdate.Size = new Size(360, 90);
+            grpUpdate.Size = new Size(510, 90);
             grpUpdate.TabIndex = 0;
             grpUpdate.TabStop = false;
             grpUpdate.Text = "Updates";
@@ -99,7 +99,7 @@ namespace MP3toMP4
             grpOutputFolder.Controls.Add(txtDefaultOutputFolder);
             grpOutputFolder.Location = new Point(12, 108);
             grpOutputFolder.Name = "grpOutputFolder";
-            grpOutputFolder.Size = new Size(360, 80);
+            grpOutputFolder.Size = new Size(510, 80);
             grpOutputFolder.TabIndex = 1;
             grpOutputFolder.TabStop = false;
             grpOutputFolder.Text = "Default Output Folder";
@@ -108,12 +108,12 @@ namespace MP3toMP4
             //
             txtDefaultOutputFolder.Location = new Point(10, 24);
             txtDefaultOutputFolder.Name = "txtDefaultOutputFolder";
-            txtDefaultOutputFolder.Size = new Size(300, 23);
+            txtDefaultOutputFolder.Size = new Size(450, 23);
             txtDefaultOutputFolder.TabIndex = 0;
             //
             // btnBrowseDefaultOutputFolder
             //
-            btnBrowseDefaultOutputFolder.Location = new Point(316, 23);
+            btnBrowseDefaultOutputFolder.Location = new Point(466, 23);
             btnBrowseDefaultOutputFolder.Name = "btnBrowseDefaultOutputFolder";
             btnBrowseDefaultOutputFolder.Size = new Size(34, 25);
             btnBrowseDefaultOutputFolder.TabIndex = 1;
@@ -135,7 +135,7 @@ namespace MP3toMP4
             grpOutputFormat.Controls.Add(cboDefaultOutputFormat);
             grpOutputFormat.Location = new Point(12, 194);
             grpOutputFormat.Name = "grpOutputFormat";
-            grpOutputFormat.Size = new Size(360, 62);
+            grpOutputFormat.Size = new Size(510, 62);
             grpOutputFormat.TabIndex = 2;
             grpOutputFormat.TabStop = false;
             grpOutputFormat.Text = "Default Output Format";
@@ -144,10 +144,10 @@ namespace MP3toMP4
             //
             cboDefaultOutputFormat.DropDownStyle = ComboBoxStyle.DropDownList;
             cboDefaultOutputFormat.FormattingEnabled = true;
-            cboDefaultOutputFormat.Items.AddRange(new object[] { "MP4 (Recommended)", "MKV", "MKV When Converting from a Lossless Format" });
+            cboDefaultOutputFormat.Items.AddRange(new object[] { "MP4", "MKV", "MKV When Converting from a Lossless Format" });
             cboDefaultOutputFormat.Location = new Point(10, 24);
             cboDefaultOutputFormat.Name = "cboDefaultOutputFormat";
-            cboDefaultOutputFormat.Size = new Size(340, 23);
+            cboDefaultOutputFormat.Size = new Size(490, 23);
             cboDefaultOutputFormat.TabIndex = 0;
             toolTip.SetToolTip(cboDefaultOutputFormat,
                 "The format of the suggested output file when you pick an audio file. For a single file you\n" +
@@ -164,7 +164,7 @@ namespace MP3toMP4
             grpAudio.Controls.Add(lblOptimizeAudioFor);
             grpAudio.Location = new Point(12, 262);
             grpAudio.Name = "grpAudio";
-            grpAudio.Size = new Size(360, 90);
+            grpAudio.Size = new Size(510, 90);
             grpAudio.TabIndex = 3;
             grpAudio.TabStop = false;
             grpAudio.Text = "Audio";
@@ -203,9 +203,9 @@ namespace MP3toMP4
             grpActionWhenFinished.Controls.Add(lblFinishedSound);
             grpActionWhenFinished.Controls.Add(cboActionWhenFinished);
             grpActionWhenFinished.Controls.Add(lblAction);
-            grpActionWhenFinished.Location = new Point(384, 12);
+            grpActionWhenFinished.Location = new Point(534, 12);
             grpActionWhenFinished.Name = "grpActionWhenFinished";
-            grpActionWhenFinished.Size = new Size(360, 210);
+            grpActionWhenFinished.Size = new Size(510, 210);
             grpActionWhenFinished.TabIndex = 4;
             grpActionWhenFinished.TabStop = false;
             grpActionWhenFinished.Text = "When the Conversion Is Finished";
@@ -225,7 +225,7 @@ namespace MP3toMP4
             cboActionWhenFinished.Items.AddRange(new object[] { "Play a Sound", "Message Box", "None" });
             cboActionWhenFinished.Location = new Point(10, 46);
             cboActionWhenFinished.Name = "cboActionWhenFinished";
-            cboActionWhenFinished.Size = new Size(340, 23);
+            cboActionWhenFinished.Size = new Size(490, 23);
             cboActionWhenFinished.TabIndex = 1;
             //
             // lblFinishedSound
@@ -243,13 +243,13 @@ namespace MP3toMP4
             cboFinishedSound.FormattingEnabled = true;
             cboFinishedSound.Location = new Point(10, 106);
             cboFinishedSound.Name = "cboFinishedSound";
-            cboFinishedSound.Size = new Size(300, 23);
+            cboFinishedSound.Size = new Size(450, 23);
             cboFinishedSound.TabIndex = 3;
             cboFinishedSound.Visible = false;
             //
             // btnPlayFinishedSound
             //
-            btnPlayFinishedSound.Location = new Point(316, 106);
+            btnPlayFinishedSound.Location = new Point(466, 106);
             btnPlayFinishedSound.Name = "btnPlayFinishedSound";
             btnPlayFinishedSound.Size = new Size(34, 23);
             btnPlayFinishedSound.TabIndex = 4;
@@ -271,13 +271,13 @@ namespace MP3toMP4
             //
             txtCustomSoundFile.Location = new Point(10, 164);
             txtCustomSoundFile.Name = "txtCustomSoundFile";
-            txtCustomSoundFile.Size = new Size(300, 23);
+            txtCustomSoundFile.Size = new Size(450, 23);
             txtCustomSoundFile.TabIndex = 6;
             txtCustomSoundFile.Visible = false;
             //
             // btnBrowseCustomSoundFile
             //
-            btnBrowseCustomSoundFile.Location = new Point(316, 163);
+            btnBrowseCustomSoundFile.Location = new Point(466, 163);
             btnBrowseCustomSoundFile.Name = "btnBrowseCustomSoundFile";
             btnBrowseCustomSoundFile.Size = new Size(34, 25);
             btnBrowseCustomSoundFile.TabIndex = 7;
@@ -297,9 +297,9 @@ namespace MP3toMP4
             grpProjects.Controls.Add(lblDefaultProjectFolder);
             grpProjects.Controls.Add(cboProjectExtension);
             grpProjects.Controls.Add(lblProjectExtension);
-            grpProjects.Location = new Point(384, 228);
+            grpProjects.Location = new Point(534, 228);
             grpProjects.Name = "grpProjects";
-            grpProjects.Size = new Size(360, 246);
+            grpProjects.Size = new Size(510, 246);
             grpProjects.TabIndex = 5;
             grpProjects.TabStop = false;
             grpProjects.Text = "Projects";
@@ -337,7 +337,7 @@ namespace MP3toMP4
             cboDefaultProjectFolder.FormattingEnabled = true;
             cboDefaultProjectFolder.Location = new Point(10, 102);
             cboDefaultProjectFolder.Name = "cboDefaultProjectFolder";
-            cboDefaultProjectFolder.Size = new Size(300, 23);
+            cboDefaultProjectFolder.Size = new Size(450, 23);
             cboDefaultProjectFolder.TabIndex = 3;
             toolTip.SetToolTip(cboDefaultProjectFolder,
                 "The folder that File > Save Project As and File > Open Project start in.\n" +
@@ -356,7 +356,7 @@ namespace MP3toMP4
             //
             // btnBrowseDefaultProjectFolder
             //
-            btnBrowseDefaultProjectFolder.Location = new Point(316, 101);
+            btnBrowseDefaultProjectFolder.Location = new Point(466, 101);
             btnBrowseDefaultProjectFolder.Name = "btnBrowseDefaultProjectFolder";
             btnBrowseDefaultProjectFolder.Size = new Size(34, 25);
             btnBrowseDefaultProjectFolder.TabIndex = 4;
@@ -401,9 +401,9 @@ namespace MP3toMP4
             // btnOK
             //
             btnOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnOK.Location = new Point(588, 486);
+            btnOK.Location = new Point(828, 486);
             btnOK.Name = "btnOK";
-            btnOK.Size = new Size(75, 27);
+            btnOK.Size = new Size(105, 27);
             btnOK.TabIndex = 6;
             btnOK.Text = "OK";
             btnOK.UseVisualStyleBackColor = true;
@@ -413,9 +413,9 @@ namespace MP3toMP4
             //
             btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnCancel.DialogResult = DialogResult.Cancel;
-            btnCancel.Location = new Point(669, 486);
+            btnCancel.Location = new Point(939, 486);
             btnCancel.Name = "btnCancel";
-            btnCancel.Size = new Size(75, 27);
+            btnCancel.Size = new Size(105, 27);
             btnCancel.TabIndex = 7;
             btnCancel.Text = "Cancel";
             btnCancel.UseVisualStyleBackColor = true;
@@ -427,7 +427,7 @@ namespace MP3toMP4
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new Size(756, 525);
+            ClientSize = new Size(1056, 525);
             ControlBox = false;
             Controls.Add(grpUpdate);
             Controls.Add(grpOutputFolder);
