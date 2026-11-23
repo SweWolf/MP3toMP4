@@ -631,27 +631,42 @@ namespace MP3toMP4
             {
                 target.Image?.Dispose();
 
-                if (path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase))
+                byte[] bytes = File.ReadAllBytes(path);
+                try
                 {
-                    // GDI+ doesn't support WebP; use WPF's WIC decoder which does
-                    var bi = new System.Windows.Media.Imaging.BitmapImage(new Uri(path));
-                    var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
-                    encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bi));
-                    using var ms = new MemoryStream();
-                    encoder.Save(ms);
-                    ms.Position = 0;
-                    target.Image = new Bitmap(ms);
-                }
-                else
-                {
-                    using var ms = new MemoryStream(File.ReadAllBytes(path));
+                    using var ms = new MemoryStream(bytes);
                     target.Image = Image.FromStream(ms);
+                }
+                catch (Exception)
+                {
+                    // GDI+ can't read WebP. WPF's WIC decoder can, and it goes by the content of the file,
+                    // not its extension, so a WebP picture that a web browser saved as .jpg works too.
+                    target.Image = DecodeWithWpf(bytes);
                 }
             }
             catch
             {
                 target.Image = null;
             }
+        }
+
+        /// <summary>A picture that GDI+ can't read (WebP), decoded by WPF. Throws if WPF can't read it either.</summary>
+        private static Bitmap DecodeWithWpf(byte[] bytes)
+        {
+            using var input = new MemoryStream(bytes);
+            var bi = new System.Windows.Media.Imaging.BitmapImage();
+            bi.BeginInit();
+            bi.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+            bi.StreamSource = input;
+            bi.EndInit();
+
+            var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+            encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bi));
+            using var png = new MemoryStream();
+            encoder.Save(png);
+            png.Position = 0;
+            using var decoded = new Bitmap(png);
+            return new Bitmap(decoded);   // a copy: it does not depend on the stream
         }
 
         /// <summary>The picture file shown in the single-image preview; null when it shows no file (e.g. Text mode).</summary>
