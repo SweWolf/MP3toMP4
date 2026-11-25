@@ -75,6 +75,12 @@ The application opens with the audio file already chosen and the picture and out
 
 [MIT License](LICENSE)
 
+## Support
+
+All of my software is completely free to use. If this application is useful to you and you would like to support future updates, you can [buy me a coffee on Ko-fi](https://ko-fi.com/swewolfsoftware). No pressure at all!
+
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/swewolfsoftware)
+
 ---
 
 *Developed by [SweWolf](https://github.com/SweWolf)*
